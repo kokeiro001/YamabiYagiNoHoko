@@ -546,7 +546,9 @@ function Player:Begin()
 end
 
 function Player:BeginStage(num)
-	self.itemSprites = {}
+	while table.getn(self.itemSprites) > 0 do
+		self:DecItem()
+	end
 end
 
 function Player:StateStart(rt)
