@@ -149,10 +149,10 @@ function GameScreen:Begin()
 	local clearFunc = function()
 		self:ChangeRoutine("StateClear")
 	end
-	local marker = StageMarker()
-	marker:Begin(clearFunc, STAGE_FRAME[self.stageNum])
-	self:AddChild(marker)
-	self.marker = marker
+	self.marker = StageMarker()
+	self.marker:Begin(clearFunc, STAGE_FRAME[self.stageNum])
+	self:AddChild(self.marker)
+	self.marker.enable = false
 
 	if DEBUG_MODE then
 		if false then
@@ -183,28 +183,16 @@ function GameScreen:Begin()
 		GS.SoundMgr:PlayBgm("gameBgm.ogg")
 	end
 	
-	self.stageNum = nil
+	self:BeginStage(1)
 end
 
 function GameScreen:BeginStage(stageNum)
-	self.encountCnt = 0
 	self.stageNum = stageNum
-	self.stageNumAct:SetText("STAGE"..stageNum)
-	
-	for idx, chr in ipairs(self:GetChild()) do
-		if chr.BeginStage ~= nil then
-			chr:BeginStage(self.stageNum)
-		end
-	end
+	self:ChangeRoutine("StateStart")
 end
 
 function GameScreen:StateStart(rt)
 	local spr = Sprite()
-	if self.stageNum == nil then
-		self.stageNum = 1
-	else
-		self.stageNum = self.stageNum + 1
-	end
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
 	
@@ -216,7 +204,12 @@ function GameScreen:StateStart(rt)
 		self.pat:Hide()
 	end
 	
+	-- remove all enemy
+	while table.getn(self.allEnemies) > 0 do
+		self:RemoveEnemy(self.allEnemies[1])
+	end
 	
+	-- fade in
 	self.frontAct:GetSpr():Show()
 	for i = 1, STARTDEMO_FADEIN_FRAME do
 		self.frontAct:GetSpr().alpha = 1 - (i / STARTDEMO_FADEIN_FRAME)
@@ -228,16 +221,39 @@ function GameScreen:StateStart(rt)
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
 		rt:Wait()
 	end
+	-- fade out
+
+	self.encountCnt = 0
+	self.stageNumAct:SetText("STAGE"..self.stageNum)
 	
+	for idx, chr in ipairs(self:GetChild()) do
+		if chr.BeginStage ~= nil then
+			chr:BeginStage(self.stageNum)
+		end
+	end
+
 	self:GetSpr():RemoveChild(spr)
 	self:Goto("StateGame")
 end
 
 function GameScreen:StateGame(rt)
-	self:BeginStage(self.stageNum)
 	while true do
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_C) then
-			self.marker:OnGoal()
+		if DEBUG_MODE then
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_C) then
+				self.marker:OnGoal()
+			end
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_1) then
+				self:BeginStage(1)
+			end
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_2) then
+				self:BeginStage(2)
+			end
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_3) then
+				self:BeginStage(3)
+			end
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_4) then
+				self:ChangeRoutine("StateEnding")
+			end
 		end
 		
 		self:CheckAddEnemy()
@@ -357,26 +373,35 @@ function GameScreen:StateClear(rt)
 	if self.stageNum == MAX_STAGE_NUM then
 		self:ChangeRoutine("StateEnding")
 	else
-		self:ChangeRoutine("StateStart")
+		self:BeginStage(self.stageNum + 1)
 	end
 	self:RemoveChild(stageClear)
 	rt:Wait()
 end
 
 function GameScreen:StateEnding(rt)
+	-- remove all enemy
+	while table.getn(self.allEnemies) > 0 do
+		self:RemoveEnemy(self.allEnemies[1])
+	end
+
 	local spr = Sprite()
+	spr.x = 30
+	spr.y = 30
 	spr:SetTextMode(
-		"企画 　　　　　(お前なんて名前入れればいいの？)\n"..
+		"企画 　　　　スーパーサンボマンボマーシャルアーツ\n"..
 		"グラフィック　ねちょ、ガンサー\n"..
 		"プログラマ　　コケいろ")
 	self:GetSpr():AddChild(spr)
 	
 	
 	self.stageNumAct:Hide()
+	self.marker.enable = false
 	self.marker:Hide()
 	
 	local span = 20
 	-- fade in
+	self.frontAct:GetSpr():Show()
 	for i = 1, span do
 		self.frontAct:GetSpr().alpha = 1 - (i /span)
 		rt:Wait()
@@ -395,6 +420,7 @@ function GameScreen:StateEnding(rt)
 		self.frontAct:GetSpr().alpha = (i /span)
 		rt:Wait()
 	end
+	self.frontAct:GetSpr():Hide()
 	
 	self:GetSpr():RemoveChild(spr)
 	ChangeScreen(TitleScreen())
@@ -1055,19 +1081,16 @@ function StageMarker:Begin(func, stageFrame)
 	self:GetSpr():AddChild(yamabi)
 	self.maker = yamabi
 	
+
 	self.animCnt = 0
 end
 
 
 function StageMarker:BeginStage(stageNum)
+	self.enable = true
 	self.isGoaled = false
 	self.nowFrame = 0
-end
-
-function StageMarker:InitStageClear(stageNum)
-	self.isGoaled = true
-	local width = MARKER_RIGHT_X - MARKER_LEFT_X
-	self.maker.x = MARKER_LEFT_X + width
+	self.maker.x = MARKER_LEFT_X
 end
 
 function StageMarker:StateStart(rt)
