@@ -188,9 +188,13 @@ function Actor:ApplyPosToSpr()
 	self.spr.y = self.y
 end
 
+function Actor:Show()
+	self:GetSpr():Show()
+end
 
-
-
+function Actor:Hide()
+	self:GetSpr():Hide()
+end
 
 function Actor:ChangeRoutine(name)
 	if self.currentRoutine == nil then

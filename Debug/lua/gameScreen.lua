@@ -27,8 +27,8 @@ local PLAYER_X = 100
 local PLAYER_Y = 320
 
 -- enemy
-local ENEMY_ANIM_SPD = 4
-local ENEMY_ENCOUNT_FRAME = 20				-- ìGÇÃèoåªä‘äu
+local ENEMY_ANIM_SPD 				= 4
+local ENEMY_ENCOUNT_FRAME 	= 20				-- ìGÇÃèoåªä‘äu
 local ENEMY_ENCOUNT_FRAME_DASH = 7		-- É_ÉbÉVÉÖíÜÇÃìGÇÃèoåªä‘äu
 
 local TOP_ENEMY_SPD 		= 10					-- è„íiÇÃìGÇÃë¨ìx
@@ -116,12 +116,14 @@ function GameScreen:Begin()
 	self:AddChild(back)
 	self.backId = back.id
 
-	local pat = PatrolCar()
-	pat:Begin()
-	pat.x = PATCAR_X
-	pat.y = PATCAR_Y
-	pat:ApplyPosToSpr()
-	self:AddChild(pat)
+	self.pat = PatrolCar()
+	self.pat:Begin()
+	self.pat.enable = false
+	self.pat:Hide()
+	self.pat.x = PATCAR_X
+	self.pat.y = PATCAR_Y
+	self.pat:ApplyPosToSpr()
+	self:AddChild(self.pat)
 	
 	local stageNumAct = Actor()
 	stageNumAct:Begin()
@@ -200,6 +202,15 @@ function GameScreen:StateStart(rt)
 	end
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
+	
+	if self.stageNum == 2 then
+		self.pat.enable = true
+		self.pat:Show()
+	else
+		self.pat.enable = false
+		self.pat:Hide()
+	end
+	
 	
 	for i=1, 60 do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
