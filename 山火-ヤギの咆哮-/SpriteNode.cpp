@@ -251,7 +251,8 @@ void Sprite::Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, 
 	else
 	{
 		m_children.push_back(damy);
-		SortZ();
+		//TODO:sort
+		//SortZ();
 		foreach(boost::shared_ptr<Sprite> chr, m_children)
 		{
 			if(chr == damy)

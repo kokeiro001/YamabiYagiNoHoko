@@ -29,11 +29,12 @@ local BOTTOM_ENEMY_SPD	= SCROLL_SPD	-- 下段
 
 local PROB_TOP_ENEMY			= 5					-- 出現比率
 local PROB_MIDDLE_ENEMY		= 85
-local PROB_BOTTOM_ENEMY		= 100
+local PROB_BOTTOM_ENEMY		= 10
 
 -- suriken
 local SURIKEN_HIT_FRAME = 10
 local LEFT_CHARGE_FRAME = 120
+local LEFT_CHARGE2_FRAME = 60
 local SURIKEN_WAIT_FRAME = 15
 
 local GAUGE_Y 					= PLAYER_Y + 30
@@ -205,6 +206,7 @@ function GameScreen:StateStart(rt)
 	local spr = Sprite()
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
+	self:GetSpr():SortZ()
 	
 	self.marker.enable = false
 	if self.stageNum == 2 then
@@ -250,6 +252,9 @@ end
 function GameScreen:StateGame(rt)
 	while true do
 		if DEBUG_MODE then
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_A) then
+				self.player:OnAddItem()
+			end
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_C) then
 				self.marker:OnGoal()
 			end
@@ -346,11 +351,12 @@ function GameScreen:StateClear(rt)
 		RemoveValue(deadTargets, enemy)
 	end
 	
+	-- ウェイトかける
 	for i=1, 40 do
 		rt:Wait()
 	end
 	
-	-- 
+	-- ハイク
 	local haiku = Haiku()
 	haiku:Begin(self.stageNum, self.score)
 	haiku.x = 280
@@ -358,20 +364,20 @@ function GameScreen:StateClear(rt)
 	haiku:ApplyPosToSpr()
 	self:AddChild(haiku)
 
-	-- show haiku
 	for i=1, SHOW_HAIKU_FRAME do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
 		rt:Wait()
 	end
 	rt:Wait()
 
-
+	-- 一枚絵どーん
 	local stageClear = Actor()
 	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
 	stageClear.x = 0
 	stageClear.y = 0
 	stageClear:ApplyPosToSpr()
 	self:AddChild(stageClear)
+	self:GetSpr():SortZ()
 	
 	
 	-- Z押すまで待機
@@ -505,7 +511,7 @@ end
 
 
 
-
+--@Player
 class 'Player'(Actor)
 function Player:__init(game)
 	Actor.__init(self)
@@ -576,6 +582,7 @@ function Player:OnAddItem()
 	GS.SoundMgr:PlaySe("bell")
 	local cnt = table.getn(self.itemSprites)
 	local spr = Sprite()
+	spr.name = "item"
 	spr:SetDivTextureMode("suriken", 4, 1, 32, 32)
 
 	spr:SetDrawPosAbsolute()
@@ -583,6 +590,13 @@ function Player:OnAddItem()
 	spr.y = 40
 	self:GetSpr():AddChild(spr)
 	table.insert(self.itemSprites, spr)
+end
+
+function Player:DecItem()
+	local cnt = self:GetItemCnt()
+	local spr  = self.itemSprites[cnt]
+	self:GetSpr():RemoveChild(spr)
+	table.remove(self.itemSprites)
 end
 
 function Player:GetItemCnt()
@@ -642,6 +656,7 @@ function PlayerCursorCharge:Begin()
 		for idx, enemy in ipairs(GetGame():GetEnemies()) do
 			self:ThrowSuriken(enemy)
 		end
+		GetPlayer():DecItem()
 	end
 	
 	gauge:Begin(releaseFunc, releaseFunc2)
@@ -1042,9 +1057,12 @@ function Gauge:StateCharge(rt)
 	self.chargeCnt = 0
 	while GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) do
 		self.chargeCnt = self.chargeCnt + 1
-		
-			self:GetSpr().drawWidth  = 1 + (MAX_GAUGE_WIDTH * self.chargeCnt) / LEFT_CHARGE_FRAME
+		self:GetSpr().drawWidth  = 1 + (MAX_GAUGE_WIDTH * self.chargeCnt) / LEFT_CHARGE_FRAME
 			
+		if GetPlayer():GetItemCnt() > 0 then
+			self:Goto("StateCharge2")
+		end
+
 		if self.chargeCnt == LEFT_CHARGE_FRAME then
 			self:Goto("StateMaxHold")
 		end
@@ -1069,7 +1087,23 @@ end
 
 
 function Gauge:StateCharge2(rt)
-	self.chargeCnt = 0
+	while GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) do
+		self.chargeCnt = self.chargeCnt + 1
+		self:GetSpr().drawWidth  = 1 + (MAX_GAUGE_WIDTH * self.chargeCnt) / LEFT_CHARGE_FRAME
+		
+		if self.chargeCnt == LEFT_CHARGE2_FRAME then
+			self:Goto("StateCharge2_2")
+		end
+		
+		rt:Wait()
+	end
+	self:Goto("StateStart")
+end
+
+function Gauge:StateCharge2_2(rt)
+	GS.SoundMgr:PlaySe("bosu")
+	self.chargeCnt = LEFT_CHARGE2_FRAME
+	self:GetSpr():SetTextureColorF(Color.Black)
 	while GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) do
 		self.chargeCnt = self.chargeCnt + 1
 		self:GetSpr().drawWidth  = 1 + (MAX_GAUGE_WIDTH * self.chargeCnt) / LEFT_CHARGE_FRAME
@@ -1079,24 +1113,9 @@ function Gauge:StateCharge2(rt)
 		end
 		rt:Wait()
 	end
+	self.releaseGaugeFunc2()
 	self:Goto("StateStart")
 end
-
-function Gauge:StateMaxHold2(rt)
-	GS.SoundMgr:PlaySe("metal")
-	self:GetSpr():SetTextureColorF(Color.Red)
-	while GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) do
-		rt:Wait()
-	end
-	
-	if self.releaseGaugeFunc2 ~= nil then
-		self.releaseGaugeFunc2()
-	end
-	
-	self:Goto("StateStart")
-end
-
-
 
 
 --@StageMarker
