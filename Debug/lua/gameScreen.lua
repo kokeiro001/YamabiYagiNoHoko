@@ -162,7 +162,7 @@ function GameScreen:Begin()
 		self:ChangeRoutine("StateClear")
 	end
 	self.marker = StageMarker()
-	self.marker:Begin(clearFunc, STAGE_FRAME[self.stageNum])
+	self.marker:Begin(clearFunc)
 	self:AddChild(self.marker)
 
 	if DEBUG_MODE then
@@ -1123,12 +1123,12 @@ class 'StageMarker'(Actor)
 function StageMarker:__init()
 	Actor.__init(self)
 	self.nowFrame = 0
+	self.stageFrame = 0
 end
 
-function StageMarker:Begin(func, stageFrame)
+function StageMarker:Begin(func)
 	Actor.Begin(self)
 	self.goalFunc = func
-	self.stageFrame = stageFrame
 	self:CreateSpr()
 	
 	self.isGoaled = false
@@ -1175,6 +1175,7 @@ function StageMarker:BeginStage(stageNum)
 	self.isGoaled = false
 	self.nowFrame = 0
 	self.maker.x = MARKER_LEFT_X
+	self.stageFrame = STAGE_FRAME[stageNum]
 end
 
 function StageMarker:StateStart(rt)
