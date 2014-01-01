@@ -646,8 +646,8 @@ function PlayerCursorCharge:__init(player)
 	self.itemCnt = 0
 end
 
-function PlayerCursorCharge:ThrowSuriken(act)
-	PlayerCursor.ThrowSuriken(self, act)
+function PlayerCursorCharge:ThrowSuriken(act, kind)
+	PlayerCursor.ThrowSuriken(self, act, kind)
 	self.surikenWaitCnt = SURIKEN_WAIT_FRAME
 end
 
@@ -687,7 +687,9 @@ function PlayerCursorCharge:StateStart(rt)
 		if self.surikenWaitCnt == 0 then
 			if not GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) then
 			
-				if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
+				if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) and
+					 GS.InputMgr:IsKeyFree(KeyCode.KEY_DOWN) and
+					 GS.InputMgr:IsKeyFree(KeyCode.KEY_RIGHT) then
 					local enemies = GetGame():GetEnemies()
 					for idx, enemy in ipairs(enemies) do
 						if enemy.line == LINE_TOP and
@@ -698,7 +700,9 @@ function PlayerCursorCharge:StateStart(rt)
 					end
 				end
 				
-				if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) then
+				if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) and
+					 GS.InputMgr:IsKeyFree(KeyCode.KEY_UP) and
+					 GS.InputMgr:IsKeyFree(KeyCode.KEY_RIGHT)then
 					local enemies = GetGame():GetEnemies()
 					for idx, enemy in ipairs(enemies) do
 						if enemy.line == LINE_BOTTOM and 
@@ -710,7 +714,9 @@ function PlayerCursorCharge:StateStart(rt)
 					end
 				end
 
-				if GS.InputMgr:IsKeyHold(KeyCode.KEY_RIGHT) then
+				if GS.InputMgr:IsKeyHold(KeyCode.KEY_RIGHT) and
+					 GS.InputMgr:IsKeyFree(KeyCode.KEY_UP) and
+					 GS.InputMgr:IsKeyFree(KeyCode.KEY_DOWN)then
 					local enemies = GetGame():GetEnemies()
 					for idx, enemy in ipairs(enemies) do
 						if enemy.line == LINE_MIDDLE and 
@@ -867,8 +873,11 @@ function Rock:Dead()
 	Enemy.Dead(self)
 end
 
-function Rock:DeadAction()
-	GetGame().player:AddItem(self.x, self.y)
+function Rock:DeadAction(surikenKind)
+	if surikenKind == SURIKEN_KIND_NORMAL or 
+		 surikenKind == SURIKEN_KIND_CHARGE1 then
+		GetGame().player:AddItem(self.x, self.y)
+	end
 end
 
 function Rock:StateStart(rt)
