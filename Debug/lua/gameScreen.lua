@@ -73,7 +73,6 @@ local ROCK_ROT_SPD = 	-5		-- 毎フレーム指定角度転がる。度数法。
 local STAGE_BACK_NAMES = { "stage1back", "stage2back", "stage3back" }
 
 
-
 function GetGame()
 	if GS.CurrentScreen.name == "GameScreen" then
 		return GS.CurrentScreen
@@ -97,6 +96,7 @@ function GameScreen:Begin()
 	ScreenBase.Begin(self)
 	
 	self.stageNum = 1
+	
 	local player = Player(self)
 	player:Begin()
 	player.x = PLAYER_X
@@ -278,6 +278,9 @@ function GameScreen:CheckAddEnemy()
 	self.encountCnt = self.encountCnt + 1
 end
 
+
+
+
 function GameScreen:StateClear(rt)
 	-- すべての敵をbom
 	local deadTargets = {}
@@ -292,15 +295,19 @@ function GameScreen:StateClear(rt)
 		RemoveValue(deadTargets, enemy)
 	end
 	
+	for i=1, 60 do
+		rt:Wait()
+	end
+	
 	
 	local stageClear = Actor()
-	if self.stageNum == MAX_STAGE_NUM then
-		stageClear:SetText("AllClear")
-	else
-		stageClear:SetText("Stage"..self.stageNum.." Clear")
-	end
-	stageClear.x = 300
-	stageClear.y = 200
+	
+	--if self.stageNum == MAX_STAGE_NUM then
+	--else
+	--end
+	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
+	stageClear.x = 0
+	stageClear.y = 0
 	stageClear:ApplyPosToSpr()
 	self:AddChild(stageClear)
 	
