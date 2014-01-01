@@ -12,7 +12,7 @@ local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ステージの背景透明度
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
 
 -- lines
-local LINE_HEIGHTS = { 100, 200, 320 }
+local LINE_HEIGHTS = { 100, 200, 300 }
 local LINE_TOP			= 1
 local LINE_MIDDLE		= 2
 local LINE_BOTTOM		= 3
@@ -22,7 +22,7 @@ local SCROLL_SPD 			= 3
 
 -- player
 local PLAYER_X = 100
-local PLAYER_Y = 320
+local PLAYER_Y = LINE_HEIGHTS[LINE_BOTTOM]
 
 -- enemy
 local ENEMY_ANIM_SPD 				= 4
@@ -54,7 +54,7 @@ local BURST_ANIM_SPD = 3	-- 敵破裂エフェクトのアニメーション速度
 -- patca
 local PAT_ANIM_SPD = 1
 local PATCAR_X = -50
-local PATCAR_Y = 310
+local PATCAR_Y = PLAYER_Y - 10
 
 -- marker
 local MARKER_LEFT_X			= 100
@@ -152,6 +152,7 @@ function GameScreen:Begin()
 	local marker = StageMarker()
 	marker:Begin(clearFunc, STAGE_FRAME[self.stageNum])
 	self:AddChild(marker)
+	self.marker = marker
 
 	if DEBUG_MODE then
 		if false then
@@ -236,7 +237,7 @@ function GameScreen:StateGame(rt)
 	self:BeginStage(self.stageNum)
 	while true do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_C) then
-			self:ChangeRoutine("StateClear")
+			self.marker:OnGoal()
 		end
 		
 		self:CheckAddEnemy()
@@ -333,6 +334,8 @@ function GameScreen:StateClear(rt)
 	stageClear:ApplyPosToSpr()
 	self:AddChild(stageClear)
 	
+	
+	-- Z押すまで待機
 	while true do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
 			break
@@ -341,6 +344,7 @@ function GameScreen:StateClear(rt)
 		rt:Wait()
 	end
 	
+	-- フェードアウト
 	local span = CLEARDEMO_FADEOUT_FRAME
 	self.frontAct:GetSpr():Show()
 	for i=1, span do
@@ -348,13 +352,53 @@ function GameScreen:StateClear(rt)
 		rt:Wait()
 	end
 
+
+	-- 次の画面へ
 	if self.stageNum == MAX_STAGE_NUM then
-		ChangeScreen(TitleScreen())
+		self:ChangeRoutine("StateEnding")
 	else
-		self:RemoveChild(stageClear)
 		self:ChangeRoutine("StateStart")
 	end
+	self:RemoveChild(stageClear)
 	rt:Wait()
+end
+
+function GameScreen:StateEnding(rt)
+	local spr = Sprite()
+	spr:SetTextMode(
+		"企画 　　　　　(お前なんて名前入れればいいの？)\n"..
+		"グラフィック　ねちょ、ガンサー\n"..
+		"プログラマ　　コケいろ")
+	self:GetSpr():AddChild(spr)
+	
+	
+	self.stageNumAct:Hide()
+	self.marker:Hide()
+	
+	local span = 20
+	-- fade in
+	for i = 1, span do
+		self.frontAct:GetSpr().alpha = 1 - (i /span)
+		rt:Wait()
+	end
+	
+	while true do
+		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
+			break
+		end
+		
+		rt:Wait()
+	end
+	
+	-- fade out
+	for i = 1, span do
+		self.frontAct:GetSpr().alpha = (i /span)
+		rt:Wait()
+	end
+	
+	self:GetSpr():RemoveChild(spr)
+	ChangeScreen(TitleScreen())
+	return "exit"
 end
 
 function GameScreen:GetEnemies()
@@ -1042,9 +1086,8 @@ function StageMarker:StateStart(rt)
 			local width = MARKER_RIGHT_X - MARKER_LEFT_X
 			self.maker.x = MARKER_LEFT_X + (width * self.nowFrame) / self.stageFrame
 			
- 			if self.nowFrame >= self.stageFrame then
-				self:goalFunc()
-				self.isGoaled = true
+			if self.nowFrame >= self.stageFrame then
+				self:OnGoal()
 			end
 		end
 		
@@ -1052,6 +1095,14 @@ function StageMarker:StateStart(rt)
 	end
 end
 
+function StageMarker:OnGoal()
+	self:goalFunc()
+	self.isGoaled = true
+
+	self.nowFrame = self.stageFrame
+	local width = MARKER_RIGHT_X - MARKER_LEFT_X
+	self.maker.x = MARKER_LEFT_X + width
+end
 
 
 
