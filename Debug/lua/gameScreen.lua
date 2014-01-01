@@ -69,9 +69,15 @@ local STAGE_CLEAR_DEMO_NAMES = {"stage1clear", "stage2clear", "stage3clear"}
 
 local ROCK_ROT_SPD = 	-5		-- 毎フレーム指定角度転がる。度数法。
 
+local STARTDEMO_FADEIN_FRAME	= 20
+local CLEARDEMO_FADEOUT_FRAME	= 20
 
 local STAGE_BACK_NAMES = { "stage1back", "stage2back", "stage3back" }
 
+
+local Z_ORDER_FRONT		= -1000
+local Z_ORDER_PLAYER	= 100
+local Z_ORDER_BACK		= 1000
 
 function GetGame()
 	if GS.CurrentScreen.name == "GameScreen" then
@@ -97,18 +103,28 @@ function GameScreen:Begin()
 	
 	self.stageNum = 1
 	
+	self.frontAct = Actor()
+	self.frontAct:SetTexture("whitePix")
+	self.frontAct:GetSpr():SetTextureColorF(Color.Black)
+	self.frontAct:GetSpr():Hide()
+	self.frontAct:GetSpr().drawWidth  = GetProperty("WindowWidth")
+	self.frontAct:GetSpr().drawHeight = GetProperty("WindowHeight")
+	self.frontAct:GetSpr().z = Z_ORDER_FRONT
+	self:AddChild(self.frontAct)
+	
+	
 	local player = Player(self)
 	player:Begin()
 	player.x = PLAYER_X
 	player.y = PLAYER_Y
-	player:GetSpr().z = 0
+	player:GetSpr().z = Z_ORDER_PLAYER
 	self:AddChild(player)
 	
 	local back = GameBack()
 	back:Begin()
 	back.x = GetProperty("WindowWidth")
 	back.y = 0
-	back:GetSpr().z = 1000
+	back:GetSpr().z = Z_ORDER_BACK
 	self:AddChild(back)
 	self.backId = back.id
 
@@ -199,6 +215,13 @@ function GameScreen:StateStart(rt)
 		self.pat:Hide()
 	end
 	
+	
+	self.frontAct:GetSpr():Show()
+	for i = 1, STARTDEMO_FADEIN_FRAME do
+		self.frontAct:GetSpr().alpha = 1 - (i / STARTDEMO_FADEIN_FRAME)
+		rt:Wait()
+	end
+	self.frontAct:GetSpr():Hide()
 	
 	for i=1, 60 do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
@@ -295,11 +318,10 @@ function GameScreen:StateClear(rt)
 		RemoveValue(deadTargets, enemy)
 	end
 	
-	for i=1, 60 do
+	for i=1, 40 do
 		rt:Wait()
 	end
-	
-	
+
 	local stageClear = Actor()
 	
 	--if self.stageNum == MAX_STAGE_NUM then
@@ -319,6 +341,13 @@ function GameScreen:StateClear(rt)
 		rt:Wait()
 	end
 	
+	local span = CLEARDEMO_FADEOUT_FRAME
+	self.frontAct:GetSpr():Show()
+	for i=1, span do
+		self.frontAct:GetSpr().alpha = (i / span)
+		rt:Wait()
+	end
+
 	if self.stageNum == MAX_STAGE_NUM then
 		ChangeScreen(TitleScreen())
 	else

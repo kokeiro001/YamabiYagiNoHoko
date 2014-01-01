@@ -36,7 +36,7 @@ bool MyFramework::OnPowerInit()
 
 	Properties::SetWindowTitle("ŽR‰Î-ƒ„ƒM‚Ì™ôšK-");
 	Properties::SetScreenWidth(640);
-	Properties::SetScreenHeight(380);
+	Properties::SetScreenHeight(360);
 
 
 	m_pCore = CreateCore();
