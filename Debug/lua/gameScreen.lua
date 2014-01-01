@@ -74,6 +74,14 @@ local CLEARDEMO_FADEOUT_FRAME	= 20
 
 local STAGE_BACK_NAMES = { "stage1back", "stage2back", "stage3back" }
 
+-- haiku
+local SHOW_HAIKU_FRAME = 120
+local HAIKU_TEXT = {
+	{"イナカの道は 走るだけでも キモチイイ", "テキがいる キビシイバトルに なりそうだ", "かかってくるなら ヨウシャしない インガオホー"},
+	{"ニンジャめし 買うの忘れてた", "ナンデ？パトカーナンデ？", "ゼッタイに あきらめはしない 待ってろトモミ"},
+	{"どなたかな 気持ち悪くなった 帰ろう", "長く 苦しい 戦いだった", "セレスっち まずは名前を なんとかすべし"}
+}
+
 
 local Z_ORDER_FRONT		= -1000
 local Z_ORDER_PLAYER	= 100
@@ -91,6 +99,7 @@ function GameScreen:__init()
 	ScreenBase.__init(self)
 	self.name = "GameScreen"
 	
+	self.score = 0
 	self.stageNum = 1
 	self.allEnemies = {}
 	self.surikens = {}
@@ -152,7 +161,6 @@ function GameScreen:Begin()
 	self.marker = StageMarker()
 	self.marker:Begin(clearFunc, STAGE_FRAME[self.stageNum])
 	self:AddChild(self.marker)
-	self.marker.enable = false
 
 	if DEBUG_MODE then
 		if false then
@@ -196,6 +204,7 @@ function GameScreen:StateStart(rt)
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
 	
+	self.marker.enable = false
 	if self.stageNum == 2 then
 		self.pat.enable = true
 		self.pat:Show()
@@ -338,12 +347,24 @@ function GameScreen:StateClear(rt)
 	for i=1, 40 do
 		rt:Wait()
 	end
+	
+	-- 
+	local haiku = Haiku()
+	haiku:Begin(self.stageNum, self.score)
+	haiku.x = 280
+	haiku.y = 60
+	haiku:ApplyPosToSpr()
+	self:AddChild(haiku)
+
+	-- show haiku
+	for i=1, SHOW_HAIKU_FRAME do
+		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
+		rt:Wait()
+	end
+	rt:Wait()
+
 
 	local stageClear = Actor()
-	
-	--if self.stageNum == MAX_STAGE_NUM then
-	--else
-	--end
 	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
 	stageClear.x = 0
 	stageClear.y = 0
@@ -376,6 +397,7 @@ function GameScreen:StateClear(rt)
 		self:BeginStage(self.stageNum + 1)
 	end
 	self:RemoveChild(stageClear)
+	self:RemoveChild(haiku)
 	rt:Wait()
 end
 
@@ -1131,6 +1153,27 @@ end
 
 
 
+--@Haiku
+class 'Haiku'(Actor)
+function Haiku:__init()
+	Actor.__init(self)
+end
+
+function Haiku:Begin(stageNum, score)
+	Actor.Begin(self)
+	
+	local rank = 3
+	local text = HAIKU_TEXT[stageNum][rank]
+	local tmp = {}
+	text = string.gsub(text, " ", "\n")
+	self:SetText(text)
+end
+
+function Haiku:StateStart(rt)
+	while true do
+		rt:Wait()
+	end
+end
 
 
 
