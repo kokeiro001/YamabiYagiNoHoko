@@ -19,8 +19,6 @@ local LINE_BOTTOM		= 3
 
 -- scroll
 local SCROLL_SPD 			= 3
-local DASH_SCROLL_SPD	= 8		-- ダッシュ中のスクロール速度
-local STEP_FRAME 			= 30	-- ダッシュ時間
 
 -- player
 local PLAYER_X = 100
@@ -29,7 +27,6 @@ local PLAYER_Y = 320
 -- enemy
 local ENEMY_ANIM_SPD 				= 4
 local ENEMY_ENCOUNT_FRAME 	= 20				-- 敵の出現間隔
-local ENEMY_ENCOUNT_FRAME_DASH = 7		-- ダッシュ中の敵の出現間隔
 
 local TOP_ENEMY_SPD 		= 10					-- 上段の敵の速度
 local MIDDLE_ENEMY_SPD	= SCROLL_SPD	-- 中段
@@ -37,7 +34,7 @@ local BOTTOM_ENEMY_SPD	= SCROLL_SPD	-- 下段
 
 local PROB_TOP_ENEMY			= 5					-- 出現比率
 local PROB_MIDDLE_ENEMY		= 85
-local PROB_BOTTOM_ENEMY		= 100
+local PROB_BOTTOM_ENEMY		= 10
 
 -- suriken
 local SURIKEN_HIT_FRAME = 10					-- 敵にヒットするまでのフレーム
@@ -47,7 +44,6 @@ local GAUGE_Y 					= PLAYER_Y + 30
 local MAX_GAUGE_WIDTH 	= 100
 local GAUGE_HEIGHT 			= 15
 
-local LINE_MIDDLE_LEFT_AREA = 400				-- 中段の左右判定X座標
 local SLASHABEL_X_MIN = PLAYER_X + 30		-- 下段 斬れる最小X
 local SLASHABEL_X_MAX = PLAYER_X + 200	-- 下段 斬れる最大X
 
@@ -162,14 +158,6 @@ function GameScreen:Begin()
 		slash.y = LINE_HEIGHTS[LINE_BOTTOM]
 		slash:ApplyPosToSpr()
 		self:AddChild(slash)
-
-		local left = Actor()
-		left:Begin()
-		left:SetText("|")
-		left.x = LINE_MIDDLE_LEFT_AREA
-		left.y = LINE_HEIGHTS[LINE_MIDDLE]
-		left:ApplyPosToSpr()
-		self:AddChild(left)
 	end
 
 	self:GetSpr():SortZ()
@@ -507,125 +495,6 @@ function PlayerCursor:StateStart(rt)
 			end
 		end
 		
-		rt:Wait()
-	end
-end
-
-
-
-class 'PlayerCursorHoldDash'(PlayerCursor)
-function PlayerCursorHoldDash:__init(player)
-	PlayerCursor.__init(self, player)
-	self.isDash = false
-end
-
-function PlayerCursorHoldDash:StateStart(rt)
-	while true do
-		-- move cursor
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_TOP and
-					 enemy.suriken == nil then
-					self:ThrowSuriken(enemy)
-					break
-				end
-			end
-		end
-		
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_BOTTOM and 
-					 enemy.suriken == nil and
-					 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
-					self:ThrowSuriken(enemy)
-				end
-			end
-		end
-		
-		
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_LEFT) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_MIDDLE and 
-					 enemy.suriken == nil then
-					self:ThrowSuriken(enemy)
-					break
-				end
-			end
-		end
-		
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_RIGHT) then
-			self.isDash = true
-			GetGame():ChangeScrollSpd(DASH_SCROLL_SPD)
-		else 
-			self.isDash = false
-			GetGame():ChangeScrollSpd(SCROLL_SPD)
-		end
-		
-		rt:Wait()
-	end
-end
-
-
-class 'PlayerCursorStep'(PlayerCursor)
-function PlayerCursorStep:__init(player)
-	PlayerCursor.__init(self, player)
-	
-	self.stepCnt = 0
-end
-
-function PlayerCursorStep:StateStart(rt)
-	while true do
-		-- move cursor
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_TOP and
-					 enemy.suriken == nil then
-					self:ThrowSuriken(enemy)
-					break
-				end
-			end
-		end
-		
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_BOTTOM and 
-					 enemy.suriken == nil and
-					 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
-					self:ThrowSuriken(enemy)
-				end
-			end
-		end
-		
-		
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_LEFT) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_MIDDLE and 
-					 enemy.suriken == nil then
-					self:ThrowSuriken(enemy)
-					break
-				end
-			end
-		end
-		
-		if self.stepCnt == 0
-			 and GS.InputMgr:IsKeyPush(KeyCode.KEY_RIGHT) then
-			self.stepCnt = STEP_FRAME
-			GetGame():ChangeScrollSpd(DASH_SCROLL_SPD)
-		end
-		
-		if self.stepCnt > 0 then
-			self.stepCnt = self.stepCnt - 1
-			if self.stepCnt == 0 then
-				GetGame():ChangeScrollSpd(SCROLL_SPD)
-			end
-		end
-
 		rt:Wait()
 	end
 end
