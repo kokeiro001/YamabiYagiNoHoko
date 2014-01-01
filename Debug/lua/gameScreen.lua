@@ -31,7 +31,10 @@ local PROB_TOP_ENEMY			= 5					-- 出現比率
 local PROB_MIDDLE_ENEMY		= 85
 local PROB_BOTTOM_ENEMY		= 10
 
-local PROB_CELES_STAGE2		= 30
+local HP_ZAKO			= 1		-- hp
+local HP_ROCK			= 1
+local HP_CELES		= 2
+local PROB_CELES_STAGE2		= 30		-- ステージ２のセレスっちの出現確率(%)
 local PROB_CELES_STAGE3		= 100
 
 -- suriken
@@ -694,51 +697,71 @@ function PlayerCursorCharge:Begin()
 end
 
 function PlayerCursorCharge:StateStart(rt)
+	local inputStack = {}
+	local useKeys = {
+		KeyCode.KEY_UP,
+		KeyCode.KEY_RIGHT,
+		KeyCode.KEY_DOWN
+	}
+
 	while true do
 		if self.surikenWaitCnt > 0 then
 			self.surikenWaitCnt = self.surikenWaitCnt - 1
 		end
 		
-		if self.surikenWaitCnt == 0 then
-			if not GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) then
+		-- キーが押されていなければスタックから削除
+		local i = 1
+		while i <= table.getn(inputStack) do
+			if GS.InputMgr:IsKeyFree(inputStack[i]) then
+				table.remove(inputStack, i)
+			else
+				i = i + 1
+			end
+		end
+		
+		-- キー押されてて、スタックに追加されてなければ追加
+		for idx, code in ipairs(useKeys) do
+			if GS.InputMgr:IsKeyHold(code) and
+				FindValue(inputStack, code) == nil then
+				table.insert(inputStack, 1, code)
+			end
+		end
+		
+		if self.surikenWaitCnt == 0 and
+			 not GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) 
+			 and table.getn(inputStack) > 0 then
+			 
+			local keyCode = inputStack[1]
+			if keyCode == KeyCode.KEY_UP then
+				local enemies = GetGame():GetEnemies()
+				for idx, enemy in ipairs(enemies) do
+					if enemy.line == LINE_TOP and
+						 enemy.suriken == nil then
+						self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
+						break
+					end
+				end
+			end
 			
-				if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) and
-					 GS.InputMgr:IsKeyFree(KeyCode.KEY_DOWN) and
-					 GS.InputMgr:IsKeyFree(KeyCode.KEY_RIGHT) then
-					local enemies = GetGame():GetEnemies()
-					for idx, enemy in ipairs(enemies) do
-						if enemy.line == LINE_TOP and
-							 enemy.suriken == nil then
-							self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
-							break
-						end
+			if keyCode == KeyCode.KEY_DOWN then
+				local enemies = GetGame():GetEnemies()
+				for idx, enemy in ipairs(enemies) do
+					if enemy.line == LINE_BOTTOM and 
+						 enemy.suriken == nil and
+						 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
+						self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
+						break
 					end
 				end
-				
-				if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) and
-					 GS.InputMgr:IsKeyFree(KeyCode.KEY_UP) and
-					 GS.InputMgr:IsKeyFree(KeyCode.KEY_RIGHT)then
-					local enemies = GetGame():GetEnemies()
-					for idx, enemy in ipairs(enemies) do
-						if enemy.line == LINE_BOTTOM and 
-							 enemy.suriken == nil and
-							 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
-							self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
-							break
-						end
-					end
-				end
+			end
 
-				if GS.InputMgr:IsKeyHold(KeyCode.KEY_RIGHT) and
-					 GS.InputMgr:IsKeyFree(KeyCode.KEY_UP) and
-					 GS.InputMgr:IsKeyFree(KeyCode.KEY_DOWN)then
-					local enemies = GetGame():GetEnemies()
-					for idx, enemy in ipairs(enemies) do
-						if enemy.line == LINE_MIDDLE and 
-							 enemy.suriken == nil then
-							self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
-							break
-						end
+			if keyCode == KeyCode.KEY_RIGHT then
+				local enemies = GetGame():GetEnemies()
+				for idx, enemy in ipairs(enemies) do
+					if enemy.line == LINE_MIDDLE and 
+						 enemy.suriken == nil then
+						self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
+						break
 					end
 				end
 			end
@@ -822,7 +845,7 @@ function Enemy:__init(kind)
 	self.spd = 0
 	self.kind = kind
 	self.suriken = nil
-	self.hp = 1
+	self.hp = HP_ZAKO
 end
 
 function Enemy:Damage(dmg)
@@ -883,6 +906,7 @@ end
 class 'Rock'(Enemy)
 function Rock:__init()
 	Enemy.__init(self)
+	self.hp = HP_ROCK
 end
 
 function Rock:SetActTexture()
@@ -921,7 +945,7 @@ end
 class 'Celes'(Enemy)
 function Celes:__init()
 	Enemy.__init(self)
-	self.hp = 2
+	self.hp = HP_CELES
 end
 
 function Celes:Damage(dmg)

@@ -26,6 +26,13 @@ function RemoveValue(t, value)
 	return nil
 end
 
+function FindValue(t, val)
+	for i, v in ipairs(t) do
+		if val == v then return i end
+	end
+	return nil
+end
+
 function CopyTable(tbl)
 	local tmp = {}
 	for idx, val in pairs(tbl) do
@@ -43,7 +50,6 @@ function TryCall(func, params)
 		end
 	end
 end
-
 
 
 
