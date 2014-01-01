@@ -86,6 +86,10 @@ local Z_ORDER_PLAYER	= 100
 local Z_ORDER_BACK		= 1000
 
 
+local SURIKEN_KIND_NORMAL		= 1
+local SURIKEN_KIND_CHARGE1	= 2
+local SURIKEN_KIND_CHARGE2	= 3
+
 
 function GetGame()
 	if GS.CurrentScreen.name == "GameScreen" then
@@ -111,6 +115,7 @@ function GameScreen:__init()
 end
 
 function GameScreen:Begin()
+print("beginBegin")
 	ScreenBase.Begin(self)
 	
 	self.stageNum = 1
@@ -163,6 +168,7 @@ function GameScreen:Begin()
 	end
 	self.marker = StageMarker()
 	self.marker:Begin(clearFunc)
+	self.marker.enable = false
 	self:AddChild(self.marker)
 
 	if DEBUG_MODE then
@@ -198,11 +204,13 @@ function GameScreen:Begin()
 end
 
 function GameScreen:BeginStage(stageNum)
+print("beginStateStage")
 	self.stageNum = stageNum
 	self:ChangeRoutine("StateStart")
 end
 
 function GameScreen:StateStart(rt)
+print("beginStateStart")
 	local spr = Sprite()
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
@@ -419,7 +427,7 @@ function GameScreen:StateEnding(rt)
 	spr.x = 30
 	spr.y = 30
 	spr:SetTextMode(
-		"企画 　　　　スーパーサンボマンボマーシャルアーツ\n"..
+		"企画 　　　　スーパーウルトラサンボマンボマーシャルアーツ\n"..
 		"グラフィック　ねちょ、ガンサー\n"..
 		"プログラマ　　コケいろ")
 	self:GetSpr():AddChild(spr)
@@ -615,9 +623,10 @@ function PlayerCursor:__init(player)
 	self.game = player.game
 end
 
-function PlayerCursor:ThrowSuriken(act)
+function PlayerCursor:ThrowSuriken(act, kind)
 	local suriken = Suriken()
 	suriken:Begin()
+	suriken.kind = kind
 	suriken.target = act
 	suriken.x = self.player.x + 30
 	suriken.y = self.player.y - 10
@@ -648,13 +657,13 @@ function PlayerCursorCharge:Begin()
 	local releaseFunc = function()
 		for idx, enemy in ipairs(GetGame():GetEnemies()) do
 			if enemy.line == LINE_MIDDLE then
-				self:ThrowSuriken(enemy)
+				self:ThrowSuriken(enemy, SURIKEN_KIND_CHARGE1)
 			end
 		end
 	end
 	local releaseFunc2 = function()
 		for idx, enemy in ipairs(GetGame():GetEnemies()) do
-			self:ThrowSuriken(enemy)
+			self:ThrowSuriken(enemy, SURIKEN_KIND_CHARGE2)
 		end
 		GetPlayer():DecItem()
 	end
@@ -675,12 +684,13 @@ function PlayerCursorCharge:StateStart(rt)
 		
 		if self.surikenWaitCnt == 0 then
 			if not GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) then
+			
 				if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
 					local enemies = GetGame():GetEnemies()
 					for idx, enemy in ipairs(enemies) do
 						if enemy.line == LINE_TOP and
 							 enemy.suriken == nil then
-							self:ThrowSuriken(enemy)
+							self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
 							break
 						end
 					end
@@ -692,7 +702,7 @@ function PlayerCursorCharge:StateStart(rt)
 						if enemy.line == LINE_BOTTOM and 
 							 enemy.suriken == nil and
 							 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
-							self:ThrowSuriken(enemy)
+							self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
 							break
 						end
 					end
@@ -703,7 +713,7 @@ function PlayerCursorCharge:StateStart(rt)
 					for idx, enemy in ipairs(enemies) do
 						if enemy.line == LINE_MIDDLE and 
 							 enemy.suriken == nil then
-							self:ThrowSuriken(enemy)
+							self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
 							break
 						end
 					end
@@ -756,8 +766,9 @@ function Suriken:StateStart(rt)
 	end
 	
 	if self.target.DeadAction ~= nil then
-		self.target:DeadAction()
+		self.target:DeadAction(self.kind)
 	end
+	
 	GetGame():DeadEnemy(self.target)
 	GetGame():RemoveSuriken(self)
 	self:Dead()
@@ -1175,6 +1186,7 @@ function StageMarker:BeginStage(stageNum)
 	self.isGoaled = false
 	self.nowFrame = 0
 	self.maker.x = MARKER_LEFT_X
+	print(stageNum)
 	self.stageFrame = STAGE_FRAME[stageNum]
 end
 
