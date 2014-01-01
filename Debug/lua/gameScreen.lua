@@ -89,7 +89,7 @@ local Z_ORDER_BACK		= 1000
 local SURIKEN_KIND_NORMAL		= 1
 local SURIKEN_KIND_CHARGE1	= 2
 local SURIKEN_KIND_CHARGE2	= 3
-
+local SURIKEN_DAMAGE = {1, 1, 2}
 
 function GetGame()
 	if GS.CurrentScreen.name == "GameScreen" then
@@ -773,11 +773,8 @@ function Suriken:StateStart(rt)
 		rt:Wait()
 	end
 	
-	if self.target.DeadAction ~= nil then
-		self.target:DeadAction(self.kind)
-	end
+	self.target:Damage(SURIKEN_DAMAGE[self.kind], self.kind)
 	
-	GetGame():DeadEnemy(self.target)
 	GetGame():RemoveSuriken(self)
 	self:Dead()
 	rt:Wait()
@@ -806,6 +803,18 @@ function Enemy:__init(kind)
 	self.spd = 0
 	self.kind = kind
 	self.suriken = nil
+	self.hp = 1
+end
+
+function Enemy:Damage(dmg, kind)
+	self.hp = self.hp - dmg
+	if self.hp <= 0 then
+		self:DeadAction(kind)
+		GetGame():DeadEnemy(self)
+	end
+end
+
+function Enemy:DeadAction(kind)
 end
 
 function Enemy:Dead()
