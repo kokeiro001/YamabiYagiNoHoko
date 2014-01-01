@@ -37,8 +37,9 @@ local PROB_MIDDLE_ENEMY		= 85
 local PROB_BOTTOM_ENEMY		= 10
 
 -- suriken
-local SURIKEN_HIT_FRAME = 10					-- 敵にヒットするまでのフレーム
-local LEFT_CHARGE_FRAME = 120					-- 左キーのチャージ時間
+local SURIKEN_HIT_FRAME = 10
+local LEFT_CHARGE_FRAME = 120
+local SURIKEN_WAIT_FRAME = 15
 
 local GAUGE_Y 					= PLAYER_Y + 30
 local MAX_GAUGE_WIDTH 	= 100
@@ -521,18 +522,7 @@ function Player:Begin()
 	
 	self.animCnt = 0
 
-	local cursor = nil
-	if TEST_TYPE == "Normal" then
-		cursor = PlayerCursor(self)
-	elseif TEST_TYPE == "HoldDash" then
-		cursor = PlayerCursorHoldDash(self)
-	elseif TEST_TYPE == "Step" then
-		cursor = PlayerCursorStep(self)
-	elseif TEST_TYPE == "Charge" then
-		cursor = PlayerCursorCharge(self)
-	else
-		error("not def test tyep")
-	end
+	local cursor = PlayerCursorCharge(self)
 	
 	cursor:Begin()
 	GetGame():AddChild(cursor)
@@ -574,64 +564,16 @@ function PlayerCursor:ThrowSuriken(act)
 	GetGame():AddSuriken(suriken)
 end
 
-function PlayerCursor:StateStart(rt)
-	while true do
-		-- move cursor
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_TOP and
-					 enemy.suriken == nil then
-					self:ThrowSuriken(enemy)
-					break
-				end
-			end
-		end
-		
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_BOTTOM and 
-					 enemy.suriken == nil and
-					 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
-					self:ThrowSuriken(enemy)
-				end
-			end
-		end
-		
-		
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_LEFT) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_MIDDLE and 
-					 enemy.suriken == nil and
-					 enemy.x < LINE_MIDDLE_LEFT_AREA then
-					self:ThrowSuriken(enemy)
-					break
-				end
-			end
-		end
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_RIGHT) then
-			local enemies = GetGame():GetEnemies()
-			for idx, enemy in ipairs(enemies) do
-				if enemy.line == LINE_MIDDLE and 
-					 enemy.suriken == nil and
-					 enemy.x >= LINE_MIDDLE_LEFT_AREA then
-					self:ThrowSuriken(enemy)
-					break
-				end
-			end
-		end
-		
-		rt:Wait()
-	end
-end
-
 class 'PlayerCursorCharge'(PlayerCursor)
 function PlayerCursorCharge:__init(player)
 	PlayerCursor.__init(self, player)
 	
-	self.stepCnt = 0
+	self.surikenWaitCnt = 0
+end
+
+function PlayerCursorCharge:ThrowSuriken(act)
+	PlayerCursor.ThrowSuriken(self, act)
+	self.surikenWaitCnt = SURIKEN_WAIT_FRAME
 end
 
 function PlayerCursorCharge:Begin()
@@ -663,37 +605,43 @@ end
 
 function PlayerCursorCharge:StateStart(rt)
 	while true do
-		if not GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) then
-			if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
-				local enemies = GetGame():GetEnemies()
-				for idx, enemy in ipairs(enemies) do
-					if enemy.line == LINE_TOP and
-						 enemy.suriken == nil then
-						self:ThrowSuriken(enemy)
-						break
+		if self.surikenWaitCnt > 0 then
+			self.surikenWaitCnt = self.surikenWaitCnt - 1
+		end
+		
+		if self.surikenWaitCnt == 0 then
+			if not GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) then
+				if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
+					local enemies = GetGame():GetEnemies()
+					for idx, enemy in ipairs(enemies) do
+						if enemy.line == LINE_TOP and
+							 enemy.suriken == nil then
+							self:ThrowSuriken(enemy)
+							break
+						end
 					end
 				end
-			end
-			
-			if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) then
-				local enemies = GetGame():GetEnemies()
-				for idx, enemy in ipairs(enemies) do
-					if enemy.line == LINE_BOTTOM and 
-						 enemy.suriken == nil and
-						 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
-						self:ThrowSuriken(enemy)
-						break
+				
+				if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) then
+					local enemies = GetGame():GetEnemies()
+					for idx, enemy in ipairs(enemies) do
+						if enemy.line == LINE_BOTTOM and 
+							 enemy.suriken == nil and
+							 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
+							self:ThrowSuriken(enemy)
+							break
+						end
 					end
 				end
-			end
 
-			if GS.InputMgr:IsKeyPush(KeyCode.KEY_RIGHT) then
-				local enemies = GetGame():GetEnemies()
-				for idx, enemy in ipairs(enemies) do
-					if enemy.line == LINE_MIDDLE and 
-						 enemy.suriken == nil then
-						self:ThrowSuriken(enemy)
-						break
+				if GS.InputMgr:IsKeyHold(KeyCode.KEY_RIGHT) then
+					local enemies = GetGame():GetEnemies()
+					for idx, enemy in ipairs(enemies) do
+						if enemy.line == LINE_MIDDLE and 
+							 enemy.suriken == nil then
+							self:ThrowSuriken(enemy)
+							break
+						end
 					end
 				end
 			end
