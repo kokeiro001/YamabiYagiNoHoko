@@ -1,7 +1,7 @@
 local DEBUG_MODE 	= true
 local IS_PLAY_BGM	= false
 
-local STAGE_FRAME = {	3000, 300, 300	}	-- ステージのクリアまでの時間
+local STAGE_FRAME = {	3000, 3000, 3000	}	-- ステージのクリアまでの時間
 local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ステージの背景透明度
 
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
@@ -30,6 +30,9 @@ local BOTTOM_ENEMY_SPD	= SCROLL_SPD	-- 下段
 local PROB_TOP_ENEMY			= 5					-- 出現比率
 local PROB_MIDDLE_ENEMY		= 85
 local PROB_BOTTOM_ENEMY		= 10
+
+local PROB_CELES_STAGE2		= 30
+local PROB_CELES_STAGE3		= 100
 
 -- suriken
 local SURIKEN_HIT_FRAME = 10
@@ -115,7 +118,6 @@ function GameScreen:__init()
 end
 
 function GameScreen:Begin()
-print("beginBegin")
 	ScreenBase.Begin(self)
 	
 	self.stageNum = 1
@@ -204,13 +206,11 @@ print("beginBegin")
 end
 
 function GameScreen:BeginStage(stageNum)
-print("beginStateStage")
 	self.stageNum = stageNum
 	self:ChangeRoutine("StateStart")
 end
 
 function GameScreen:StateStart(rt)
-print("beginStateStart")
 	local spr = Sprite()
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
@@ -326,7 +326,22 @@ function GameScreen:CheckAddEnemy()
 		if line == LINE_BOTTOM then
 			enemy = Rock()
 		else
-			enemy = Enemy(math.random(0, 5))
+			-- zako or ceres
+			if self.stageNum == 1 then
+				enemy = Enemy(math.random(0, 5))
+			elseif self.stageNum == 2 then
+				if math.random(1, 100) <= PROB_CELES_STAGE2 then
+					enemy = Celes()
+				else
+					enemy = Enemy(math.random(0, 5))
+				end
+			elseif self.stageNum == 3 then
+				if math.random(1, 100) <= PROB_CELES_STAGE3 then
+					enemy = Celes()
+				else
+					enemy = Enemy(math.random(0, 5))
+				end
+			end
 		end
 		enemy:Begin()
 		
@@ -773,7 +788,11 @@ function Suriken:StateStart(rt)
 		rt:Wait()
 	end
 	
-	self.target:Damage(SURIKEN_DAMAGE[self.kind], self.kind)
+	if self.target:Damage(SURIKEN_DAMAGE[self.kind]) then
+		self.target:DeadAction(self.kind)
+		GetGame():DeadEnemy(self.target)
+	end
+	self.target.suriken = nil
 	
 	GetGame():RemoveSuriken(self)
 	self:Dead()
@@ -806,12 +825,12 @@ function Enemy:__init(kind)
 	self.hp = 1
 end
 
-function Enemy:Damage(dmg, kind)
+function Enemy:Damage(dmg)
 	self.hp = self.hp - dmg
 	if self.hp <= 0 then
-		self:DeadAction(kind)
-		GetGame():DeadEnemy(self)
+		return true
 	end
+	return false
 end
 
 function Enemy:DeadAction(kind)
@@ -864,10 +883,6 @@ end
 class 'Rock'(Enemy)
 function Rock:__init()
 	Enemy.__init(self)
-	
-	self.spd = 0
-	self.kind = kind
-	self.suriken = nil
 end
 
 function Rock:SetActTexture()
@@ -876,10 +891,6 @@ function Rock:SetActTexture()
 	self:GetSpr().name = "rock spr"
 	self:GetSpr().cx = 25
 	self:GetSpr().cy = 25
-end
-
-function Rock:Dead()
-	Enemy.Dead(self)
 end
 
 function Rock:DeadAction(surikenKind)
@@ -899,6 +910,71 @@ function Rock:StateStart(rt)
 		
 		self:GetSpr().rot = self:GetSpr().rot + math.rad(ROCK_ROT_SPD)
 		
+		self:ApplyPosToSpr()
+		rt:Wait()
+	end
+end
+
+
+
+--@Celes
+class 'Celes'(Enemy)
+function Celes:__init()
+	Enemy.__init(self)
+	self.hp = 2
+end
+
+function Celes:Damage(dmg)
+	local res = Enemy.Damage(self, dmg)
+	if res then	-- 死ななかった
+		GS.SoundMgr:PlaySe("selesDead")
+	else
+		GS.SoundMgr:PlaySe("selesDamage")
+	end
+	
+	return res
+end
+
+function Celes:SetActTexture()
+	self:SetDivTexture("celes", 3, 2, 50, 50)
+	self:GetSpr().divTexIdx = 0
+	self:GetSpr().name = "ceres spr"
+	self:GetSpr().cx = 25
+	self:GetSpr().cy = 25
+	
+	self.animAct = Actor()
+	self.animAct:Begin()
+	self.animAct:ChangeFunc(function(act)
+		local cnt = 0
+		local wait = 10
+		while true do
+			self:GetSpr().divTexIdx = 0
+			act:Wait(wait)
+			self:GetSpr().divTexIdx = 1
+			act:Wait(wait)
+			self:GetSpr().divTexIdx = 2
+			act:Wait(wait)
+			self:GetSpr().divTexIdx = 1
+			act:Wait(wait)
+		end
+	end)
+	self:AddChild(self.animAct)
+end
+
+--function Celes:DeadAction(surikenKind)
+--	if surikenKind == SURIKEN_KIND_NORMAL or 
+--		 surikenKind == SURIKEN_KIND_CHARGE1 then
+--		GetGame().player:AddItem(self.x, self.y)
+--	end
+--end
+
+function Celes:StateStart(rt)
+	while true do
+		self.x = self.x - self.spd
+		if self.x < -30 then
+			GetGame():RemoveEnemy(self)
+			rt:Wait()
+		end
 		self:ApplyPosToSpr()
 		rt:Wait()
 	end
@@ -1206,7 +1282,6 @@ function StageMarker:BeginStage(stageNum)
 	self.isGoaled = false
 	self.nowFrame = 0
 	self.maker.x = MARKER_LEFT_X
-	print(stageNum)
 	self.stageFrame = STAGE_FRAME[stageNum]
 end
 

@@ -35,6 +35,8 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("player.png", "player")
 	GS.GrMgr:LoadTexture2("yamabi.png", "yamabi")
 	GS.GrMgr:LoadTexture2("zako.png", "zako")
+	GS.GrMgr:LoadTexture2("seresu.png", "celes")
+	
 	GS.GrMgr:LoadTexture2("s-stage1.jpg", "stage1back")
 	GS.GrMgr:LoadTexture2("s-stage2.jpg", "stage2back")
 	GS.GrMgr:LoadTexture2("s-stage3.jpg", "stage3back")
@@ -57,6 +59,9 @@ function OnPower(appli)
 	GS.SoundMgr:LoadSe("bosu28_a.wav", "bosu")
 	GS.SoundMgr:LoadSe("metal02.wav", "metal")
 	GS.SoundMgr:LoadSe("burst00.wav", "burst")
+	GS.SoundMgr:LoadSe("seles_damage.wav", "selesDamage")
+	GS.SoundMgr:LoadSe("seles_dead.wav", "selesDead")
+
 	GS.SoundMgr:SetSeVol("burst", 30)
 	
 	ChangeScreen(TitleScreen())
