@@ -153,7 +153,6 @@ function GameScreen:Begin()
 			self:AddChild(hint)
 		end
 
-
 		local slash = Actor()
 		slash:Begin()
 		slash:SetText("|")
@@ -177,7 +176,7 @@ function GameScreen:Begin()
 		GS.SoundMgr:PlayBgm("gameBgm.ogg")
 	end
 	
-	self.stageNum = 1
+	self.stageNum = nil
 end
 
 function GameScreen:BeginStage(stageNum)
@@ -194,6 +193,11 @@ end
 
 function GameScreen:StateStart(rt)
 	local spr = Sprite()
+	if self.stageNum == nil then
+		self.stageNum = 1
+	else
+		self.stageNum = self.stageNum + 1
+	end
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
 	
@@ -312,7 +316,6 @@ function GameScreen:StateClear(rt)
 	if self.stageNum == MAX_STAGE_NUM then
 		ChangeScreen(TitleScreen())
 	else
-		self:BeginStage(self.stageNum + 1)
 		self:RemoveChild(stageClear)
 		self:ChangeRoutine("StateStart")
 	end
