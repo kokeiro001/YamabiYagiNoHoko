@@ -286,6 +286,8 @@ function Routine:Restart()
 		end
 	end
 
+	self.waitCnt = 0
+			
 	-- ƒRƒ‹[ƒ`ƒ“ì¬
 	self.co = coroutine.create(caller)
 	self.state = "end"

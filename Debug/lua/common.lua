@@ -34,94 +34,21 @@ function CopyTable(tbl)
 	return tmp
 end
 
-
-function ToRadian(degree)
-	return (degree * pi) / 180
-end
-
-
-
-
-
-
-local pool
-
-
-class 'List'
-function List:__init()
-	self.cnt = 0
-	self.list = {}
-end
-
-function List:PushLeft(value)
-	self.cnt = self.cnt + 1
-	tinsert(self.list, 1, value)
-end
-
-function List:PushRight(value)
-	self.cnt = self.cnt + 1
-	tinsert(self.list, value)
-end
-
-function List:PopLeft()
-	assert(self.cnt > 0)
-	self.cnt = self.cnt - 1
-	local value = self.list[1]
-	tremove(self.list, 1)
-	return value
-end
-
-function List:PopRight()
-	assert(self.cnt > 0)
-	self.cnt = self.cnt - 1
-	local value = self.list[self.cnt]
-	tremove(self.list)
-	return value
-end
-
-function List:Clear()
-	self.list = {}
-end
-
-function List:Count()
-	return self.cnt
-end
-
-function List:Clone()
-	local clone = List()
-	for i = 1, self.cnt do
-		clone:PushRight(self.list[i])
+function TryCall(func, params)
+	if func ~= nil then
+		if params ~= nil then
+			func(unpack(params))
+		else
+			func(params)
+		end
 	end
-	return clone
-end
-
-function List:At(idx)
-	assert(0 < idx and idx <= self.cnt)
-	return self.list[idx]
-end
-
-function List:Begin()
-	return 1
-end
-
-function List:End()
-	return self.cnt
-end
-
-function List:Last()
-	assert(self:Count() ~= 0)
-	return self.list[self.cnt]
-end
-
-function List:ToPool()
-	pool:ReturnToPool(self)
 end
 
 
 
 
 class 'ListPool'
-function ListPool:__init(cls)
+function ListPool:__init()
 	self.size = 10000
 	self.dataList = List()
 	for i = 1, self.size do
@@ -142,8 +69,3 @@ function ListPool:ReturnToPool(list)
 	list:Clear()
 	self.dataList.PushRight(list)
 end
-
-
-pool = ListPool()
-
-

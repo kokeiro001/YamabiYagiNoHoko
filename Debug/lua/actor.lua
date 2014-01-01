@@ -31,6 +31,8 @@ function Actor:__init()
 	self.name = "class Actor"
 	self.params = {}
 	
+	self.scheduler = nil
+	
 	self.currentRoutine = nil
 	self.stateFuncName = "StateStart"
 	
@@ -44,9 +46,9 @@ end
 
 function Actor:Begin()
 	if self.StateStart ~= nil then
-		self.currentRoutine = Routine()
 		if self:ChangeRoutine("StateStart") then
 			GS.Scheduler:AddActor(self)
+			self.scheduler = GS.Scheduler
 		else
 			print("change_routine failed.")
 		end
@@ -77,6 +79,7 @@ function Actor:Dispose()
 
 --	self.spr = nil
 	self.drawSys = nil
+	self.scheduler = nil
 end
 
 
@@ -197,28 +200,44 @@ function Actor:Hide()
 end
 
 function Actor:ChangeRoutine(name)
-	if self.currentRoutine == nil then
-		print("Actor:ChangeRoutine : routine not found :", name)
-		return false
-	end
-
 	-- クラスの持つメンバ関数から探す
 	local f = self[name]
   if f == nil or type(f) ~= "function" then
-		print("Actor:change_routine : coroutine func not found :", name)
+		error("Actor:change_routine : coroutine func not found :", name)
 		return false
   end
-  
+ 
+	if self.scheduler == nil then
+		self.currentRoutine = Routine()
+		GS.Scheduler:AddActor(self)
+		self.scheduler = GS.Scheduler
+	end
+
 	-- ルーチン変更してリスタートする
+	if self.currentRoutine == nil then
+		error("Actor:ChangeRoutine : routine not found :", name)
+		return false
+	end
+
 	self.currentRoutine:ChangeFunc(f)
-	self.currentRoutine:Restart()
 	self.state_func_name = name
 	return true
 end
 
+function Actor:ChangeFunc(func)
+	if self.scheduler == nil then
+		self.currentRoutine = Routine()
+		GS.Scheduler:AddActor(self)
+		self.scheduler = GS.Scheduler
+	end
+
+	self.currentRoutine:ChangeFunc(func)
+	self.state_func_name = ""
+	return true
+end
 
 function Actor:Wait(count)
-	coyield("wait", count)
+	coyield("wait", count or 0)
 end
 
 

@@ -1,12 +1,7 @@
---local TEST_TYPE = "Normal"
---local TEST_TYPE = "HoldDash"	-- 右キー押しっぱなしでダッシュ
---local TEST_TYPE = "Step"		-- 右キー押すと一定時間ダッシュ
-local TEST_TYPE = "Charge"	-- 左キー押しっぱなしでチャージ
-
 local DEBUG_MODE 	= true
 local IS_PLAY_BGM	= false
 
-local STAGE_FRAME = {	300, 300, 300	}	-- ステージのクリアまでの時間
+local STAGE_FRAME = {	3000, 300, 300	}	-- ステージのクリアまでの時間
 local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ステージの背景透明度
 
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
@@ -34,7 +29,7 @@ local BOTTOM_ENEMY_SPD	= SCROLL_SPD	-- 下段
 
 local PROB_TOP_ENEMY			= 5					-- 出現比率
 local PROB_MIDDLE_ENEMY		= 85
-local PROB_BOTTOM_ENEMY		= 10
+local PROB_BOTTOM_ENEMY		= 100
 
 -- suriken
 local SURIKEN_HIT_FRAME = 10
@@ -60,7 +55,7 @@ local PATCAR_Y = PLAYER_Y - 10
 -- marker
 local MARKER_LEFT_X			= 100
 local MARKER_RIGHT_X		= GetProperty("WindowWidth") - 100
-local MARKER_Y					= 30
+local MARKER_Y					= 10
 local MARKER_HEIGHT			= 20
 local MARKER_ANIM_SPD		= 10
 
@@ -74,10 +69,11 @@ local STARTDEMO_FADEIN_FRAME	= 20
 local CLEARDEMO_FADEOUT_FRAME	= 20
 
 local STAGE_BACK_NAMES = { "stage1back", "stage2back", "stage3back" }
+local GET_ITEM_WAIT_FRAME = 10
 
 -- haiku
 local SHOW_HAIKU_FRAME = 120
-local HAIKU_TEXT = {
+local HAIKU_TEXT = {	-- 半角スペースで区切ってね
 	{"イナカの道は 走るだけでも キモチイイ", "テキがいる キビシイバトルに なりそうだ", "かかってくるなら ヨウシャしない インガオホー"},
 	{"ニンジャめし 買うの忘れてた", "ナンデ？パトカーナンデ？", "ゼッタイに あきらめはしない 待ってろトモミ"},
 	{"どなたかな 気持ち悪くなった 帰ろう", "長く 苦しい 戦いだった", "セレスっち まずは名前を なんとかすべし"}
@@ -88,11 +84,16 @@ local Z_ORDER_FRONT		= -1000
 local Z_ORDER_PLAYER	= 100
 local Z_ORDER_BACK		= 1000
 
+
+
 function GetGame()
 	if GS.CurrentScreen.name == "GameScreen" then
 		return GS.CurrentScreen
 	end
 	return nil
+end
+function GetPlayer()
+	return GetGame().player
 end
 
 class'GameScreen'(ScreenBase)
@@ -123,12 +124,12 @@ function GameScreen:Begin()
 	self:AddChild(self.frontAct)
 	
 	
-	local player = Player(self)
-	player:Begin()
-	player.x = PLAYER_X
-	player.y = PLAYER_Y
-	player:GetSpr().z = Z_ORDER_PLAYER
-	self:AddChild(player)
+	self.player = Player(self)
+	self.player:Begin()
+	self.player.x = PLAYER_X
+	self.player.y = PLAYER_Y
+	self.player:GetSpr().z = Z_ORDER_PLAYER
+	self:AddChild(self.player)
 	
 	local back = GameBack()
 	back:Begin()
@@ -151,7 +152,7 @@ function GameScreen:Begin()
 	stageNumAct:Begin()
 	stageNumAct:SetText("STAGE"..self.stageNum)
 	stageNumAct.x = 10
-	stageNumAct.y = 10
+	stageNumAct.y = 5
 	stageNumAct:ApplyPosToSpr()
 	self:AddChild(stageNumAct)
 	self.stageNumAct = stageNumAct
@@ -509,6 +510,7 @@ class 'Player'(Actor)
 function Player:__init(game)
 	Actor.__init(self)
 	self.game = game
+	self.itemSprites = {}
 end
 
 function Player:Begin()
@@ -523,10 +525,14 @@ function Player:Begin()
 	self.animCnt = 0
 
 	local cursor = PlayerCursorCharge(self)
-	
 	cursor:Begin()
 	GetGame():AddChild(cursor)
 	GetGame().cursorId = cursor.id
+
+end
+
+function Player:BeginStage(num)
+	self.itemSprites = {}
 end
 
 function Player:StateStart(rt)
@@ -540,6 +546,49 @@ function Player:StateStart(rt)
 		end
 	end
 end
+
+
+function Player:AddItem(x, y)
+	local item = Actor()
+	item:Begin()
+	item:SetDivTexture("suriken", 4, 1, 32, 32)
+	item:GetSpr().x = x
+	item:GetSpr().y = y
+	item:GetSpr().cx = 16
+	item:GetSpr().cy = 16
+	
+	item:ChangeFunc(function(act)
+		for i=1, GET_ITEM_WAIT_FRAME do
+			act.x = x + (self.x - x) * (i / GET_ITEM_WAIT_FRAME)
+			act.y = self.y
+			act:ApplyPosToSpr()
+			act:Wait()
+		end
+		act:Dead()
+		self:OnAddItem()
+		act:Wait()
+	end)
+	
+	GetGame():AddChild(item)
+end
+
+function Player:OnAddItem()
+	GS.SoundMgr:PlaySe("bell")
+	local cnt = table.getn(self.itemSprites)
+	local spr = Sprite()
+	spr:SetDivTextureMode("suriken", 4, 1, 32, 32)
+
+	spr:SetDrawPosAbsolute()
+	spr.x = 10 + cnt * 32
+	spr.y = 40
+	self:GetSpr():AddChild(spr)
+	table.insert(self.itemSprites, spr)
+end
+
+function Player:GetItemCnt()
+	return table.getn(self.itemSprites)
+end
+
 
 
 
@@ -569,6 +618,7 @@ function PlayerCursorCharge:__init(player)
 	PlayerCursor.__init(self, player)
 	
 	self.surikenWaitCnt = 0
+	self.itemCnt = 0
 end
 
 function PlayerCursorCharge:ThrowSuriken(act)
@@ -582,20 +632,19 @@ function PlayerCursorCharge:Begin()
 	local gauge = Gauge()
 	
 	local releaseFunc = function()
-		local enemies = GetGame():GetEnemies()
-		local targets = {}
-		for idx, enemy in ipairs(enemies) do
+		for idx, enemy in ipairs(GetGame():GetEnemies()) do
 			if enemy.line == LINE_MIDDLE then
-				table.insert(targets, enemy)
+				self:ThrowSuriken(enemy)
 			end
 		end
-		
-		for idx, enemy in ipairs(targets) do
+	end
+	local releaseFunc2 = function()
+		for idx, enemy in ipairs(GetGame():GetEnemies()) do
 			self:ThrowSuriken(enemy)
 		end
 	end
 	
-	gauge:Begin(releaseFunc)
+	gauge:Begin(releaseFunc, releaseFunc2)
 	gauge.x = PLAYER_X - MAX_GAUGE_WIDTH / 2 + 15
 	gauge.y = GAUGE_Y
 	
@@ -691,6 +740,9 @@ function Suriken:StateStart(rt)
 		rt:Wait()
 	end
 	
+	if self.target.DeadAction ~= nil then
+		self.target:DeadAction()
+	end
 	GetGame():DeadEnemy(self.target)
 	GetGame():RemoveSuriken(self)
 	self:Dead()
@@ -781,6 +833,14 @@ function Rock:SetActTexture()
 	self:GetSpr().name = "rock spr"
 	self:GetSpr().cx = 25
 	self:GetSpr().cy = 25
+end
+
+function Rock:Dead()
+	Enemy.Dead(self)
+end
+
+function Rock:DeadAction()
+	GetGame().player:AddItem(self.x, self.y)
 end
 
 function Rock:StateStart(rt)
@@ -936,10 +996,10 @@ function Gauge:__init()
 end
 
 
-function Gauge:Begin(func, funcParam)
+function Gauge:Begin(func, func2)
 	Actor.Begin(self)
 	self.releaseGaugeFunc = func
-	self.releaseGaugeParam = funcParam
+	self.releaseGaugeFunc2 = func2
 
 	self:SetTexture("whitePix")
 	
@@ -967,11 +1027,16 @@ function Gauge:StateStart(rt)
 	
 	while true do
 		if GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) then
-			self:Goto("StateCharge")
+			if GetPlayer():GetItemCnt() == 0 then
+				self:Goto("StateCharge")
+			else
+				self:Goto("StateCharge2")
+			end
 		end
 		rt:Wait()
 	end
 end
+
 
 function Gauge:StateCharge(rt)
 	self.chargeCnt = 0
@@ -996,11 +1061,41 @@ function Gauge:StateMaxHold(rt)
 	end
 	
 	if self.releaseGaugeFunc ~= nil then
-		self.releaseGaugeFunc(self.releaseGaugeParam)
+		self.releaseGaugeFunc()
 	end
 	
 	self:Goto("StateStart")
 end
+
+
+function Gauge:StateCharge2(rt)
+	self.chargeCnt = 0
+	while GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) do
+		self.chargeCnt = self.chargeCnt + 1
+		self:GetSpr().drawWidth  = 1 + (MAX_GAUGE_WIDTH * self.chargeCnt) / LEFT_CHARGE_FRAME
+		
+		if self.chargeCnt == LEFT_CHARGE_FRAME then
+			self:Goto("StateMaxHold")
+		end
+		rt:Wait()
+	end
+	self:Goto("StateStart")
+end
+
+function Gauge:StateMaxHold2(rt)
+	GS.SoundMgr:PlaySe("metal")
+	self:GetSpr():SetTextureColorF(Color.Red)
+	while GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) do
+		rt:Wait()
+	end
+	
+	if self.releaseGaugeFunc2 ~= nil then
+		self.releaseGaugeFunc2()
+	end
+	
+	self:Goto("StateStart")
+end
+
 
 
 
