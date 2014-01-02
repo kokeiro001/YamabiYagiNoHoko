@@ -1,3 +1,5 @@
+local DEBUG_MODE = true
+
 
 class'ScreenBase'(Actor)
 function ScreenBase:__init()
@@ -14,14 +16,17 @@ end
 function TitleScreen:Begin()
 	ScreenBase.Begin(self)
 	
-	self:SetTexture("titleBack")
+	self:CreateSpr()
+	local backSpr = Sprite()
+	backSpr:SetTextureMode("titleBack")
+	self:GetSpr():AddChild(backSpr)
 	
-	
-	local act = TestObject()
-	act:Begin()
-	act.params.spd = 3
-	
-	self:AddChild(act)
+	if DEBUG_MODE then
+		local act = TestObject()
+		act:Begin()
+		act.params.spd = 3
+		self:AddChild(act)
+	end
 	
 	local menu = TitleMenu()
 	menu:Begin()
@@ -35,7 +40,7 @@ function TitleScreen:Begin()
 	menu:ApplyPosToSpr()
 	
 	menu:AddMenuItem("ÉQÅ[ÉÄäJén", function()
-		ChangeScreen(GameScreen())
+		self:ChangeRoutine("StateToGame")
 	end)
 	
 	menu:AddMenuItem("óVÇ—ï˚", function()
@@ -47,12 +52,27 @@ function TitleScreen:Begin()
 	end)
 end
 
-function TitleScreen:StateStart(rt)
-	while true do
-		rt:Wait()
+function TitleScreen:StateToGame(rt)
+	local fadeSpr = Sprite()
+	fadeSpr:SetTextureMode("whitePix")
+	fadeSpr:SetTextureColorF(Color.Black)
+	fadeSpr.drawWidth  = GetProperty("WindowWidth")
+	fadeSpr.drawHeight = GetProperty("WindowHeight")
+	fadeSpr.z = -1000
+	self:GetSpr():AddChild(fadeSpr)
+	self:GetSpr():SortZ()
+	
+	local span = 20
+	for i=0, span do
+		fadeSpr.alpha = i / span
+		rt:Wait(0)
 	end
+	
+	ChangeScreen(GameScreen())
+	rt:Wait()
+	self:GetSpr():RemoveChild(fadeSpr)
+	rt:Wait()
 end
-
 
 
 class 'TestObject'(Actor)

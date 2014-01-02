@@ -103,45 +103,102 @@ local HAIKU_TEXT = {	-- 半角スペースで区切ってね
 local Z_ORDER_FRONT		= -1000
 local Z_ORDER_SLASH		= 90
 local Z_ORDER_PLAYER	= 100
+local Z_ORDER_ROCK		= 110
 local Z_ORDER_BACK		= 1000
 
 
-function GetGame()
+function GetStage()
 	if GS.CurrentScreen.name == "GameScreen" then
-		return GS.CurrentScreen
+		return GS.CurrentScreen.stage
 	end
 	return nil
 end
 function GetPlayer()
-	return GetGame().player
+	return GetStage().player
 end
+
 
 class'GameScreen'(ScreenBase)
 function GameScreen:__init()
 	ScreenBase.__init(self)
 	self.name = "GameScreen"
-	
-	self.score = 0
-	self.stageNum = 1
-	self.allEnemies = {}
-	
-	self.backId = nil
+	self.stage = nil
 end
 
 function GameScreen:Begin()
 	ScreenBase.Begin(self)
+
+	self.fadeAct = Actor()
+	self.fadeAct:Begin()
+	self.fadeAct:SetTexture("whitePix")
+	self.fadeAct:GetSpr():SetTextureColorF(Color.Black)
+	self.fadeAct:GetSpr():Hide()
+	self.fadeAct:GetSpr().drawWidth  = GetProperty("WindowWidth")
+	self.fadeAct:GetSpr().drawHeight = GetProperty("WindowHeight")
+	self.fadeAct:GetSpr().z = Z_ORDER_FRONT
+	self:AddChild(self.fadeAct)
 	
-	self.stageNum = 1
+	self:BeginStage(1)
+end
+
+function GameScreen:BeginStage(stageNum)
+	self.stageNum = stageNum
+	if self.stage ~= nil then
+		self.stage:Dead()
+		self:RemoveChild(self.stage)
+	end
+	self.z = -10
 	
-	self.frontAct = Actor()
-	self.frontAct:SetTexture("whitePix")
-	self.frontAct:GetSpr():SetTextureColorF(Color.Black)
-	self.frontAct:GetSpr():Hide()
-	self.frontAct:GetSpr().drawWidth  = GetProperty("WindowWidth")
-	self.frontAct:GetSpr().drawHeight = GetProperty("WindowHeight")
-	self.frontAct:GetSpr().z = Z_ORDER_FRONT
-	self:AddChild(self.frontAct)
-	
+	self.stage = Stage(self)
+	self.stage:Begin(stageNum)
+	self:AddChild(self.stage)
+	self:GetSpr():SortZ()
+end
+
+function GameScreen:BeginFadeIn(cnt)
+	self.fadeAct.enable = true
+
+	self.fadeAct:ChangeFunc(function(rt)
+		rt:GetSpr():Show()
+		for i=0, cnt do
+			rt:GetSpr().alpha = 1 - (i/cnt)
+			rt:Wait()
+		end
+		rt:GetSpr().alpha = 0
+		rt:GetSpr():Hide()
+		rt.enable = false
+		rt:Wait()
+		
+	end)
+end
+
+function GameScreen:BeginFadeOut(cnt)
+	self.fadeAct.enable = true
+
+	self.fadeAct:ChangeFunc(function(rt)
+		rt:GetSpr():Show()
+		for i=0, cnt do
+			rt:GetSpr().alpha = (i/cnt)
+			rt:Wait()
+		end
+		rt:GetSpr().alpha = 1
+		rt.enable = false
+		rt:Wait()
+	end)
+end
+
+
+
+class 'Stage'(Actor)
+function Stage:__init(game)
+	Actor.__init(self)
+	self.game = game
+	self.allEnemies = {}
+end
+
+function Stage:Begin(stageNum)
+	Actor.Begin(self)
+	self.stageNum = stageNum
 	
 	self.player = Player(self)
 	self.player:Begin()
@@ -156,16 +213,16 @@ function GameScreen:Begin()
 	back.y = 0
 	back:GetSpr().z = Z_ORDER_BACK
 	self:AddChild(back)
-	self.backId = back.id
+	self.back = back
 
-	self.pat = PatrolCar()
-	self.pat:Begin()
-	self.pat.enable = false
-	self.pat:Hide()
-	self.pat.x = PATCAR_X
-	self.pat.y = PATCAR_Y
-	self.pat:ApplyPosToSpr()
-	self:AddChild(self.pat)
+	if stageNum == 2 then
+		self.pat = PatrolCar()
+		self.pat:Begin()
+		self.pat.x = PATCAR_X
+		self.pat.y = PATCAR_Y
+		self.pat:ApplyPosToSpr()
+		self:AddChild(self.pat)
+	end
 	
 	local stageNumAct = Actor()
 	stageNumAct:Begin()
@@ -212,29 +269,31 @@ function GameScreen:Begin()
 	if IS_PLAY_BGM then
 		GS.SoundMgr:PlayBgm("gameBgm.ogg")
 	end
-	
-	self:BeginStage(1)
-end
 
-function GameScreen:BeginStage(stageNum)
-	self.stageNum = stageNum
 	self:ChangeRoutine("StateStart")
 end
 
-function GameScreen:StateStart(rt)
+function Stage:GetEnemies()
+	return self.allEnemies
+end
+
+function Stage:AddEnemy(enemy)
+	self:AddChild(enemy)
+	table.insert(self.allEnemies, enemy)
+end
+function Stage:RemoveEnemy(enemy)
+	enemy:Dead()
+	RemoveValue(self.allEnemies, enemy)
+	self:RemoveChild(enemy)
+end
+
+function Stage:StateStart(rt)
 	local spr = Sprite()
 	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(spr)
 	self:GetSpr():SortZ()
 	
 	self.marker.enable = false
-	if self.stageNum == 2 then
-		self.pat.enable = true
-		self.pat:Show()
-	else
-		self.pat.enable = false
-		self.pat:Hide()
-	end
 	
 	-- remove all enemy
 	while table.getn(self.allEnemies) > 0 do
@@ -242,12 +301,8 @@ function GameScreen:StateStart(rt)
 	end
 	
 	-- fade in
-	self.frontAct:GetSpr():Show()
-	for i = 1, STARTDEMO_FADEIN_FRAME do
-		self.frontAct:GetSpr().alpha = 1 - (i / STARTDEMO_FADEIN_FRAME)
-		rt:Wait()
-	end
-	self.frontAct:GetSpr():Hide()
+	self.game:BeginFadeIn(STARTDEMO_FADEIN_FRAME)
+	rt:Wait(STARTDEMO_FADEIN_FRAME)
 	
 	for i=1, 60 do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
@@ -274,7 +329,7 @@ function GameScreen:StateStart(rt)
 	self:Goto("StateGame")
 end
 
-function GameScreen:StateGame(rt)
+function Stage:StateGame(rt)
 	while true do
 		if DEBUG_MODE then
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_A) then
@@ -284,13 +339,13 @@ function GameScreen:StateGame(rt)
 				self.marker:OnGoal()
 			end
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_1) then
-				self:BeginStage(1)
+				self.game:BeginStage(1)
 			end
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_2) then
-				self:BeginStage(2)
+				self.game:BeginStage(2)
 			end
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_3) then
-				self:BeginStage(3)
+				self.game:BeginStage(3)
 			end
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_4) then
 				self:ChangeRoutine("StateEnding")
@@ -303,7 +358,7 @@ function GameScreen:StateGame(rt)
 	end
 end
 
-function GameScreen:CheckAddEnemy()
+function Stage:CheckAddEnemy()
 	self.enemyTopSpanCnt = self.enemyTopSpanCnt + 1
 	self.enemyBottomSpanCnt = self.enemyBottomSpanCnt + 1
 	
@@ -340,7 +395,7 @@ function GameScreen:CheckAddEnemy()
 			end
 		end
 
-		local back = self:GetChildId(self.backId)
+		local back = self.back
 		
 		local line = nil
 		local spd = nil
@@ -386,6 +441,7 @@ function GameScreen:CheckAddEnemy()
 		enemy.y = LINE_HEIGHTS[enemy.line]
 		enemy:ApplyPosToSpr()
 		self:AddEnemy(enemy)
+		self:GetSpr():SortZ()
 
 		self.encountCnt = 0
 	end
@@ -393,7 +449,7 @@ function GameScreen:CheckAddEnemy()
 end
 
 
-function GameScreen:StateClear(rt)
+function Stage:StateClear(rt)
 	-- すべての敵をbom
 	local deadTargets = {}
 	for idx, enemy in ipairs(self.allEnemies) do
@@ -447,26 +503,22 @@ function GameScreen:StateClear(rt)
 	end
 	
 	-- フェードアウト
-	local span = CLEARDEMO_FADEOUT_FRAME
-	self.frontAct:GetSpr():Show()
-	for i=1, span do
-		self.frontAct:GetSpr().alpha = (i / span)
-		rt:Wait()
-	end
+	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
+	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
 
 
 	-- 次の画面へ
 	if self.stageNum == MAX_STAGE_NUM then
 		self:ChangeRoutine("StateEnding")
 	else
-		self:BeginStage(self.stageNum + 1)
+		self.game:BeginStage(self.stageNum + 1)
 	end
 	self:RemoveChild(stageClear)
 	self:RemoveChild(haiku)
 	rt:Wait()
 end
 
-function GameScreen:StateEnding(rt)
+function Stage:StateEnding(rt)
 	-- remove all enemy
 	while table.getn(self.allEnemies) > 0 do
 		self:RemoveEnemy(self.allEnemies[1])
@@ -488,11 +540,8 @@ function GameScreen:StateEnding(rt)
 	
 	local span = 20
 	-- fade in
-	self.frontAct:GetSpr():Show()
-	for i = 1, span do
-		self.frontAct:GetSpr().alpha = 1 - (i /span)
-		rt:Wait()
-	end
+	self.game:BeginFadeIn(span)
+	rt:Wait(span)
 	
 	while true do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
@@ -503,33 +552,16 @@ function GameScreen:StateEnding(rt)
 	end
 	
 	-- fade out
-	for i = 1, span do
-		self.frontAct:GetSpr().alpha = (i /span)
-		rt:Wait()
-	end
-	self.frontAct:GetSpr():Hide()
+	self.game:BeginFadeOut(span)
+	rt:Wait(span)
 	
 	self:GetSpr():RemoveChild(spr)
 	ChangeScreen(TitleScreen())
 	return "exit"
 end
 
-function GameScreen:GetEnemies()
-	return self.allEnemies
-end
 
-function GameScreen:AddEnemy(enemy)
-	self:AddChild(enemy)
-	table.insert(self.allEnemies, enemy)
-end
-function GameScreen:RemoveEnemy(enemy)
-	enemy:Dead()
-	RemoveValue(self.allEnemies, enemy)
-	self:RemoveChild(enemy)
-end
-
-
-function GameScreen:ChangeScrollSpd(spd)
+function Stage:ChangeScrollSpd(spd)
 	for idx, enemy in ipairs(self.allEnemies) do
 		if enemy.line == LINE_TOP then
 			enemy.spd = (TOP_ENEMY_SPD * spd) / SCROLL_SPD
@@ -544,17 +576,17 @@ function GameScreen:ChangeScrollSpd(spd)
 		end
 	end
 	
-	local back = self:GetChildId(self.backId)
+	local back = self.back
 	back.scrollSpd = (SCROLL_SPD * spd) / SCROLL_SPD
 end
 
 
 
+
 --@Player
 class 'Player'(Actor)
-function Player:__init(game)
+function Player:__init()
 	Actor.__init(self)
-	self.game = game
 	self.itemSprites = {}
 end
 
@@ -571,8 +603,8 @@ function Player:Begin()
 
 	local cursor = PlayerCursorCharge()
 	cursor:Begin()
-	GetGame():AddChild(cursor)
-	GetGame().cursorId = cursor.id
+	GetStage():AddChild(cursor)
+	GetStage().cursorId = cursor.id
 
 end
 
@@ -616,7 +648,7 @@ function Player:AddItem(x, y)
 		act:Wait()
 	end)
 	
-	GetGame():AddChild(item)
+	GetStage():AddChild(item)
 end
 
 function Player:OnAddItem()
@@ -663,7 +695,7 @@ function PlayerCursor:ThrowSuriken(act, kind)
 	suriken:ApplyPosToSpr()
 	suriken:CalcMoveParam(act.x - act.spd * SURIKEN_HIT_FRAME, act.y)
 	act.attacker = suriken
-	GetGame():AddChild(suriken)
+	GetStage():AddChild(suriken)
 end
 
 function PlayerCursor:Slash(act)
@@ -674,7 +706,7 @@ function PlayerCursor:Slash(act)
 	slash.y = act.y
 	slash:ApplyPosToSpr()
 	act.attacker = slash
-	GetGame():AddChild(slash)
+	GetStage():AddChild(slash)
 end
 
 class 'PlayerCursorCharge'(PlayerCursor)
@@ -696,14 +728,14 @@ function PlayerCursorCharge:Begin()
 	local gauge = Gauge()
 	
 	local releaseFunc = function()
-		for idx, enemy in ipairs(GetGame():GetEnemies()) do
+		for idx, enemy in ipairs(GetStage():GetEnemies()) do
 			if enemy.line == LINE_MIDDLE then
 				self:ThrowSuriken(enemy, ATTACK_CHARGE1_SURIKEN)
 			end
 		end
 	end
 	local releaseFunc2 = function()
-		for idx, enemy in ipairs(GetGame():GetEnemies()) do
+		for idx, enemy in ipairs(GetStage():GetEnemies()) do
 			self:ThrowSuriken(enemy, ATTACK_CHARGE2_SURIKEN)
 		end
 		GetPlayer():DecItem()
@@ -713,7 +745,7 @@ function PlayerCursorCharge:Begin()
 	gauge.x = PLAYER_X - MAX_GAUGE_WIDTH / 2 + 15
 	gauge.y = GAUGE_Y
 	
-	GetGame():AddChild(gauge)
+	GetStage():AddChild(gauge)
 	self.gaugeId = gauge.id
 end
 
@@ -754,7 +786,7 @@ function PlayerCursorCharge:StateStart(rt)
 			 
 			local keyCode = inputStack[1]
 			if keyCode == KeyCode.KEY_UP then
-				local enemies = GetGame():GetEnemies()
+				local enemies = GetStage():GetEnemies()
 				for idx, enemy in ipairs(enemies) do
 					if enemy.line == LINE_TOP and
 						 enemy.attacker == nil then
@@ -765,7 +797,7 @@ function PlayerCursorCharge:StateStart(rt)
 			end
 			
 			if keyCode == KeyCode.KEY_RIGHT then
-				local enemies = GetGame():GetEnemies()
+				local enemies = GetStage():GetEnemies()
 				for idx, enemy in ipairs(enemies) do
 					if enemy.line == LINE_MIDDLE and 
 						 enemy.attacker == nil then
@@ -777,7 +809,7 @@ function PlayerCursorCharge:StateStart(rt)
 
 			-- slash
 			if keyCode == KeyCode.KEY_DOWN then
-				local enemies = GetGame():GetEnemies()
+				local enemies = GetStage():GetEnemies()
 				for idx, enemy in ipairs(enemies) do
 					if enemy.line == LINE_BOTTOM and 
 						 enemy.attacker == nil and
@@ -802,7 +834,7 @@ end
 function Attacker:Attack()
 	if self.target:Damage(ATTACK_DAMAGE[self.kind]) then
 		self.target:DeadAction(self.kind)
-		GetGame():RemoveEnemy(self.target)
+		GetStage():RemoveEnemy(self.target)
 	end
 	self.target.attacker = nil
 end
@@ -844,7 +876,7 @@ function Suriken:StateStart(rt)
 	
 	self:Attack()
 	
-	GetGame():RemoveChild(self)
+	GetStage():RemoveChild(self)
 	self:Dead()
 	rt:Wait()
 end
@@ -872,18 +904,20 @@ function Slash:Begin()
 	self:GetSpr().name = "slash spr"
 	self:GetSpr().cx = 25
 	self:GetSpr().cy = 25
+	self:GetSpr().drawWidth = -50
 	
 	GS.SoundMgr:PlaySe("slash")
 end
 
 function Slash:StateStart(rt)
 	self:Attack()
+	self:GetSpr().x = self:GetSpr().x  + 50
 	for idx = 0, 4 do
 		rt:Wait(SLASH_ANIM_SPD)
 		self:GetSpr().divTexIdx = idx
 	end
 	
-	GetGame():RemoveChild(self)
+	GetStage():RemoveChild(self)
 	self:Dead()
 	rt:Wait()
 end
@@ -918,7 +952,8 @@ function Enemy:DeadAction(kind)
 	pcl:Begin()
 	pcl.x = self.x
 	pcl.y = self.y
-	GetGame():AddChild(pcl)
+	pcl:ApplyPosToSpr()
+	GetStage():AddChild(pcl)
 end
 
 function Enemy:Dead()
@@ -944,7 +979,7 @@ function Enemy:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
 		if self.x < -30 then
-			GetGame():RemoveEnemy(self)
+			GetStage():RemoveEnemy(self)
 			rt:Wait()
 		end
 		
@@ -977,18 +1012,19 @@ function Rock:SetActTexture()
 	self:GetSpr().name = "rock spr"
 	self:GetSpr().cx = 25
 	self:GetSpr().cy = 25
+	self:GetSpr().z = Z_ORDER_ROCK
 end
 
 function Rock:DeadAction(attackKind)
 	if attackKind == ATTACK_SLASH then 
-		GetGame().player:AddItem(self.x, self.y)
+		GetStage().player:AddItem(self.x, self.y)
 		-- add particle
 		local pcl = SlashedRock()
 		pcl:Begin()
 		pcl.x = self.x
 		pcl.y = self.y
-		GetGame():AddChild(pcl)
-		GetGame():GetSpr():SortZ()
+		GetStage():AddChild(pcl)
+		GetStage():GetSpr():SortZ()
 	end
 	if attackKind == ATTACK_CHARGE2_SURIKEN or 
 		 attackKind == DEAD_REASON_TIME_UP then 
@@ -996,7 +1032,7 @@ function Rock:DeadAction(attackKind)
 		pcl:Begin()
 		pcl.x = self.x
 		pcl.y = self.y
-		GetGame():AddChild(pcl)
+		GetStage():AddChild(pcl)
 	end
 end
 
@@ -1004,7 +1040,7 @@ function Rock:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
 		if self.x < -30 then
-			GetGame():RemoveEnemy(self)
+			GetStage():RemoveEnemy(self)
 			rt:Wait()
 		end
 		
@@ -1060,18 +1096,12 @@ function Celes:SetActTexture()
 	self:AddChild(self.animAct)
 end
 
---function Celes:DeadAction(surikenKind)
---	if surikenKind == ATTACK_NORMAL_SURIKEN or 
---		 surikenKind == ATTACK_CHARGE1_SURIKEN then
---		GetGame().player:AddItem(self.x, self.y)
---	end
---end
 
 function Celes:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
 		if self.x < -30 then
-			GetGame():RemoveEnemy(self)
+			GetStage():RemoveEnemy(self)
 			rt:Wait()
 		end
 		self:ApplyPosToSpr()
