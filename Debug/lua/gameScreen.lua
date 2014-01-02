@@ -21,15 +21,18 @@ local PLAYER_Y = LINE_HEIGHTS[LINE_BOTTOM]
 
 -- enemy
 local ENEMY_ANIM_SPD 				= 4
-local ENEMY_ENCOUNT_FRAME 	= 20				-- 敵の出現間隔
+local CELES_ANIM_SPD				= 10
+local ENEMY_ENCOUNT_FRAME 	= 20
 
 local TOP_ENEMY_SPD 		= 10					-- 上段の敵の速度
 local MIDDLE_ENEMY_SPD	= SCROLL_SPD	-- 中段
 local BOTTOM_ENEMY_SPD	= SCROLL_SPD	-- 下段
 
-local PROB_TOP_ENEMY			= 5					-- 出現比率
-local PROB_MIDDLE_ENEMY		= 85
-local PROB_BOTTOM_ENEMY		= 10
+local TOP_ENEMY_SPAN_MIN				=  60		-- 敵の出現間隔
+local TOP_ENEMY_SPAN_MAX				= 120
+local BOTTOM_ENEMY_SPAN_MIN			=  60
+local BOTTOM_ENEMY_SPAN_MAX			= 120
+
 
 local HP_ZAKO			= 1		-- hp
 local HP_ROCK			= 1
@@ -55,9 +58,9 @@ local SLASHABEL_X_MAX = PLAYER_X + 200	-- 下段 斬れる最大X
 local BURST_ANIM_SPD = 3	-- 敵破裂エフェクトのアニメーション速度
 
 -- patca
-local PAT_ANIM_SPD = 1
-local PATCAR_X = -50
-local PATCAR_Y = PLAYER_Y - 10
+local PAT_ANIM_SPD	= 1
+local PATCAR_X 			= -50
+local PATCAR_Y 			= PLAYER_Y - 10
 
 -- marker
 local MARKER_LEFT_X			= 100
@@ -248,7 +251,13 @@ function GameScreen:StateStart(rt)
 	-- fade out
 
 	self.encountCnt = 0
+	self.addTopEnemyDelay = 0
+	self.enemyTopSpanCnt = 0
+	self.addBottomEnemyDelay = 0
+	self.enemyBottomSpanCnt = 0
+
 	self.stageNumAct:SetText("STAGE"..self.stageNum)
+
 	
 	for idx, chr in ipairs(self:GetChild()) do
 		if chr.BeginStage ~= nil then
@@ -290,39 +299,57 @@ function GameScreen:StateGame(rt)
 end
 
 function GameScreen:CheckAddEnemy()
-	local spAddFlag = false
-	if TestType == "HoldDash" or "Step" then
-		local cur = self:GetChildId(self.cursorId)
-		if cur.isDash == true and self.encountCnt >= ENEMY_ENCOUNT_FRAME_DASH then
-			spAddFlag = true
-		end
+	self.enemyTopSpanCnt = self.enemyTopSpanCnt + 1
+	self.enemyBottomSpanCnt = self.enemyBottomSpanCnt + 1
+	
+	if self.enemyTopSpanCnt == TOP_ENEMY_SPAN_MIN then
+		local span = TOP_ENEMY_SPAN_MAX - TOP_ENEMY_SPAN_MIN
+		local chance = span / ENEMY_ENCOUNT_FRAME
+		self.addTopEnemyDelay = math.random(1, chance)
 	end
 	
-	if self.encountCnt >= ENEMY_ENCOUNT_FRAME or spAddFlag then
+	if self.enemyBottomSpanCnt == BOTTOM_ENEMY_SPAN_MIN then
+		local span = BOTTOM_ENEMY_SPAN_MAX - BOTTOM_ENEMY_SPAN_MIN
+		local chance = span / ENEMY_ENCOUNT_FRAME
+		self.addBottomEnemyDelay = math.random(1, chance)
+	end
+
+	if self.encountCnt >= ENEMY_ENCOUNT_FRAME then
+		-- 上段追加判定
+		local forceAddTopEnemy = false
+		if self.addTopEnemyDelay > 0 then
+			self.addTopEnemyDelay = self.addTopEnemyDelay - 1
+			if self.addTopEnemyDelay == 0 then
+				forceAddTopEnemy = true
+			end
+		end
+	
+		-- 下段追加判定
+		local forceAddBottomEnemy = false
+		if not forceAddTopEnemy then
+			if self.addBottomEnemyDelay > 0 then
+				self.addBottomEnemyDelay = self.addBottomEnemyDelay - 1
+				if self.addBottomEnemyDelay == 0 then
+					forceAddBottomEnemy = true
+				end
+			end
+		end
+
 		local back = self:GetChildId(self.backId)
-		local rnd = math.random(1, PROB_TOP_ENEMY + PROB_MIDDLE_ENEMY + PROB_BOTTOM_ENEMY)
 		
-		rnd = rnd  - PROB_TOP_ENEMY
 		local line = nil
 		local spd = nil
-		while true do
-			if rnd < 0 then
-				line = LINE_TOP
-				spd = (back.scrollSpd * TOP_ENEMY_SPD) / SCROLL_SPD
-				break
-			end
-			rnd = rnd  - PROB_MIDDLE_ENEMY
-			if rnd < 0 then
-				line = LINE_MIDDLE
-				spd = (back.scrollSpd * MIDDLE_ENEMY_SPD) / SCROLL_SPD
-				break
-			end
-			rnd = rnd  - PROB_BOTTOM_ENEMY
-			if rnd < 0 then
-				line = LINE_BOTTOM
-				spd = (back.scrollSpd * BOTTOM_ENEMY_SPD) / SCROLL_SPD
-				break
-			end
+		if forceAddTopEnemy then
+			line = LINE_TOP
+			spd = (back.scrollSpd * TOP_ENEMY_SPD) / SCROLL_SPD
+			self.enemyTopSpanCnt = 0
+		elseif forceAddBottomEnemy then
+			line = LINE_BOTTOM
+			spd = (back.scrollSpd * BOTTOM_ENEMY_SPD) / SCROLL_SPD
+			self.enemyBottomSpanCnt = 0
+		else
+			line = LINE_MIDDLE
+			spd = (back.scrollSpd * MIDDLE_ENEMY_SPD) / SCROLL_SPD
 		end
 		
 		local enemy = nil
@@ -970,16 +997,15 @@ function Celes:SetActTexture()
 	self.animAct:Begin()
 	self.animAct:ChangeFunc(function(act)
 		local cnt = 0
-		local wait = 10
 		while true do
 			self:GetSpr().divTexIdx = 0
-			act:Wait(wait)
+			act:Wait(CELES_ANIM_SPD)
 			self:GetSpr().divTexIdx = 1
-			act:Wait(wait)
+			act:Wait(CELES_ANIM_SPD)
 			self:GetSpr().divTexIdx = 2
-			act:Wait(wait)
+			act:Wait(CELES_ANIM_SPD)
 			self:GetSpr().divTexIdx = 1
-			act:Wait(wait)
+			act:Wait(CELES_ANIM_SPD)
 		end
 	end)
 	self:AddChild(self.animAct)
