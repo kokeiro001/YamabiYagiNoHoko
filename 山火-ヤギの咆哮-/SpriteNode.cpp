@@ -14,7 +14,7 @@ Sprite::Sprite()
 	, m_centerX(0.0f), m_centerY(0.0f)
 	, m_rot(0.0f), m_rotOffcetX(0.0f), m_rotOffcetY(0.0f)
 	, m_pTexBuf(NULL)
-	, m_isDivTex(false)
+	, m_divType(TEX_DIVTYPE_NONE)
 	, m_pTextRdr(NULL)
 	, m_textColor(BLACK)
 	, m_posType(DRAWPOS_RELATIVE)
@@ -89,7 +89,7 @@ void Sprite::SetTextureMode(const char* name)
 
 	m_mode = SPR_TEXTURE;
 	m_isDraw = true;
-	m_isDivTex = false;
+	m_divType = TEX_DIVTYPE_NONE;
 	m_pTexBuf = GraphicsManager::GetInst()->GetTexture(name);
 
 	UpdateSize();
@@ -104,7 +104,7 @@ void Sprite::SetDivTextureMode(const char* name, int xnum, int ynum, int w, int 
 
 	m_mode = SPR_TEXTURE;
 	m_isDraw	= true;
-	m_isDivTex		= true;
+	m_divType = TEX_DIVTYPE_SIMPLE;
 	m_pTexBuf = GraphicsManager::GetInst()->GetTexture(name);
 
 	m_divDrawTexIdx = 0;
@@ -115,6 +115,15 @@ void Sprite::SetDivTextureMode(const char* name, int xnum, int ynum, int w, int 
 
 	m_width		= w;
 	m_height	= h;
+	UpdateSize();
+}
+void Sprite::SetTextureSrc(int x, int y, int w, int h)
+{
+	m_divType = TEX_DIVTYPE_USER;
+	m_srcX = x;
+	m_srcY = y;
+	m_srcW = w;
+	m_srcH = h;
 	UpdateSize();
 }
 void Sprite::SetTextureColorF(ColorF color)
@@ -168,10 +177,15 @@ void Sprite::UpdateSize()
 {
 	if(m_mode == SPR_TEXTURE)
 	{
-		if(m_isDivTex)
+		if(m_divType == TEX_DIVTYPE_SIMPLE)
 		{
 			m_drawWidth = m_divW;
 			m_drawHeight = m_divH;
+		}
+		else if(m_divType == TEX_DIVTYPE_USER)
+		{
+			m_drawWidth = m_srcW;
+			m_drawHeight = m_srcH;
 		}
 		else
 		{
@@ -199,11 +213,15 @@ void Sprite::DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float bas
 	if(m_mode == SPR_TEXTURE)
 	{
 		RectF src;
-		if(m_isDivTex)
+		if(m_divType == TEX_DIVTYPE_SIMPLE)
 		{
 			int xidx = m_divDrawTexIdx % m_divX;
 			int yidx = m_divDrawTexIdx / m_divX;
 			src = RectF(xidx * m_divW, yidx * m_divH, m_divW, m_divH);
+		}
+		else if(m_divType == TEX_DIVTYPE_USER)
+		{
+			src = RectF(m_srcX, m_srcY, m_srcW, m_srcH);
 		}
 		else
 		{
@@ -290,6 +308,7 @@ void Sprite::RegistLua()
 
 		.def("SetTextureMode", &SetTextureMode)
 		.def("SetDivTextureMode", &SetDivTextureMode)
+		.def("SetTextureSrc", &SetTextureSrc)
 		.def("SetTextureColorF", &SetTextureColorF)
 
 		.def("SetDrawPosAbsolute", &SetDrawPosAbsolute)

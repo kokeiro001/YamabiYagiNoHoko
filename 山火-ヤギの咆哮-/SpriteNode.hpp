@@ -7,6 +7,13 @@ enum DrawPosType
 	DRAWPOS_RELATIVE,
 };
 
+enum TextureDivType
+{
+	TEX_DIVTYPE_NONE,
+	TEX_DIVTYPE_SIMPLE,
+	TEX_DIVTYPE_USER,
+};
+
 class Sprite
 	: public boost::enable_shared_from_this<Sprite>
 {
@@ -45,10 +52,15 @@ protected:
 
 	Engine::Graphics::Resource::ITexture* m_pTexBuf;
 	ColorF m_textureColor;
-	bool m_isDivTex;
+	TextureDivType m_divType;
+	// simple div
 	int m_divDrawTexIdx;
 	int m_divX, m_divY;
 	int m_divW, m_divH;
+
+	// user div
+	int m_srcX, m_srcY;
+	int m_srcW, m_srcH;
 
 	// text data
 	Engine::Graphics::Simple::ITextRenderer* m_pTextRdr;
@@ -127,7 +139,9 @@ public:
 	void SetDrawPosRelative() { m_posType = DRAWPOS_RELATIVE; }
 
 	void SetTextureMode(const char* name);
-	virtual void SetDivTextureMode(const char* name, int xnum, int ynum, int width, int height);
+	void SetDivTextureMode(const char* name, int xnum, int ynum, int width, int height);
+	void SetTextureSrc(int x, int y, int w, int h);
+
 	void SetTextureColorF(ColorF color);
 	
 	void SetTextMode(const char* text);
@@ -144,9 +158,9 @@ public:
 	void RemoveFromParent();
 	void RemoveFromParentForce();
 
-	virtual void DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY);
-	virtual void Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY, int level);
-	virtual void SortZ();
+	void DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY);
+	void Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY, int level);
+	void SortZ();
 
 	RectI GetBounds() { return RectI(m_x, m_y, m_width, m_height); }
 
