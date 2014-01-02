@@ -55,6 +55,8 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("stage2clear.png", "stage2clear")
 	GS.GrMgr:LoadTexture2("stage3clear.png", "stage3clear")
 	
+	GS.GrMgr:LoadTexture2("debug_window.png", "debugWindow")
+	
 	
 	GS.SoundMgr:LoadSe("bell00.wav", "bell")
 	GS.SoundMgr:LoadSe("bosu28_a.wav", "bosu")

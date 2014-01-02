@@ -44,6 +44,10 @@ function Actor:__init()
 	self.children = {}
 end
 
+function Actor:GetPos()
+	return self.x, self.y
+end
+
 function Actor:Begin()
 	if self.StateStart ~= nil then
 		if self:ChangeRoutine("StateStart") then
@@ -189,6 +193,11 @@ end
 function Actor:ApplyPosToSpr()
 	self.spr.x = self.x
 	self.spr.y = self.y
+end
+
+function Actor:ApplyPosToSprUseCamera(camera)
+	self.spr.x = self.x - camera.x
+	self.spr.y = self.y - camera.y
 end
 
 function Actor:Show()

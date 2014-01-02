@@ -69,7 +69,6 @@ function TitleScreen:StateToGame(rt)
 	end
 	
 	ChangeScreen(GameScreen())
-	self:GetSpr():RemoveChild(fadeSpr)
 	rt:Wait()
 end
 

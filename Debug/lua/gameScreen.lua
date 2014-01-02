@@ -116,6 +116,9 @@ end
 function GetPlayer()
 	return GetStage().player
 end
+function GetCamera()
+	return GetStage().camera
+end
 
 
 class'GameScreen'(ScreenBase)
@@ -148,6 +151,7 @@ function GameScreen:BeginStage(stageNum)
 	self.stage:BeginStage(stageNum)
 	self.z = -10
 	self:GetSpr():SortZ()
+	GS.Scheduler:SortActor()
 end
 
 function GameScreen:BeginFadeIn(cnt)
@@ -194,12 +198,17 @@ end
 function Stage:Begin()
 	Actor.Begin(self)
 	
+	self.camera = Camera()
+	self.camera:Begin()
+	self:AddChild(self.camera)
+	
 	self.player = Player(self)
 	self.player:Begin()
 	self.player.x = PLAYER_X
 	self.player.y = PLAYER_Y
 	self.player:GetSpr().z = Z_ORDER_PLAYER
 	self:AddChild(self.player)
+	GetCamera():AddAutoApplyPosItem(self.player)
 	
 	self.back = GameBack()
 	self.back:Begin()
@@ -220,7 +229,7 @@ function Stage:Begin()
 	self.pat:Begin()
 	self.pat.x = PATCAR_X
 	self.pat.y = PATCAR_Y
-	self.pat:ApplyPosToSpr()
+	GetCamera():AddAutoApplyPosItem(self.pat)
 	self:AddChild(self.pat)
 	
 	local clearFunc = function()
@@ -228,21 +237,27 @@ function Stage:Begin()
 	end
 	self.marker = StageMarker()
 	self.marker:Begin(clearFunc)
-	self.marker.enable = false
 	self:AddChild(self.marker)
 
 	if DEBUG_MODE then
+		local window = Actor()
+		window:Begin()
+		window.x = -1
+		window.y = -1
+		window:SetTexture("debugWindow")
+		GetCamera():AddAutoApplyPosItem(window)
+		self:AddChild(window)
+		
+	
 		local slash = Actor()
 		slash:Begin()
 		slash:SetText("|")
 		slash.x = SLASHABEL_X_MAX
 		slash.y = LINE_HEIGHTS[LINE_BOTTOM]
-		slash:ApplyPosToSpr()
+		GetCamera():AddAutoApplyPosItem(slash)
 		self:AddChild(slash)
 	end
 
-	self:GetSpr():SortZ()
-	
 	if IS_PLAY_BGM then
 		GS.SoundMgr:PlayBgm("gameBgm.ogg")
 	end
@@ -251,63 +266,111 @@ end
 
 function Stage:BeginStage(num)
 	self.stageNum = num
-	
 	self.stageNumAct:SetText("STAGE"..self.stageNum)
 	
-	if num == 2 then
-		self.pat.enable = true
-		self.pat:Show()
-	else
-		self.pat.enable = false
-		self.pat:Hide()
-	end
-
 	self.game:BeginFadeIn(STARTDEMO_FADEIN_FRAME)
-	self:ChangeRoutine("StateStart")
-
-
-function Stage:StateStart(rt)
-	local spr = Sprite()
-	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
-	self:GetSpr():AddChild(spr)
-	self:GetSpr():SortZ()
 	
-	self.marker.enable = false
+	for idx, chr in ipairs(self:GetChild()) do
+		if chr.BeginDemo ~= nil then
+			chr:BeginDemo(num)
+		end
+	end
 	
+	local tmp = 1
+	self:ChangeRoutine("StateStartDemo"..tmp)
+end
+
+function Stage:InitStartDemoWait(cnt)
 	-- remove all enemy
 	while table.getn(self.allEnemies) > 0 do
 		self:RemoveEnemy(self.allEnemies[1])
 	end
-	
-	-- fade in
-	rt:Wait(STARTDEMO_FADEIN_FRAME)
-	
-	for i=1, 60 do
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
-		rt:Wait()
-	end
-	-- fade out
 
+	self.stageNumAct:SetText("STAGE"..self.stageNum)
+	self.marker.enable = false
 	self.encountCnt = 0
 	self.addTopEnemyDelay = 0
 	self.enemyTopSpanCnt = 0
 	self.addBottomEnemyDelay = 0
 	self.enemyBottomSpanCnt = 0
-
-	self.stageNumAct:SetText("STAGE"..self.stageNum)
-
 	
+	-- fade in
+	self:Wait(cnt)
+end
+
+function Stage:StateStartDemo1(rt)
+	local spr = Sprite()
+	spr.z = -100
+	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
+	self:GetSpr():AddChild(spr)
+	self:GetSpr():SortZ()
+	
+	-- fade in
+	self:InitStartDemoWait(STARTDEMO_FADEIN_FRAME)
+
+	rt:Wait(60)
+	local height = 50
+	local top, bottom = self:AddObi(height)
+
+	local span = 30
+	for i=1, span do
+		spr.alpha = 1 - (i / span)
+		rt:Wait()
+	end
+	spr:Hide()
+	
+	rt:Wait(60)
+	
+	-- 処理待ち
+	self:RemoveObiWait(top, bottom, 30, height)
+	
+	self:GetSpr():RemoveChild(top)
+	self:GetSpr():RemoveChild(bottom)
+	
+	self:GetSpr():RemoveChild(spr)
+	self:Goto("StateGame")
+end
+
+
+function Stage:AddObi(height)
+	local top = Sprite()
+	top:SetTextureMode("whitePix")
+	top:SetTextureColorF(Color.Black)
+	top.drawWidth  = GetProperty("WindowWidth")
+	top.drawHeight = height
+	top.z = -50
+	self:GetSpr():AddChild(top)
+
+	local bottom = Sprite()
+	bottom:SetTextureMode("whitePix")
+	bottom:SetTextureColorF(Color.Black)
+	bottom.drawWidth  = GetProperty("WindowWidth")
+	bottom.y = GetProperty("WindowHeight") - height
+	bottom.z = -50
+	bottom.drawHeight = height
+	self:GetSpr():AddChild(bottom)
+
+	self:GetSpr():SortZ()
+	return top, bottom
+end
+
+function Stage:RemoveObiWait(top, bottom, span, height)
+	for i=1, span do
+		top.y			= -height + height * (1 - (i/span))
+		bottom.y	= GetProperty("WindowHeight") - height + height * (i/span)
+		top.alpha = (1 - (i/span))
+		bottom.alpha = (1 - (i/span))
+		self:Wait()
+	end
+end
+
+function Stage:StateGame(rt)
 	for idx, chr in ipairs(self:GetChild()) do
 		if chr.BeginStage ~= nil then
 			chr:BeginStage(self.stageNum)
 		end
 	end
 
-	self:GetSpr():RemoveChild(spr)
-	self:Goto("StateGame")
-end
-
-function Stage:StateGame(rt)
 	while true do
 		if DEBUG_MODE then
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_A) then
@@ -334,8 +397,6 @@ function Stage:StateGame(rt)
 		
 		rt:Wait()
 	end
-end
-
 end
 
 function Stage:GetEnemies()
@@ -433,7 +494,8 @@ function Stage:CheckAddEnemy()
 		enemy.spd = spd
 		enemy.x = GetProperty("WindowWidth") + 30
 		enemy.y = LINE_HEIGHTS[enemy.line]
-		enemy:ApplyPosToSpr()
+		enemy:ApplyPosToSprUseCamera(GetCamera())
+		GetCamera():AddAutoApplyPosItem(enemy)
 		self:AddEnemy(enemy)
 		self:GetSpr():SortZ()
 
@@ -528,6 +590,7 @@ function Stage:StateEnding(rt)
 	self:GetSpr():AddChild(spr)
 	
 	
+	self.player:ClearItem()
 	self.stageNumAct:Hide()
 	self.marker.enable = false
 	self.marker:Hide()
@@ -602,20 +665,15 @@ function Player:Begin()
 
 end
 
-function Player:BeginStage(num)
-	while table.getn(self.itemSprites) > 0 do
-		self:DecItem()
-	end
+function Player:BeginDemo(num)
+	self:ClearItem()
 end
 
 function Player:StateStart(rt)
-	self:ApplyPosToSpr()
 	while true do
 		for idx=0, 5 do
 			self:GetSpr().divTexIdx = idx
-			for wait = 1, 3 do
-				rt:Wait()
-			end
+			rt:Wait(3)
 		end
 	end
 end
@@ -625,16 +683,18 @@ function Player:AddItem(x, y)
 	local item = Actor()
 	item:Begin()
 	item:SetDivTexture("suriken", 4, 1, 32, 32)
-	item:GetSpr().x = x
-	item:GetSpr().y = y
+	item.x = x
+	item.y = y
 	item:GetSpr().cx = 16
 	item:GetSpr().cy = 16
+	item:ApplyPosToSprUseCamera(GetCamera())
 	
+	GetCamera():AddAutoApplyPosItem(item)
 	item:ChangeFunc(function(act)
 		for i=1, GET_ITEM_WAIT_FRAME do
 			act.x = x + (self.x - x) * (i / GET_ITEM_WAIT_FRAME)
 			act.y = self.y
-			act:ApplyPosToSpr()
+			
 			act:Wait()
 		end
 		act:Dead()
@@ -670,6 +730,11 @@ function Player:GetItemCnt()
 	return table.getn(self.itemSprites)
 end
 
+function Player:ClearItem()
+	while table.getn(self.itemSprites) > 0 do
+		self:DecItem()
+	end
+end
 
 
 
@@ -686,7 +751,8 @@ function PlayerCursor:ThrowSuriken(act, kind)
 	suriken.target = act
 	suriken.x = GetPlayer().x + 30
 	suriken.y = GetPlayer().y - 10
-	suriken:ApplyPosToSpr()
+	suriken:ApplyPosToSprUseCamera(GetCamera())
+	GetCamera():AddAutoApplyPosItem(suriken)
 	suriken:CalcMoveParam(act.x - act.spd * SURIKEN_HIT_FRAME, act.y)
 	act.attacker = suriken
 	GetStage():AddChild(suriken)
@@ -698,7 +764,7 @@ function PlayerCursor:Slash(act)
 	slash.target = act
 	slash.x = act.x
 	slash.y = act.y
-	slash:ApplyPosToSpr()
+	slash:ApplyPosToSprUseCamera(GetCamera())
 	act.attacker = slash
 	GetStage():AddChild(slash)
 end
@@ -720,6 +786,7 @@ function PlayerCursorCharge:Begin()
 	PlayerCursor.Begin(self)
 	
 	local gauge = Gauge()
+	gauge.enable = false
 	
 	local releaseFunc = function()
 		for idx, enemy in ipairs(GetStage():GetEnemies()) do
@@ -864,7 +931,6 @@ function Suriken:StateStart(rt)
 		self:GetSpr().rot = self:GetSpr().rot + math.rad(30)
 		self.x = self.srcX + ((self.destX - self.srcX) * i) / cnt
 		self.y = self.srcY + ((self.destY - self.srcY) * i) / cnt
-		self:ApplyPosToSpr()
 		rt:Wait()
 	end
 	
@@ -898,14 +964,12 @@ function Slash:Begin()
 	self:GetSpr().name = "slash spr"
 	self:GetSpr().cx = 25
 	self:GetSpr().cy = 25
-	self:GetSpr().drawWidth = -50
 	
 	GS.SoundMgr:PlaySe("slash")
 end
 
 function Slash:StateStart(rt)
 	self:Attack()
-	self:GetSpr().x = self:GetSpr().x  + 50
 	for idx = 0, 4 do
 		rt:Wait(SLASH_ANIM_SPD)
 		self:GetSpr().divTexIdx = idx
@@ -946,7 +1010,7 @@ function Enemy:DeadAction(kind)
 	pcl:Begin()
 	pcl.x = self.x
 	pcl.y = self.y
-	pcl:ApplyPosToSpr()
+	pcl:ApplyPosToSprUseCamera(GetCamera())
 	GetStage():AddChild(pcl)
 end
 
@@ -988,7 +1052,7 @@ function Enemy:StateStart(rt)
 			self.animCnt = 0
 		end
 		
-		self:ApplyPosToSpr()
+		self:ApplyPosToSprUseCamera(GetCamera())
 		rt:Wait()
 	end
 end
@@ -1017,6 +1081,7 @@ function Rock:DeadAction(attackKind)
 		pcl:Begin()
 		pcl.x = self.x
 		pcl.y = self.y
+		pcl:ApplyPosToSprUseCamera(GetCamera())
 		GetStage():AddChild(pcl)
 		GetStage():GetSpr():SortZ()
 	end
@@ -1037,10 +1102,8 @@ function Rock:StateStart(rt)
 			GetStage():RemoveEnemy(self)
 			rt:Wait()
 		end
-		
 		self:GetSpr().rot = self:GetSpr().rot + math.rad(ROCK_ROT_SPD)
-		
-		self:ApplyPosToSpr()
+		self:ApplyPosToSprUseCamera(GetCamera())
 		rt:Wait()
 	end
 end
@@ -1098,7 +1161,7 @@ function Celes:StateStart(rt)
 			GetStage():RemoveEnemy(self)
 			rt:Wait()
 		end
-		self:ApplyPosToSpr()
+		self:ApplyPosToSprUseCamera(GetCamera())
 		rt:Wait()
 	end
 end
@@ -1132,7 +1195,7 @@ function GameBack:Begin()
 	end
 end
 
-function GameBack:BeginStage(stageNum)
+function GameBack:BeginDemo(stageNum)
 	local sprX = 0
 	for idx, spr in ipairs(self.sprites) do
 		spr:SetTextureMode(STAGE_BACK_NAMES[stageNum])
@@ -1143,11 +1206,20 @@ function GameBack:BeginStage(stageNum)
 end
 
 function GameBack:StateStart(rt)
+	local sprCnt = table.getn(self.sprites)
 	while true do
+		local x, y = GetCamera():GetPos()
+		self:GetSpr().x = -x
+		self:GetSpr().y = -y
 		for idx, spr in pairs(self.sprites) do
 			spr.x = spr.x - self.scrollSpd
-			if spr.x + spr.width < 0 then
-				spr.x = spr.x + 3 * spr.width
+			-- 左に行き過ぎたら右へ
+			if spr.x + spr.width + self:GetSpr().x < 0 then
+				spr.x = spr.x + sprCnt * spr.width
+			end
+			-- 右に行き過ぎたら左へ
+			if spr.x + self:GetSpr().x > GetProperty("WindowWidth") then
+				spr.x = spr.x - 6 * spr.width
 			end
 		end
 		rt:Wait()
@@ -1165,6 +1237,7 @@ function PatrolCar:__init()
 	Actor.__init(self)
 end
 
+
 function PatrolCar:Begin()
 	Actor.Begin(self)
 	
@@ -1173,6 +1246,19 @@ function PatrolCar:Begin()
 	self:GetSpr().name = "patcar spr"
 	
 	self.animCnt = 0
+end
+
+function PatrolCar:BeginDemo(num)
+	if num == 2 then
+		self.enable = true
+		self:Show()
+	else
+		self.enable = false
+		self:Hide()
+	end
+end
+
+function PatrolCar:BeginStage(num)
 end
 
 function PatrolCar:StateStart(rt)
@@ -1222,9 +1308,9 @@ end
 
 
 function BurstParticle:StateStart(rt)
-	self:ApplyPosToSpr()
 	for idx = 1, 10 do
 		for waitCnt = 1, BURST_ANIM_SPD do
+			self:ApplyPosToSprUseCamera(GetCamera())
 			rt:Wait()
 		end
 		self:GetSpr().divTexIdx = self:GetSpr().divTexIdx + 1
@@ -1267,11 +1353,12 @@ function SlashedRock:Begin()
 	self.downY				= 13
 	self.downMaxY			= -5
 	self.downMaxTime	= 10
+	
+	GetCamera():AddAutoApplyPosItem(self)
 end
 
 
 function SlashedRock:StateStart(rt)
-	self:ApplyPosToSpr()
 	for i=1, SLASHED_ROCK_PCL_SPAN do
 		self.upSpr.y = self.upY + 
 								(2*self.upMaxY*i)/self.upMaxTime - 
@@ -1324,11 +1411,19 @@ function Gauge:Begin(func, func2)
 	back.drawHeight = GAUGE_HEIGHT
 	back.z = 10
 	self:GetSpr():AddChild(back)
+	
+	GetCamera():AddAutoApplyPosItem(self)
+end
+
+function Gauge:BeginDemo(num)
+	self.enable = false
+end
+
+function Gauge:BeginStage(num)
+	self.enable = true
 end
 
 function Gauge:StateStart(rt)
-	self:ApplyPosToSpr()
-	
 	self.chargeCnt = 0
 	self:GetSpr():SetTextureColorF(Color.White)
 	self:GetSpr().drawWidth  = 1
@@ -1463,12 +1558,16 @@ function StageMarker:Begin(func)
 end
 
 
-function StageMarker:BeginStage(stageNum)
-	self.enable = true
+function StageMarker:BeginDemo(stageNum)
+	self.enable = false
 	self.isGoaled = false
 	self.nowFrame = 0
 	self.maker.x = MARKER_LEFT_X
 	self.stageFrame = STAGE_FRAME[stageNum]
+end
+
+function StageMarker:BeginStage(stageNum)
+	self.enable = true
 end
 
 function StageMarker:StateStart(rt)
@@ -1532,5 +1631,49 @@ function Haiku:StateStart(rt)
 end
 
 
+class 'Camera'(Actor)
+function Camera:__init()
+	Actor.__init(self)
+	self.items = {}
+end
 
+function Camera:Begin(stageNum, score)
+	Actor.Begin(self)
+	self.updateOrder = -10000
+end
+
+function Camera:BeginDemo(num)
+	self.x = 0
+	self.y = 0
+end
+
+function Camera:StateStart(rt)
+	local spd = 6
+	while true do
+		if GS.InputMgr:IsKeyHold(KeyCode.KEY_J) then
+			self.x = self.x - spd
+		end
+		if GS.InputMgr:IsKeyHold(KeyCode.KEY_L) then
+			self.x = self.x + spd
+		end
+		if GS.InputMgr:IsKeyHold(KeyCode.KEY_I) then
+			self.y = self.y - spd
+		end
+		if GS.InputMgr:IsKeyHold(KeyCode.KEY_K) then
+			self.y = self.y + spd
+		end
+		self:AutoApply()
+		rt:Wait()
+	end
+end
+
+function Camera:AddAutoApplyPosItem(item)
+	table.insert(self.items, item)
+end
+
+function Camera:AutoApply()
+	for idx, item in ipairs(self.items) do
+		item:ApplyPosToSprUseCamera(self)
+	end
+end
 
