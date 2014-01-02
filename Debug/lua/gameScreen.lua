@@ -22,9 +22,9 @@ local PLAYER_Y = LINE_HEIGHTS[LINE_BOTTOM]
 -- enemy
 local ENEMY_ENCOUNT_FRAME 	= 20
 
-local ENEMY_ANIM_SPD 				= 4
-local CELES_ANIM_SPD				= 10
-local ROCK_ROT_SPD = 	0 ---5		-- 毎フレーム指定角度転がる。度数法。
+local ENEMY_ANIM_SPD 	= 4
+local CELES_ANIM_SPD	= 10
+local ROCK_ROT_SPD 		= 0
 
 local TOP_ENEMY_SPD 		= 10					-- 上段の敵の速度
 local MIDDLE_ENEMY_SPD	= SCROLL_SPD	-- 中段
@@ -43,16 +43,16 @@ local PROB_CELES_STAGE2		= 30		-- ステージ２のセレスっちの出現確率(%)
 local PROB_CELES_STAGE3		= 100
 
 -- suriken
-local DEAD_REASON_TIME_UP = -1
-local ATTACK_NORMAL_SURIKEN		= 1
+local DEAD_REASON_TIME_UP			= -1	-- タイムアップで死にますよID
+local ATTACK_NORMAL_SURIKEN		= 1	-- 攻撃の種類
 local ATTACK_CHARGE1_SURIKEN	= 2
 local ATTACK_CHARGE2_SURIKEN	= 3
 local ATTACK_SLASH					  = 4
-local ATTACK_DAMAGE = {1, 1, 2, 1}	-- 直前のインデックス順
+local ATTACK_DAMAGE = {1, 1, 2, 1}	-- 攻撃力。直前のインデックス順
 
-local SURIKEN_HIT_FRAME = 10
-local LEFT_CHARGE_FRAME = 120
-local LEFT_CHARGE2_FRAME = 60
+local SURIKEN_HIT_FRAME = 10		-- スリケンが敵に当たるまでの時間
+local LEFT_CHARGE_FRAME = 60
+local LEFT_CHARGE2_FRAME = 30
 local SURIKEN_WAIT_FRAME = 15
 
 local GAUGE_Y 					= PLAYER_Y + 30
