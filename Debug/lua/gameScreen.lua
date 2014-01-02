@@ -20,9 +20,11 @@ local PLAYER_X = 100
 local PLAYER_Y = LINE_HEIGHTS[LINE_BOTTOM]
 
 -- enemy
+local ENEMY_ENCOUNT_FRAME 	= 20
+
 local ENEMY_ANIM_SPD 				= 4
 local CELES_ANIM_SPD				= 10
-local ENEMY_ENCOUNT_FRAME 	= 20
+local ROCK_ROT_SPD = 	0 ---5		-- 毎フレーム指定角度転がる。度数法。
 
 local TOP_ENEMY_SPD 		= 10					-- 上段の敵の速度
 local MIDDLE_ENEMY_SPD	= SCROLL_SPD	-- 中段
@@ -41,6 +43,13 @@ local PROB_CELES_STAGE2		= 30		-- ステージ２のセレスっちの出現確率(%)
 local PROB_CELES_STAGE3		= 100
 
 -- suriken
+local DEAD_REASON_TIME_UP = -1
+local ATTACK_NORMAL_SURIKEN		= 1
+local ATTACK_CHARGE1_SURIKEN	= 2
+local ATTACK_CHARGE2_SURIKEN	= 3
+local ATTACK_SLASH					  = 4
+local ATTACK_DAMAGE = {1, 1, 2, 1}	-- 直前のインデックス順
+
 local SURIKEN_HIT_FRAME = 10
 local LEFT_CHARGE_FRAME = 120
 local LEFT_CHARGE2_FRAME = 60
@@ -73,7 +82,6 @@ local MARKER_ANIM_SPD		= 10
 local STAGE_START_DEMO_NAMES = {"stage1demo", "stage2demo", "stage3demo"}
 local STAGE_CLEAR_DEMO_NAMES = {"stage1clear", "stage2clear", "stage3clear"}
 
-local ROCK_ROT_SPD = 	-5		-- 毎フレーム指定角度転がる。度数法。
 
 local STARTDEMO_FADEIN_FRAME	= 20
 local CLEARDEMO_FADEOUT_FRAME	= 20
@@ -95,11 +103,6 @@ local Z_ORDER_PLAYER	= 100
 local Z_ORDER_BACK		= 1000
 
 
-local SURIKEN_KIND_NORMAL		= 1
-local SURIKEN_KIND_CHARGE1	= 2
-local SURIKEN_KIND_CHARGE2	= 3
-local SURIKEN_DAMAGE = {1, 1, 2}
-
 function GetGame()
 	if GS.CurrentScreen.name == "GameScreen" then
 		return GS.CurrentScreen
@@ -118,7 +121,6 @@ function GameScreen:__init()
 	self.score = 0
 	self.stageNum = 1
 	self.allEnemies = {}
-	self.surikens = {}
 	
 	self.backId = nil
 end
@@ -388,19 +390,18 @@ function GameScreen:CheckAddEnemy()
 end
 
 
-
-
 function GameScreen:StateClear(rt)
 	-- すべての敵をbom
 	local deadTargets = {}
 	for idx, enemy in ipairs(self.allEnemies) do
-		if enemy.suriken == nil then
+		if enemy.attacker == nil then
 			table.insert(deadTargets, enemy)
 		end
 	end
 	while table.getn(deadTargets) > 0 do
 		local enemy = deadTargets[1]
-		self:DeadEnemy(enemy)
+		enemy:DeadAction(DEAD_REASON_TIME_UP)
+		self:RemoveEnemy(enemy)
 		RemoveValue(deadTargets, enemy)
 	end
 	
@@ -524,24 +525,6 @@ function GameScreen:RemoveEnemy(enemy)
 	self:RemoveChild(enemy)
 end
 
-function GameScreen:AddSuriken(suriken)
-	table.insert(self.surikens, suriken)
-	self:AddChild(suriken)
-end
-
-function GameScreen:RemoveSuriken(suriken)
-	RemoveValue(self.surikens, suriken)
-	self:RemoveChild(suriken)
-end
-
-function GameScreen:DeadEnemy(enemy)
-	local pcl = BurstParticle()
-	pcl:Begin()
-	pcl.x = enemy.x
-	pcl.y = enemy.y
-	self:AddChild(pcl)
-	self:RemoveEnemy(enemy)
-end
 
 function GameScreen:ChangeScrollSpd(spd)
 	for idx, enemy in ipairs(self.allEnemies) do
@@ -583,7 +566,7 @@ function Player:Begin()
 	
 	self.animCnt = 0
 
-	local cursor = PlayerCursorCharge(self)
+	local cursor = PlayerCursorCharge()
 	cursor:Begin()
 	GetGame():AddChild(cursor)
 	GetGame().cursorId = cursor.id
@@ -663,11 +646,8 @@ end
 
 --@PlayerCursor
 class 'PlayerCursor'(Actor)
-function PlayerCursor:__init(player)
+function PlayerCursor:__init()
 	Actor.__init(self)
-	
-	self.player = player
-	self.game = player.game
 end
 
 function PlayerCursor:ThrowSuriken(act, kind)
@@ -675,25 +655,36 @@ function PlayerCursor:ThrowSuriken(act, kind)
 	suriken:Begin()
 	suriken.kind = kind
 	suriken.target = act
-	suriken.x = self.player.x + 30
-	suriken.y = self.player.y - 10
+	suriken.x = GetPlayer().x + 30
+	suriken.y = GetPlayer().y - 10
 	suriken:ApplyPosToSpr()
 	suriken:CalcMoveParam(act.x - act.spd * SURIKEN_HIT_FRAME, act.y)
-	act.suriken = suriken
-	GetGame():AddSuriken(suriken)
+	act.attacker = suriken
+	GetGame():AddChild(suriken)
+end
+
+function PlayerCursor:Slash(act)
+	local slash = Slash()
+	slash:Begin()
+	slash.target = act
+	slash.x = act.x
+	slash.y = act.y
+	slash:ApplyPosToSpr()
+	act.attacker = slash
+	GetGame():AddChild(slash)
 end
 
 class 'PlayerCursorCharge'(PlayerCursor)
-function PlayerCursorCharge:__init(player)
-	PlayerCursor.__init(self, player)
+function PlayerCursorCharge:__init()
+	PlayerCursor.__init(self)
 	
-	self.surikenWaitCnt = 0
+	self.attackWaitCnt = 0
 	self.itemCnt = 0
 end
 
 function PlayerCursorCharge:ThrowSuriken(act, kind)
 	PlayerCursor.ThrowSuriken(self, act, kind)
-	self.surikenWaitCnt = SURIKEN_WAIT_FRAME
+	self.attackWaitCnt = SURIKEN_WAIT_FRAME
 end
 
 function PlayerCursorCharge:Begin()
@@ -704,13 +695,13 @@ function PlayerCursorCharge:Begin()
 	local releaseFunc = function()
 		for idx, enemy in ipairs(GetGame():GetEnemies()) do
 			if enemy.line == LINE_MIDDLE then
-				self:ThrowSuriken(enemy, SURIKEN_KIND_CHARGE1)
+				self:ThrowSuriken(enemy, ATTACK_CHARGE1_SURIKEN)
 			end
 		end
 	end
 	local releaseFunc2 = function()
 		for idx, enemy in ipairs(GetGame():GetEnemies()) do
-			self:ThrowSuriken(enemy, SURIKEN_KIND_CHARGE2)
+			self:ThrowSuriken(enemy, ATTACK_CHARGE2_SURIKEN)
 		end
 		GetPlayer():DecItem()
 	end
@@ -732,8 +723,8 @@ function PlayerCursorCharge:StateStart(rt)
 	}
 
 	while true do
-		if self.surikenWaitCnt > 0 then
-			self.surikenWaitCnt = self.surikenWaitCnt - 1
+		if self.attackWaitCnt > 0 then
+			self.attackWaitCnt = self.attackWaitCnt - 1
 		end
 		
 		-- キーが押されていなければスタックから削除
@@ -754,7 +745,7 @@ function PlayerCursorCharge:StateStart(rt)
 			end
 		end
 		
-		if self.surikenWaitCnt == 0 and
+		if self.attackWaitCnt == 0 and
 			 not GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) 
 			 and table.getn(inputStack) > 0 then
 			 
@@ -763,59 +754,69 @@ function PlayerCursorCharge:StateStart(rt)
 				local enemies = GetGame():GetEnemies()
 				for idx, enemy in ipairs(enemies) do
 					if enemy.line == LINE_TOP and
-						 enemy.suriken == nil then
-						self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
+						 enemy.attacker == nil then
+						self:ThrowSuriken(enemy, ATTACK_NORMAL_SURIKEN)
 						break
 					end
 				end
 			end
 			
-			if keyCode == KeyCode.KEY_DOWN then
+			if keyCode == KeyCode.KEY_RIGHT then
 				local enemies = GetGame():GetEnemies()
 				for idx, enemy in ipairs(enemies) do
-					if enemy.line == LINE_BOTTOM and 
-						 enemy.suriken == nil and
-						 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
-						self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
+					if enemy.line == LINE_MIDDLE and 
+						 enemy.attacker == nil then
+						self:ThrowSuriken(enemy, ATTACK_NORMAL_SURIKEN)
 						break
 					end
 				end
 			end
 
-			if keyCode == KeyCode.KEY_RIGHT then
+			-- slash
+			if keyCode == KeyCode.KEY_DOWN then
 				local enemies = GetGame():GetEnemies()
 				for idx, enemy in ipairs(enemies) do
-					if enemy.line == LINE_MIDDLE and 
-						 enemy.suriken == nil then
-						self:ThrowSuriken(enemy, SURIKEN_KIND_NORMAL)
+					if enemy.line == LINE_BOTTOM and 
+						 enemy.attacker == nil and
+						 (SLASHABEL_X_MIN <= enemy.x and enemy.x <= SLASHABEL_X_MAX) then
+						self:Slash(enemy)
 						break
 					end
 				end
 			end
+
 		end
 		rt:Wait()
 	end
 end
 
+class 'Attacker'(Actor)
+function Attacker:__init()
+	Actor.__init(self)
+	self.target = nil
+end
 
+function Attacker:Attack()
+	if self.target:Damage(ATTACK_DAMAGE[self.kind]) then
+		self.target:DeadAction(self.kind)
+		GetGame():RemoveEnemy(self.target)
+	end
+	self.target.attacker = nil
+end
 
 -- @Suriken
-class 'Suriken'(Actor)
+class 'Suriken'(Attacker)
 function Suriken:__init()
-	Actor.__init(self)
-	
-	self.target = nil
+	Attacker.__init(self)
 	
 	self.srcX = 0
 	self.srcY = 0
 	self.destX = 0
 	self.destY = 0
-	
-	self.hitable = false
 end
 
 function Suriken:Begin()
-	Actor.Begin(self)
+	Attacker.Begin(self)
 	
 	self:SetDivTexture("suriken", 4, 1, 32, 32)
 	self:GetSpr().divTexIdx = 0
@@ -838,13 +839,9 @@ function Suriken:StateStart(rt)
 		rt:Wait()
 	end
 	
-	if self.target:Damage(SURIKEN_DAMAGE[self.kind]) then
-		self.target:DeadAction(self.kind)
-		GetGame():DeadEnemy(self.target)
-	end
-	self.target.suriken = nil
+	self:Attack()
 	
-	GetGame():RemoveSuriken(self)
+	GetGame():RemoveChild(self)
 	self:Dead()
 	rt:Wait()
 end
@@ -857,6 +854,37 @@ function Suriken:CalcMoveParam(x, y)
 	self.destY = y
 end
 
+--@Slash
+class 'Slash'(Attacker)
+function Slash:__init()
+	Attacker.__init(self)
+	self.kind = ATTACK_SLASH
+end
+
+function Slash:Begin()
+	Attacker.Begin(self)
+	
+	self:SetDivTexture("slash", 5, 1, 50, 50)
+	self:GetSpr().divTexIdx = 0
+	self:GetSpr().name = "slash spr"
+	self:GetSpr().cx = 25
+	self:GetSpr().cy = 25
+	
+	GS.SoundMgr:PlaySe("slash")
+end
+
+function Slash:StateStart(rt)
+	self:Attack()
+	local wait = 5
+	for idx = 0, 4 do
+		rt:Wait(idx)
+		self:GetSpr().divTexIdx = idx
+	end
+	
+	GetGame():RemoveChild(self)
+	self:Dead()
+	rt:Wait()
+end
 
 
 
@@ -871,7 +899,7 @@ function Enemy:__init(kind)
 	
 	self.spd = 0
 	self.kind = kind
-	self.suriken = nil
+	self.attacker = nil
 	self.hp = HP_ZAKO
 end
 
@@ -884,11 +912,16 @@ function Enemy:Damage(dmg)
 end
 
 function Enemy:DeadAction(kind)
+	local pcl = BurstParticle()
+	pcl:Begin()
+	pcl.x = self.x
+	pcl.y = self.y
+	GetGame():AddChild(pcl)
 end
 
 function Enemy:Dead()
 	Actor.Dead(self)
-	self.suriken = nil
+	self.attacker = nil
 end
 
 function Enemy:Begin()
@@ -944,10 +977,18 @@ function Rock:SetActTexture()
 	self:GetSpr().cy = 25
 end
 
-function Rock:DeadAction(surikenKind)
-	if surikenKind == SURIKEN_KIND_NORMAL or 
-		 surikenKind == SURIKEN_KIND_CHARGE1 then
+function Rock:DeadAction(attackKind)
+	if attackKind == ATTACK_SLASH then 
 		GetGame().player:AddItem(self.x, self.y)
+		-- add particle
+	end
+	if attackKind == ATTACK_CHARGE2_SURIKEN or 
+		 attackKind == DEAD_REASON_TIME_UP then 
+		local pcl = BurstParticle()
+		pcl:Begin()
+		pcl.x = self.x
+		pcl.y = self.y
+		GetGame():AddChild(pcl)
 	end
 end
 
@@ -1012,8 +1053,8 @@ function Celes:SetActTexture()
 end
 
 --function Celes:DeadAction(surikenKind)
---	if surikenKind == SURIKEN_KIND_NORMAL or 
---		 surikenKind == SURIKEN_KIND_CHARGE1 then
+--	if surikenKind == ATTACK_NORMAL_SURIKEN or 
+--		 surikenKind == ATTACK_CHARGE1_SURIKEN then
 --		GetGame().player:AddItem(self.x, self.y)
 --	end
 --end

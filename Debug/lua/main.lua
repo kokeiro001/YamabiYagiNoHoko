@@ -45,6 +45,7 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("burst0.png", "burst0")
 	GS.GrMgr:LoadTexture2("run_marker.png", "runMarker")
 	GS.GrMgr:LoadTexture2("Šâ.png", "rock")
+	GS.GrMgr:LoadTexture2("zan.png", "slash")
 	
 	GS.GrMgr:LoadTexture2("stage1demo.png", "stage1demo")
 	GS.GrMgr:LoadTexture2("stage2demo.png", "stage2demo")
@@ -61,6 +62,7 @@ function OnPower(appli)
 	GS.SoundMgr:LoadSe("burst00.wav", "burst")
 	GS.SoundMgr:LoadSe("seles_damage.wav", "selesDamage")
 	GS.SoundMgr:LoadSe("seles_dead.wav", "selesDead")
+	GS.SoundMgr:LoadSe("slash.wav", "slash")
 
 	GS.SoundMgr:SetSeVol("burst", 30)
 	
