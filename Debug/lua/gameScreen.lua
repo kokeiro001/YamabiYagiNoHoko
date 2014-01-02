@@ -138,20 +138,15 @@ function GameScreen:Begin()
 	self.fadeAct:GetSpr().z = Z_ORDER_FRONT
 	self:AddChild(self.fadeAct)
 	
+	self.stage = Stage(self)
+	self.stage:Begin()
+	self:AddChild(self.stage)
 	self:BeginStage(1)
 end
 
 function GameScreen:BeginStage(stageNum)
-	self.stageNum = stageNum
-	if self.stage ~= nil then
-		self.stage:Dead()
-		self:RemoveChild(self.stage)
-	end
+	self.stage:BeginStage(stageNum)
 	self.z = -10
-	
-	self.stage = Stage(self)
-	self.stage:Begin(stageNum)
-	self:AddChild(self.stage)
 	self:GetSpr():SortZ()
 end
 
@@ -196,9 +191,8 @@ function Stage:__init(game)
 	self.allEnemies = {}
 end
 
-function Stage:Begin(stageNum)
+function Stage:Begin()
 	Actor.Begin(self)
-	self.stageNum = stageNum
 	
 	self.player = Player(self)
 	self.player:Begin()
@@ -207,32 +201,28 @@ function Stage:Begin(stageNum)
 	self.player:GetSpr().z = Z_ORDER_PLAYER
 	self:AddChild(self.player)
 	
-	local back = GameBack()
-	back:Begin()
-	back.x = GetProperty("WindowWidth")
-	back.y = 0
-	back:GetSpr().z = Z_ORDER_BACK
-	self:AddChild(back)
-	self.back = back
-
-	if stageNum == 2 then
-		self.pat = PatrolCar()
-		self.pat:Begin()
-		self.pat.x = PATCAR_X
-		self.pat.y = PATCAR_Y
-		self.pat:ApplyPosToSpr()
-		self:AddChild(self.pat)
-	end
+	self.back = GameBack()
+	self.back:Begin()
+	self.back.x = GetProperty("WindowWidth")
+	self.back.y = 0
+	self.back:GetSpr().z = Z_ORDER_BACK
+	self:AddChild(self.back)
 	
-	local stageNumAct = Actor()
-	stageNumAct:Begin()
-	stageNumAct:SetText("STAGE"..self.stageNum)
-	stageNumAct.x = 10
-	stageNumAct.y = 5
-	stageNumAct:ApplyPosToSpr()
-	self:AddChild(stageNumAct)
-	self.stageNumAct = stageNumAct
+	self.stageNumAct = Actor()
+	self.stageNumAct:SetText("")
+	self.stageNumAct:Begin()
+	self.stageNumAct.x = 10
+	self.stageNumAct.y = 5
+	self.stageNumAct:ApplyPosToSpr()
+	self:AddChild(self.stageNumAct)
 
+	self.pat = PatrolCar()
+	self.pat:Begin()
+	self.pat.x = PATCAR_X
+	self.pat.y = PATCAR_Y
+	self.pat:ApplyPosToSpr()
+	self:AddChild(self.pat)
+	
 	local clearFunc = function()
 		self:ChangeRoutine("StateClear")
 	end
@@ -242,19 +232,6 @@ function Stage:Begin(stageNum)
 	self:AddChild(self.marker)
 
 	if DEBUG_MODE then
-		if false then
-			local hint = Actor()
-			hint:Begin()
-			hint:SetText("F3 Game Script Reload\n"..
-									 "A Rapid Suriken \n"..
-									 "T Goto Title\n")
-			hint:GetSpr():SetFontSize(14)
-			hint.x = 600
-			hint.y = 10
-			hint:ApplyPosToSpr()
-			self:AddChild(hint)
-		end
-
 		local slash = Actor()
 		slash:Begin()
 		slash:SetText("|")
@@ -270,22 +247,24 @@ function Stage:Begin(stageNum)
 		GS.SoundMgr:PlayBgm("gameBgm.ogg")
 	end
 
+end
+
+function Stage:BeginStage(num)
+	self.stageNum = num
+	
+	self.stageNumAct:SetText("STAGE"..self.stageNum)
+	
+	if num == 2 then
+		self.pat.enable = true
+		self.pat:Show()
+	else
+		self.pat.enable = false
+		self.pat:Hide()
+	end
+
+	self.game:BeginFadeIn(STARTDEMO_FADEIN_FRAME)
 	self:ChangeRoutine("StateStart")
-end
 
-function Stage:GetEnemies()
-	return self.allEnemies
-end
-
-function Stage:AddEnemy(enemy)
-	self:AddChild(enemy)
-	table.insert(self.allEnemies, enemy)
-end
-function Stage:RemoveEnemy(enemy)
-	enemy:Dead()
-	RemoveValue(self.allEnemies, enemy)
-	self:RemoveChild(enemy)
-end
 
 function Stage:StateStart(rt)
 	local spr = Sprite()
@@ -301,7 +280,6 @@ function Stage:StateStart(rt)
 	end
 	
 	-- fade in
-	self.game:BeginFadeIn(STARTDEMO_FADEIN_FRAME)
 	rt:Wait(STARTDEMO_FADEIN_FRAME)
 	
 	for i=1, 60 do
@@ -356,6 +334,22 @@ function Stage:StateGame(rt)
 		
 		rt:Wait()
 	end
+end
+
+end
+
+function Stage:GetEnemies()
+	return self.allEnemies
+end
+
+function Stage:AddEnemy(enemy)
+	self:AddChild(enemy)
+	table.insert(self.allEnemies, enemy)
+end
+function Stage:RemoveEnemy(enemy)
+	enemy:Dead()
+	RemoveValue(self.allEnemies, enemy)
+	self:RemoveChild(enemy)
 end
 
 function Stage:CheckAddEnemy()
