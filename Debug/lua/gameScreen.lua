@@ -6,6 +6,15 @@ local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ステージの背景透明度
 
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
 
+-- scoore
+local SCORE_X = 500
+local SCORE_Y = 5
+
+local POINT_ZAKO 				= 100
+local POINT_CELES 			= 300
+local POINT_ROCK 				= 50
+local POINT_USE_CHARGE2	= 200
+
 -- lines
 local LINE_HEIGHTS = { 100, 200, 300 }
 local LINE_TOP			= 1
@@ -69,7 +78,7 @@ local PATCAR_Y 			= PLAYER_Y - 10
 
 -- marker
 local MARKER_LEFT_X			= 100
-local MARKER_RIGHT_X		= GetProperty("WindowWidth") - 100
+local MARKER_RIGHT_X		= GetProperty("WindowWidth") - 150
 local MARKER_Y					= 10
 local MARKER_HEIGHT			= 20
 local MARKER_ANIM_SPD		= 10
@@ -216,6 +225,7 @@ function Stage:__init(game)
 	self.demoAct = {}
 	self.demoSpr = {}
 	self.demoSkipable = true
+	
 end
 
 function Stage:Begin()
@@ -239,6 +249,13 @@ function Stage:Begin()
 	self.back.y = 0
 	self.back:GetSpr().z = Z_ORDER_BACK
 	self:AddChild(self.back)
+	
+	self.scoreMgr = StageScore()
+	self.scoreMgr:Begin()
+	self.scoreMgr.x = SCORE_X
+	self.scoreMgr.y = SCORE_Y
+	self.scoreMgr:ApplyPosToSpr()
+	self:AddChild(self.scoreMgr)
 	
 	self.stageNumAct = Actor()
 	self.stageNumAct:SetText("")
@@ -398,10 +415,12 @@ function Stage:StateStartDemo2(rt)
 	self:InitStartDemoWait()
 	
 	self.demoEndFunc = function()
+		self.player:ChangeRoutine("StateStart")
 		self.player:Show()
 		self.player.x = PLAYER_X
 
 		self.pat.enable = true
+		self.pat:ChangeRoutine("StateStart")
 		self.pat:Show()
 		self.pat.spr.divTexIdx = 12
 		self.pat.x = PATCAR_X
@@ -1325,6 +1344,7 @@ function Enemy:__init(kind)
 	self.kind = kind
 	self.attacker = nil
 	self.hp = HP_ZAKO
+	self.point = POINT_ZAKO
 end
 
 function Enemy:Damage(dmg)
@@ -1342,6 +1362,22 @@ function Enemy:DeadAction(kind)
 	pcl.y = self.y
 	pcl:ApplyPosToSprUseCamera(GetCamera())
 	GetStage():AddChild(pcl)
+	self:UpdateScore(kind)
+end
+
+function Enemy:UpdateScore(kind)
+	if kind == DEAD_REASON_TIME_UP then
+		return
+	end
+	
+	local point = nil
+	if kind == ATTACK_CHARGE2_SURIKEN then
+		point = POINT_USE_CHARGE2
+	else
+		point = self.point
+	end
+	
+	GetStage().scoreMgr:AddPoint(point)
 end
 
 function Enemy:Dead()
@@ -1392,6 +1428,7 @@ class 'Rock'(Enemy)
 function Rock:__init()
 	Enemy.__init(self)
 	self.hp = HP_ROCK
+	self.point = POINT_ROCK
 end
 
 function Rock:SetActTexture()
@@ -1423,6 +1460,7 @@ function Rock:DeadAction(attackKind)
 		pcl.y = self.y
 		GetStage():AddChild(pcl)
 	end
+	self:UpdateScore(attackKind)
 end
 
 function Rock:StateStart(rt)
@@ -1445,6 +1483,7 @@ class 'Celes'(Enemy)
 function Celes:__init()
 	Enemy.__init(self)
 	self.hp = HP_CELES
+	self.point = POINT_CELES
 end
 
 function Celes:Damage(dmg)
@@ -1454,7 +1493,6 @@ function Celes:Damage(dmg)
 	else
 		GS.SoundMgr:PlaySe("selesDamage")
 	end
-	
 	return res
 end
 
@@ -1886,4 +1924,49 @@ function Camera:AutoApply()
 		item:ApplyPosToSprUseCamera(self)
 	end
 end
+
+
+
+
+class'StageScore'(Actor)
+function StageScore:__init()
+	Actor.__init(self)
+	self.point = 0
+end
+
+function StageScore:Begin()
+	Actor.Begin(self)
+	self:UpdateText()
+end
+
+function StageScore:AddPoint(point)
+	self.point = self.point + point
+	self:UpdateText()
+end
+
+function StageScore:UpdateText()
+	self:SetText("得点："..self.point)
+end
+
+function StageScore:BeginStartDemo(stageNum)
+	self.point = 0
+	self:UpdateText()
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
