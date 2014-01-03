@@ -316,7 +316,26 @@ function Actor:StateMove(rt)
 	self:Goto("StateStart")
 end
 
+function Actor:MoveJump(maxTime, maxY, enableTime)
+	self.srcY = self.y
+	self.maxTime = maxTime
+	self.maxY = maxY
+	self.enableTime = enableTime
+	self:ChangeRoutine("StateMoveJump")
+end
 
+function Actor:StateMoveJump(rt)
+	print("maxTime="..self.maxTime)
+	for i=1, self.enableTime do
+		self.y = self.srcY 
+						 + (2*self.maxY*i)/self.maxTime
+						 -0.5*(2*self.maxY*(i*i)) / (self.maxTime * self.maxTime)
+		print("y="..self.y)
+		rt:Wait()
+	end
+	self.y = self.srcY
+	self:Goto("StateStart")
+end
 
 
 

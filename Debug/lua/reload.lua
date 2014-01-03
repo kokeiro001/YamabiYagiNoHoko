@@ -25,6 +25,7 @@ local titleLuaFiles =
 
 local gameLuaFiles = 
 {
+	"lua/actor.lua",
 	"lua/debug.lua",
 	"lua/particle.lua",
 	

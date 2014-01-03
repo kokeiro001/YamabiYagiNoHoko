@@ -502,8 +502,7 @@ end
 
 
 function Stage:StateClear(rt)
-	local tmp = 1
-	self:ChangeRoutine("StateClearDemo"..tmp)
+	self:ChangeRoutine("StateClearDemo"..self.stageNum)
 	rt:Wait()
 end
 
@@ -599,6 +598,94 @@ function Stage:StateClearDemo1(rt)
 end
 
 
+function Stage:StateClearDemo2(rt)
+	self:InitClearDemo()
+	
+	-- プレイヤー、パトカーを前に進める
+	self:ChangeScrollSpd(SCROLL_SPD + 1)
+	self.player:Move(60, GetProperty("WindowWidth") / 2, PLAYER_Y)
+	self.pat:Move(60, 100, PATCAR_Y)
+	rt:Wait(90)
+	
+	-- パトカー下がる
+	self.pat:Move(120, -100, PATCAR_Y)
+	rt:Wait(120)
+	
+	-- パトカー突っ込む
+	self.pat:Move(100, GetProperty("WindowWidth") + 100, PATCAR_Y)
+	rt:Wait(25)
+	
+	-- 必殺・山火ジャンプ
+	self.player:MoveJump(30, -100, 60)	-- 200Fで頂点到達。-100のとこ。
+	self.player.anim:BeginAnim("jump")
+	rt:Wait(60)
+	self.player:ChangeRoutine("StateStart")
+	self.player.anim:BeginAnim("run")
+	
+	rt:Wait(10)
+	GS.SoundMgr:PlaySe("bosu")
+	
+	-- ハイク表示
+	local haiku = self:ShowHaiku()
+	table.insert(self.demoAct, haiku)
+	rt:Wait(SHOW_HAIKU_FRAME)
+	
+	self.game:BeginFadeOut(60)
+	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
+	
+	-- 一枚絵どーん
+	local stageClear = Actor()
+	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
+	stageClear:ApplyPosToSpr()
+	self:AddChild(stageClear)
+	self:GetSpr():SortZ()
+	table.insert(self.demoAct, stageClear)
+
+	-- フェードイン
+	self.game:BeginFadeIn(20)
+	rt:Wait(30)
+	
+	-- フェードアウト
+	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
+	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
+
+	-- 終了
+	self:FinalizeClearDemo()
+end
+
+
+function Stage:StateClearDemo3(rt)
+	self:InitClearDemo()
+	
+	self:MoveActWait(self.player, 120, GetProperty("WindowWidth") / 2, PLAYER_Y)
+	rt:Wait(20)
+	
+	local haiku = self:ShowHaiku()
+	table.insert(self.demoAct, haiku)
+	rt:Wait(SHOW_HAIKU_FRAME)
+	
+	self.game:BeginFadeOut(60)
+	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
+	
+	-- 一枚絵どーん
+	local stageClear = Actor()
+	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
+	stageClear:ApplyPosToSpr()
+	self:AddChild(stageClear)
+	self:GetSpr():SortZ()
+	table.insert(self.demoAct, stageClear)
+
+	-- フェードイン
+	self.game:BeginFadeIn(20)
+	rt:Wait(30)
+	
+	-- フェードアウト
+	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
+	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
+
+	-- 終了
+	self:FinalizeClearDemo()
+end
 
 
 
