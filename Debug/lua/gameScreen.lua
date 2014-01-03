@@ -15,6 +15,12 @@ local POINT_CELES 			= 300
 local POINT_ROCK 				= 50
 local POINT_USE_CHARGE2	= 200
 
+local FLOAT_POINT_Y_ZAKO		= 0
+local FLOAT_POINT_Y_CELES		= 0
+local FLOAT_POINT_Y_ROCK		= -20
+
+
+
 -- lines
 local LINE_HEIGHTS = { 100, 200, 300 }
 local LINE_TOP			= 1
@@ -1333,8 +1339,6 @@ end
 
 
 
-
-
 --@Enemy
 class 'Enemy'(Actor)
 function Enemy:__init(kind)
@@ -1345,6 +1349,7 @@ function Enemy:__init(kind)
 	self.attacker = nil
 	self.hp = HP_ZAKO
 	self.point = POINT_ZAKO
+	self.floatPointY = FLOAT_POINT_Y_ZAKO
 end
 
 function Enemy:Damage(dmg)
@@ -1378,6 +1383,27 @@ function Enemy:UpdateScore(kind)
 	end
 	
 	GetStage().scoreMgr:AddPoint(point)
+	local pointAct = Actor()
+	pointAct:Begin()
+	pointAct.x = self.x
+	pointAct.y = self.y + self.floatPointY
+	pointAct:SetText(tostring(point), Color.Black)
+	pointAct:GetSpr():SetFontSize(12)
+	pointAct:GetSpr().cx = pointAct:GetSpr().width / 2
+	pointAct:GetSpr().yx = pointAct:GetSpr().height / 2
+	
+	GetCamera():AddAutoApplyPosItem(pointAct)
+	
+	pointAct:ChangeFunc(function(rt)
+		local span = 30
+		for i=1,span do
+			pointAct.y = pointAct.y - 0.5
+			pointAct:GetSpr().alpha = 1 - (i / span)
+			rt:Wait()
+		end
+		return "exit"
+	end)
+	GetStage():AddChild(pointAct)
 end
 
 function Enemy:Dead()
@@ -1429,6 +1455,7 @@ function Rock:__init()
 	Enemy.__init(self)
 	self.hp = HP_ROCK
 	self.point = POINT_ROCK
+	self.floatPointY = FLOAT_POINT_Y_ROCK
 end
 
 function Rock:SetActTexture()
@@ -1484,6 +1511,7 @@ function Celes:__init()
 	Enemy.__init(self)
 	self.hp = HP_CELES
 	self.point = POINT_CELES
+	self.floatPointY = FLOAT_POINT_Y_CELES
 end
 
 function Celes:Damage(dmg)
