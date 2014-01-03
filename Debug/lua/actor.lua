@@ -48,6 +48,11 @@ function Actor:GetPos()
 	return self.x, self.y
 end
 
+function Actor:SetPos(x, y)
+	self.x = x
+	self.y = y
+end
+
 function Actor:Begin()
 	if self.StateStart ~= nil then
 		if self:ChangeRoutine("StateStart") then
@@ -62,6 +67,10 @@ end
 function Actor:Dead()
 	self.enable = false
 	self.isDead = true
+	if self.anim ~= nil then
+		self.anim:Dead()
+	end
+		
 	GS.Scheduler:DeleteActor(self)
 end
 
@@ -212,7 +221,7 @@ function Actor:ChangeRoutine(name)
 	-- クラスの持つメンバ関数から探す
 	local f = self[name]
   if f == nil or type(f) ~= "function" then
-		error("Actor:change_routine : coroutine func not found :", name)
+		error("Actor:change_routine : coroutine func not found :"..name)
 		return false
   end
  
@@ -223,11 +232,6 @@ function Actor:ChangeRoutine(name)
 	end
 
 	-- ルーチン変更してリスタートする
-	if self.currentRoutine == nil then
-		error("Actor:ChangeRoutine : routine not found :", name)
-		return false
-	end
-
 	self.currentRoutine:ChangeFunc(f)
 	self.state_func_name = name
 	return true
@@ -254,6 +258,89 @@ end
 function Actor:Goto(label)
 	coroutine.yield("goto", label)
 end
+
+
+function Actor:SetAnimation(anim)
+	anim:Begin()
+	anim:SetOwner(self)
+	self.anim = anim
+end
+
+
+
+function Actor:StateStart(rt)
+	while true do
+		rt:Wait()
+	end
+end
+
+
+
+
+
+function Actor:MoveSpd(cnt, spdX, spdY)
+	self.cnt = cnt
+	self.spdX = spdX
+	self.spdY = spdY
+	self:ChangeRoutine("StateMoveSpd")
+end
+
+function Actor:StateMoveSpd(rt)
+	for i=1, self.cnt do
+		self.x = self.x + self.spdX
+		self.y = self.y + self.spdY
+		rt:Wait()
+	end
+	self:Goto("StateStart")
+end
+
+function Actor:Move(cnt, toX, toY)
+	self.cnt = cnt
+	self.fromX = self.x
+	self.fromY = self.y
+	self.toX = toX
+	self.toY = toY
+	self:ChangeRoutine("StateMove")
+end
+
+function Actor:StateMove(rt)
+	local saX = self.fromX - self.toX
+	local saY = self.fromY - self.toY
+	for i=1, self.cnt do
+		self.x = self.toX + saX * (1 - (i / self.cnt))
+		self.y = self.toY + saY * (1 - (i / self.cnt))
+		rt:Wait()
+	end
+	self.x = self.toX
+	self.y = self.toY
+	self:Goto("StateStart")
+end
+
+
+
+
+
+
+
+
+
+
+class 'DemoActor'(Actor)
+function DemoActor:__init()
+	Actor.__init(self)
+end
+
+function DemoActor:StateStart(rt)
+	while true do
+		rt:Wait()
+	end
+end
+
+
+
+
+
+
 
 
 

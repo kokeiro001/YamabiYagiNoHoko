@@ -13,6 +13,7 @@ local allLuaFiles =
 	"lua/titleScreen.lua",
 	
 	-- game
+	"lua/animations.lua",
 	"lua/gameScreen.lua",
 	
 }
@@ -27,6 +28,7 @@ local gameLuaFiles =
 	"lua/debug.lua",
 	"lua/particle.lua",
 	
+	"lua/animations.lua",
 	"lua/gameScreen.lua"
 }
 

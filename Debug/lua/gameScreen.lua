@@ -63,13 +63,7 @@ local SLASHABEL_X_MIN = PLAYER_X + 30		-- 下段 斬れる最小X
 local SLASHABEL_X_MAX = PLAYER_X + 200	-- 下段 斬れる最大X
 
 
--- particle
-local BURST_ANIM_SPD = 3	-- 敵破裂エフェクトのアニメーション速度
-local SLASHED_ROCK_PCL_SPAN = 60
-local SLASH_ANIM_SPD = 1
-
 -- patca
-local PAT_ANIM_SPD	= 1
 local PATCAR_X 			= -50
 local PATCAR_Y 			= PLAYER_Y - 10
 
@@ -100,12 +94,18 @@ local HAIKU_TEXT = {	-- 半角スペースで区切ってね
 }
 
 
+
 local Z_ORDER_FRONT		= -1000
 local Z_ORDER_SLASH		= 90
 local Z_ORDER_PLAYER	= 100
 local Z_ORDER_ROCK		= 110
 local Z_ORDER_BACK		= 1000
 
+function GetZOrder(name)
+	if name == "slash" then return Z_ORDER_SLASH 
+	else error("not def")
+	end
+end
 
 function GetStage()
 	if GS.CurrentScreen.name == "GameScreen" then
@@ -145,6 +145,23 @@ function GameScreen:Begin()
 	self.stage:Begin()
 	self:AddChild(self.stage)
 	self:BeginStage(1)
+	
+end
+
+function GameScreen:StateStart(rt)
+	while true do
+		rt:Wait()
+	end
+end
+
+function GameScreen:StateWatchDemo(rt)
+	while true do
+		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
+			self.stage:SkipDemo()
+			self:Goto("StateStart")
+		end
+		rt:Wait()
+	end
 end
 
 function GameScreen:BeginStage(stageNum)
@@ -188,11 +205,17 @@ end
 
 
 
+
+
 class 'Stage'(Actor)
 function Stage:__init(game)
 	Actor.__init(self)
 	self.game = game
 	self.allEnemies = {}
+
+	self.demoAct = {}
+	self.demoSpr = {}
+	self.demoSkipable = true
 end
 
 function Stage:Begin()
@@ -229,7 +252,6 @@ function Stage:Begin()
 	self.pat:Begin()
 	self.pat.x = PATCAR_X
 	self.pat.y = PATCAR_Y
-	GetCamera():AddAutoApplyPosItem(self.pat)
 	self:AddChild(self.pat)
 	
 	local clearFunc = function()
@@ -271,16 +293,32 @@ function Stage:BeginStage(num)
 	self.game:BeginFadeIn(STARTDEMO_FADEIN_FRAME)
 	
 	for idx, chr in ipairs(self:GetChild()) do
-		if chr.BeginDemo ~= nil then
-			chr:BeginDemo(num)
+		if chr.BeginStartDemo ~= nil then
+			chr:BeginStartDemo(num)
 		end
 	end
 	
-	local tmp = 1
-	self:ChangeRoutine("StateStartDemo"..tmp)
+	self:ChangeRoutine("StateStartDemo"..num)
+end
+
+function Stage:SkipDemo()
+	if self.demoType == "Start" then
+		if self.demoSkipable then
+			self:FinalizeStartDemo()
+		end
+	elseif self.demoType == "Clear" then
+		if self.demoSkipable then
+			self:FinalizeClearDemo()
+		end
+	else
+		error("not def")
+	end
 end
 
 function Stage:InitStartDemoWait(cnt)
+	self.demoType = "Start"
+	self.demoSkipable = true
+	
 	-- remove all enemy
 	while table.getn(self.allEnemies) > 0 do
 		self:RemoveEnemy(self.allEnemies[1])
@@ -294,75 +332,279 @@ function Stage:InitStartDemoWait(cnt)
 	self.addBottomEnemyDelay = 0
 	self.enemyBottomSpanCnt = 0
 	
-	-- fade in
-	self:Wait(cnt)
+	self.game:ChangeRoutine("StateWatchDemo")
 end
+
+function Stage:FinalizeStartDemo()
+	self.demoType = nil
+	self.demoSkipable = false
+
+	for idx, spr in ipairs(self.demoSpr) do
+		self:GetSpr():RemoveChild(spr)
+	end
+	for idx, act in ipairs(self.demoAct) do
+		self:RemoveChild(act)
+	end
+
+	if self.demoEndFunc ~= nil then
+		self:demoEndFunc()
+		self.demoEndFunc = nil
+	end
+	self:ChangeRoutine("StateGame")
+	self.game:ChangeRoutine("StateStart")
+	self:Wait()
+end
+
 
 function Stage:StateStartDemo1(rt)
-	local spr = Sprite()
-	spr.z = -100
-	spr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
-	self:GetSpr():AddChild(spr)
-	self:GetSpr():SortZ()
+	self:InitStartDemoWait()
 	
-	-- fade in
-	self:InitStartDemoWait(STARTDEMO_FADEIN_FRAME)
-
+	self.demoEndFunc = function()
+		self.player.x = PLAYER_X
+	end
+	
+	local topSpr = Sprite()
+	topSpr.z = -100
+	topSpr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
+	self:GetSpr():AddChild(topSpr)
+	self:GetSpr():SortZ()
+	table.insert(self.demoSpr , topSpr)
+	
+	self:Wait(STARTDEMO_FADEIN_FRAME)
+	
 	rt:Wait(60)
-	local height = 50
+	
+	local height = 10
 	local top, bottom = self:AddObi(height)
+	table.insert(self.demoSpr , top)
+	table.insert(self.demoSpr , bottom)
+	self.player.x = -30
+	
+	-- 一枚絵をフェードアウト
+	self:FadeSprWait(topSpr, 30, 1, 0)
+	rt:Wait(30)
+	
+	-- プレイヤーを定位置へ
+	self:MoveActWait(self.player, 60, PLAYER_X, PLAYER_Y)
+	rt:Wait(60)
+	
+	-- 帯削除、開始
+	self.demoSkipable = false
+	self:RemoveObiWait(top, bottom, 30, height)
+	self:FinalizeStartDemo()
+end
 
-	local span = 30
-	for i=1, span do
-		spr.alpha = 1 - (i / span)
-		rt:Wait()
+function Stage:StateStartDemo2(rt)
+	self:InitStartDemoWait()
+	
+	self.demoEndFunc = function()
+		self.player:Show()
+		self.player.x = PLAYER_X
+
+		self.pat.enable = true
+		self.pat:Show()
+		self.pat.spr.divTexIdx = 12
+		self.pat.x = PATCAR_X
+		self.pat.y = PATCAR_Y
+		self:ChangeScrollSpd(SCROLL_SPD)
 	end
-	spr:Hide()
+	
+	-- 一枚絵
+	local topSpr = Sprite()
+	topSpr.z = -100
+	topSpr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
+	self:GetSpr():AddChild(topSpr)
+	self:GetSpr():SortZ()
+	table.insert(self.demoSpr , topSpr)
+	
+	self:Wait(STARTDEMO_FADEIN_FRAME)
+	rt:Wait(30)
+	
+	-- 帯表示
+	local height = 10
+	local top, bottom = self:AddObi(height)
+	table.insert(self.demoSpr , top)
+	table.insert(self.demoSpr , bottom)
+
+	self:ChangeScrollSpd(0)
+	-- アクターの位置設定
+	local tmp = 100
+	self.pat:Show()
+	self.pat.x = tmp - (PLAYER_X - PATCAR_X)
+	self.pat:MoveSpd(100, 3, 0)
+	
+	self.player:Show()
+	self.player.x = tmp
+	self.player:MoveSpd(100, 3, 0)
+
+	-- 一枚絵をフェードアウト
+	self:FadeSprWait(topSpr, 30, 1, 0)
+	rt:Wait(30)
+
+	for i=1, SCROLL_SPD + 2 do
+		self.pat:MoveSpd(100, 3 - i, 0)
+		self.player:MoveSpd(100, 3 - i, 0)
+		self:ChangeScrollSpd(i)
+		rt:Wait(3)
+	end
+	
+	rt:Wait(80)
+	self:ChangeScrollSpd(SCROLL_SPD)
+	self.pat:Move(30, PATCAR_X, PATCAR_Y)
+	self.player:Move(30, PLAYER_X, PLAYER_Y)
+	rt:Wait(30)
+	
+	-- 帯削除、開始
+	self.demoSkipable = false
+	self:RemoveObiWait(top, bottom, 30, height)
+	self:FinalizeStartDemo()
+end
+
+function Stage:StateStartDemo3(rt)
+	self:InitStartDemoWait()
+	
+	self.demoEndFunc = function()
+		self.player.x = PLAYER_X
+	end
+	
+	local topSpr = Sprite()
+	topSpr.z = -100
+	topSpr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
+	self:GetSpr():AddChild(topSpr)
+	self:GetSpr():SortZ()
+	table.insert(self.demoSpr , topSpr)
+	
+	self:Wait(STARTDEMO_FADEIN_FRAME)
 	
 	rt:Wait(60)
 	
-	-- 処理待ち
+	local height = 10
+	local top, bottom = self:AddObi(height)
+	table.insert(self.demoSpr , top)
+	table.insert(self.demoSpr , bottom)
+	self.player.x = -30
+	
+	-- 一枚絵をフェードアウト
+	self:FadeSprWait(topSpr, 30, 1, 0)
+	rt:Wait(30)
+	
+	-- プレイヤーを定位置へ
+	self:MoveActWait(self.player, 60, PLAYER_X, PLAYER_Y)
+	rt:Wait(60)
+	
+	-- 帯削除、開始
+	self.demoSkipable = false
 	self:RemoveObiWait(top, bottom, 30, height)
-	
-	self:GetSpr():RemoveChild(top)
-	self:GetSpr():RemoveChild(bottom)
-	
-	self:GetSpr():RemoveChild(spr)
-	self:Goto("StateGame")
+	self:FinalizeStartDemo()
 end
 
 
-function Stage:AddObi(height)
-	local top = Sprite()
-	top:SetTextureMode("whitePix")
-	top:SetTextureColorF(Color.Black)
-	top.drawWidth  = GetProperty("WindowWidth")
-	top.drawHeight = height
-	top.z = -50
-	self:GetSpr():AddChild(top)
 
-	local bottom = Sprite()
-	bottom:SetTextureMode("whitePix")
-	bottom:SetTextureColorF(Color.Black)
-	bottom.drawWidth  = GetProperty("WindowWidth")
-	bottom.y = GetProperty("WindowHeight") - height
-	bottom.z = -50
-	bottom.drawHeight = height
-	self:GetSpr():AddChild(bottom)
 
-	self:GetSpr():SortZ()
-	return top, bottom
+function Stage:StateClear(rt)
+	local tmp = 1
+	self:ChangeRoutine("StateClearDemo"..tmp)
+	rt:Wait()
 end
 
-function Stage:RemoveObiWait(top, bottom, span, height)
-	for i=1, span do
-		top.y			= -height + height * (1 - (i/span))
-		bottom.y	= GetProperty("WindowHeight") - height + height * (i/span)
-		top.alpha = (1 - (i/span))
-		bottom.alpha = (1 - (i/span))
-		self:Wait()
+function Stage:InitClearDemo()
+	self.demoType = "Clear"
+	self.demoSkipable = true
+
+	-- すべての敵をbom
+	local deadTargets = {}
+	for idx, enemy in ipairs(self.allEnemies) do
+		if enemy.attacker == nil then
+			table.insert(deadTargets, enemy)
+		end
 	end
+	while table.getn(deadTargets) > 0 do
+		local enemy = deadTargets[1]
+		enemy:DeadAction(DEAD_REASON_TIME_UP)
+		self:RemoveEnemy(enemy)
+		RemoveValue(deadTargets, enemy)
+	end
+	
+	for idx, chr in ipairs(self:GetChild()) do
+		if chr.BeginClearDemo ~= nil then
+			chr:BeginClearDemo(self.stageNum)
+		end
+	end
+	
+	self:Wait(40)
 end
+
+function Stage:FinalizeClearDemo()
+	self.demoType = nil
+	self.demoSkipable = false
+
+	for idx, spr in ipairs(self.demoSpr) do
+		self:GetSpr():RemoveChild(spr)
+	end
+	if self.demoEndFunc ~= nil then
+		self:demoEndFunc()
+		self.demoEndFunc = nil
+	end
+	self:ChangeRoutine("StateGame")
+	self.game:ChangeRoutine("StateStart")
+
+	for idx, spr in ipairs(self.demoSpr) do
+		self:GetSpr():RemoveChild(spr)
+	end
+	for idx, act in ipairs(self.demoAct) do
+		self:RemoveChild(act)
+	end
+
+	-- 次の画面へ
+	if self.stageNum == MAX_STAGE_NUM then
+		self:ChangeRoutine("StateEnding")
+	else
+		self.game:BeginStage(self.stageNum + 1)
+	end
+	self:Wait()
+end
+
+
+function Stage:StateClearDemo1(rt)
+	self:InitClearDemo()
+	
+	self:MoveActWait(self.player, 120, GetProperty("WindowWidth") / 2, PLAYER_Y)
+	rt:Wait(20)
+	
+	local haiku = self:ShowHaiku()
+	table.insert(self.demoAct, haiku)
+	rt:Wait(SHOW_HAIKU_FRAME)
+	
+	self.game:BeginFadeOut(60)
+	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
+	
+	-- 一枚絵どーん
+	local stageClear = Actor()
+	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
+	stageClear:ApplyPosToSpr()
+	self:AddChild(stageClear)
+	self:GetSpr():SortZ()
+	table.insert(self.demoAct, stageClear)
+
+	-- フェードイン
+	self.game:BeginFadeIn(20)
+	rt:Wait(30)
+	
+	-- フェードアウト
+	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
+	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
+
+	-- 終了
+	self:FinalizeClearDemo()
+end
+
+
+
+
+
+
+
+
 
 function Stage:StateGame(rt)
 	for idx, chr in ipairs(self:GetChild()) do
@@ -505,74 +747,6 @@ function Stage:CheckAddEnemy()
 end
 
 
-function Stage:StateClear(rt)
-	-- すべての敵をbom
-	local deadTargets = {}
-	for idx, enemy in ipairs(self.allEnemies) do
-		if enemy.attacker == nil then
-			table.insert(deadTargets, enemy)
-		end
-	end
-	while table.getn(deadTargets) > 0 do
-		local enemy = deadTargets[1]
-		enemy:DeadAction(DEAD_REASON_TIME_UP)
-		self:RemoveEnemy(enemy)
-		RemoveValue(deadTargets, enemy)
-	end
-	
-	-- ウェイトかける
-	for i=1, 40 do
-		rt:Wait()
-	end
-	
-	-- ハイク
-	local haiku = Haiku()
-	haiku:Begin(self.stageNum, self.score)
-	haiku.x = 280
-	haiku.y = 60
-	haiku:ApplyPosToSpr()
-	self:AddChild(haiku)
-
-	for i=1, SHOW_HAIKU_FRAME do
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then break end
-		rt:Wait()
-	end
-	rt:Wait()
-
-	-- 一枚絵どーん
-	local stageClear = Actor()
-	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
-	stageClear.x = 0
-	stageClear.y = 0
-	stageClear:ApplyPosToSpr()
-	self:AddChild(stageClear)
-	self:GetSpr():SortZ()
-	
-	
-	-- Z押すまで待機
-	while true do
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
-			break
-		end
-		
-		rt:Wait()
-	end
-	
-	-- フェードアウト
-	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
-	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
-
-
-	-- 次の画面へ
-	if self.stageNum == MAX_STAGE_NUM then
-		self:ChangeRoutine("StateEnding")
-	else
-		self.game:BeginStage(self.stageNum + 1)
-	end
-	self:RemoveChild(stageClear)
-	self:RemoveChild(haiku)
-	rt:Wait()
-end
 
 function Stage:StateEnding(rt)
 	-- remove all enemy
@@ -633,9 +807,92 @@ function Stage:ChangeScrollSpd(spd)
 		end
 	end
 	
-	local back = self.back
-	back.scrollSpd = (SCROLL_SPD * spd) / SCROLL_SPD
+	self.back.scrollSpd = (SCROLL_SPD * spd) / SCROLL_SPD
 end
+
+
+
+
+
+
+function Stage:ShowHaiku()
+	local haiku = Haiku()
+	haiku:Begin(self.stageNum, self.score)
+	haiku.x = 140
+	haiku.y = 120
+	haiku:ApplyPosToSpr()
+	self:AddChild(haiku)
+	return haiku
+end
+
+function Stage:FadeSprWait(spr, cnt, from, to)
+	local sa = from - to
+	for i=1, cnt do
+		spr.alpha = to + sa * (1 - (i / cnt))
+		self:Wait()
+	end
+end
+
+function Stage:ToCameraWait(cnt, x, y)
+	local cam = GetCamera()
+	local fromX, fromY = cam:GetPos()
+	local saX, saY = fromX - x, fromY - y
+	for i=1, cnt do
+		cam.x = x + saX * (1 - (i / cnt))
+		cam.y = y + saY * (1 - (i / cnt))
+		self:Wait()
+	end
+end
+
+function Stage:MoveActWait(act, cnt, x, y)
+	local fromX, fromY = act:GetPos()
+	local saX, saY = fromX - x, fromY - y
+	
+	for i=1, cnt do
+		act.x = x + saX * (1 - (i / cnt))
+		act.y = y + saY * (1 - (i / cnt))
+		self:Wait()
+	end
+end
+
+function Stage:AddObi(height)
+	local top = Sprite()
+	top:SetTextureMode("whitePix")
+	top:SetTextureColorF(Color.Black)
+	top.drawWidth  = GetProperty("WindowWidth")
+	top.drawHeight = height
+	top.z = -50
+	self:GetSpr():AddChild(top)
+
+	local bottom = Sprite()
+	bottom:SetTextureMode("whitePix")
+	bottom:SetTextureColorF(Color.Black)
+	bottom.drawWidth  = GetProperty("WindowWidth")
+	bottom.y = GetProperty("WindowHeight") - height
+	bottom.z = -50
+	bottom.drawHeight = height
+	self:GetSpr():AddChild(bottom)
+
+	self:GetSpr():SortZ()
+	return top, bottom
+end
+
+function Stage:RemoveObiWait(top, bottom, span, height)
+	for i=1, span do
+		top.y			= -height + height * (1 - (i/span))
+		bottom.y	= GetProperty("WindowHeight") - height + height * (i/span)
+		top.alpha = (1 - (i/span))
+		bottom.alpha = (1 - (i/span))
+		self:Wait()
+	end
+end
+
+
+
+
+
+
+
 
 
 
@@ -651,33 +908,18 @@ function Player:Begin()
 	Actor.Begin(self)
 	
 	self:SetDivTexture("yamabi", 6, 4, 50, 50)
-	self:GetSpr().divTexIdx = 0
-	self:GetSpr().name = "player spr"
-	self:GetSpr().cx = 16
-	self:GetSpr().cy = 16
+	self:SetAnimation(PlayerAnim())
+	self.anim:BeginAnim("run")
 	
-	self.animCnt = 0
-
 	local cursor = PlayerCursorCharge()
 	cursor:Begin()
 	GetStage():AddChild(cursor)
 	GetStage().cursorId = cursor.id
-
 end
 
-function Player:BeginDemo(num)
+function Player:BeginStartDemo(num)
 	self:ClearItem()
 end
-
-function Player:StateStart(rt)
-	while true do
-		for idx=0, 5 do
-			self:GetSpr().divTexIdx = idx
-			rt:Wait(3)
-		end
-	end
-end
-
 
 function Player:AddItem(x, y)
 	local item = Actor()
@@ -776,6 +1018,7 @@ function PlayerCursorCharge:__init()
 	self.attackWaitCnt = 0
 	self.itemCnt = 0
 end
+
 
 function PlayerCursorCharge:ThrowSuriken(act, kind)
 	PlayerCursor.ThrowSuriken(self, act, kind)
@@ -1195,7 +1438,7 @@ function GameBack:Begin()
 	end
 end
 
-function GameBack:BeginDemo(stageNum)
+function GameBack:BeginStartDemo(stageNum)
 	local sprX = 0
 	for idx, spr in ipairs(self.sprites) do
 		spr:SetTextureMode(STAGE_BACK_NAMES[stageNum])
@@ -1240,15 +1483,10 @@ end
 
 function PatrolCar:Begin()
 	Actor.Begin(self)
-	
-	self:SetDivTexture("patcar", 4, 4, 100, 50)
-	self:GetSpr().divTexIdx = 12
-	self:GetSpr().name = "patcar spr"
-	
-	self.animCnt = 0
+	self:SetAnimation(PatcarAnim())
 end
 
-function PatrolCar:BeginDemo(num)
+function PatrolCar:BeginStartDemo(num)
 	if num == 2 then
 		self.enable = true
 		self:Show()
@@ -1257,128 +1495,6 @@ function PatrolCar:BeginDemo(num)
 		self:Hide()
 	end
 end
-
-function PatrolCar:BeginStage(num)
-end
-
-function PatrolCar:StateStart(rt)
-	while true do
-		self.animCnt = self.animCnt + 1
-		if self.animCnt > PAT_ANIM_SPD then
-			self:GetSpr().divTexIdx = self:GetSpr().divTexIdx + 1
-			if self:GetSpr().divTexIdx >= 16 then
-				self:GetSpr().divTexIdx = 12
-			end
-			self.animCnt = 0
-		end
-		rt:Wait()
-	end
-end
-
-
-
-class 'Particle'(Actor)
-function Particle:__init()
-	Actor.__init(self)
-end
-
-
---@BurstParticle
-class 'BurstParticle'(Particle)
-function BurstParticle:__init()
-	Particle.__init(self)
-end
-
-
-function BurstParticle:Begin()
-	Particle.Begin(self)
-	
-	self:SetDivTexture("burst0", 10, 1, 120, 120)
-	self:GetSpr().divTexIdx = 0
-	self:GetSpr().name = "burst spr"
-	
-	self:GetSpr().cx = 60
-	self:GetSpr().cy = 80
-	
-	self.animCnt = 0
-	
-	GS.SoundMgr:PlaySe("burst")
-end
-
-
-
-function BurstParticle:StateStart(rt)
-	for idx = 1, 10 do
-		for waitCnt = 1, BURST_ANIM_SPD do
-			self:ApplyPosToSprUseCamera(GetCamera())
-			rt:Wait()
-		end
-		self:GetSpr().divTexIdx = self:GetSpr().divTexIdx + 1
-	end
-	self:Dead()
-	rt:Wait()
-end
-
---@SlashedRock
-class 'SlashedRock'(Particle)
-function SlashedRock:__init()
-	Particle.__init(self)
-end
-
-function SlashedRock:Begin()
-	Particle.Begin(self)
-	self:CreateSpr()
-	self:GetSpr().z = Z_ORDER_SLASH
-	
-	self.upSpr = Sprite()
-	self.upSpr.name = "slashedRock upSpr"
-	self.upSpr:SetTextureMode("rock")
-	self.upSpr:SetTextureSrc(0, 0, 50, 25)
-	self.upSpr.cx = 25
-	self.upSpr.cy = 12
-	self:GetSpr():AddChild(self.upSpr)
-
-	self.downSpr = Sprite()
-	self.downSpr.name = "slashedRock downSpr"
-	self.downSpr:SetTextureMode("rock")
-	self.downSpr:SetTextureSrc(0, 25, 50, 25)
-	self.downSpr.cx = 25
-	self.downSpr.cy = 12
-	self:GetSpr():AddChild(self.downSpr)
-	
-	self.upY				= -13
-	self.upMaxY			= -50
-	self.upMaxTime	= 20
-	
-	self.downY				= 13
-	self.downMaxY			= -5
-	self.downMaxTime	= 10
-	
-	GetCamera():AddAutoApplyPosItem(self)
-end
-
-
-function SlashedRock:StateStart(rt)
-	for i=1, SLASHED_ROCK_PCL_SPAN do
-		self.upSpr.y = self.upY + 
-								(2*self.upMaxY*i)/self.upMaxTime - 
-								0.5*(2*self.upMaxY*(i*i)) / (self.upMaxTime * self.upMaxTime)
-		self.downSpr.y = self.downY + 
-										(2*self.downMaxY*i)/self.downMaxTime -
-										0.5*(2*self.downMaxY*(i*i)) / (self.downMaxTime * self.downMaxTime)
-
-		self.upSpr.rot = self.upSpr.rot + math.rad(1)
-		self.downSpr.rot = self.downSpr.rot - math.rad(1)
-		
-		self.upSpr.alpha		= 1 - (i / SLASHED_ROCK_PCL_SPAN)
-		self.downSpr.alpha	= 1 - (i / SLASHED_ROCK_PCL_SPAN)
-		
-		rt:Wait()
-	end
-	self:Dead()
-	rt:Wait()
-end
-
 
 
 
@@ -1415,12 +1531,19 @@ function Gauge:Begin(func, func2)
 	GetCamera():AddAutoApplyPosItem(self)
 end
 
-function Gauge:BeginDemo(num)
+function Gauge:BeginStartDemo(num)
 	self.enable = false
 end
 
 function Gauge:BeginStage(num)
 	self.enable = true
+end
+
+function Gauge:BeginClearDemo(num)
+	self.enable = false
+	self.chargeCnt = 0
+	self:GetSpr():SetTextureColorF(Color.White)
+	self:GetSpr().drawWidth  = 1
 end
 
 function Gauge:StateStart(rt)
@@ -1558,7 +1681,7 @@ function StageMarker:Begin(func)
 end
 
 
-function StageMarker:BeginDemo(stageNum)
+function StageMarker:BeginStartDemo(stageNum)
 	self.enable = false
 	self.isGoaled = false
 	self.nowFrame = 0
@@ -1642,7 +1765,7 @@ function Camera:Begin(stageNum, score)
 	self.updateOrder = -10000
 end
 
-function Camera:BeginDemo(num)
+function Camera:BeginStartDemo(num)
 	self.x = 0
 	self.y = 0
 end
