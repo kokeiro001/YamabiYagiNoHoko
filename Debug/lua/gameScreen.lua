@@ -47,20 +47,27 @@ local PLAYER_X = 100
 local PLAYER_Y = LINE_HEIGHTS[LINE_BOTTOM]
 
 -- enemy
+local STAGE_DATA = {
+	{
+		ENEMY_SPAN = {
+			{min=60, max=240},	-- min max
+			{min=20, max= 80},
+			{min=60, max=120}
+		}
+	}
+}
+
 local ENEMY_ENCOUNT_FRAME 	= 20
 
 local ENEMY_ANIM_SPD 	= 4
 local CELES_ANIM_SPD	= 10
 local ROCK_ROT_SPD 		= 0
 
-local TOP_ENEMY_SPD 		= 10					-- ã’i‚Ì“G‚Ì‘¬“x
-local MIDDLE_ENEMY_SPD	= SCROLL_SPD	-- ’†’i
-local BOTTOM_ENEMY_SPD	= SCROLL_SPD	-- ‰º’i
-
-local TOP_ENEMY_SPAN_MIN				=  60		-- “G‚ÌoŒ»ŠÔŠu
-local TOP_ENEMY_SPAN_MAX				= 240
-local BOTTOM_ENEMY_SPAN_MIN			=  60
-local BOTTOM_ENEMY_SPAN_MAX			= 120
+local ENEMY_SPD = {
+	10,
+	SCROLL_SPD,
+	SCROLL_SPD
+}
 
 local HIT_PLAYER_ROCK_X = PLAYER_X + 10
 
@@ -240,7 +247,6 @@ class 'Stage'(Actor)
 function Stage:__init(game)
 	Actor.__init(self)
 	self.game = game
-	self.allEnemies = {}
 
 	self.demoAct = {}
 	self.demoSpr = {}
@@ -289,6 +295,10 @@ function Stage:Begin()
 	self.pat.x = PATCAR_X
 	self.pat.y = PATCAR_Y
 	self:AddChild(self.pat)
+	
+	self.enemyMgr = EnemyManager()
+	self.enemyMgr:Begin()
+	self:AddChild(self.enemyMgr)
 	
 	local clearFunc = function()
 		self:ChangeRoutine("StateClear")
@@ -355,16 +365,10 @@ function Stage:InitStartDemoWait(cnt)
 	self.demoSkipable = true
 	
 	-- remove all enemy
-	while table.getn(self.allEnemies) > 0 do
-		self:RemoveEnemy(self.allEnemies[1])
-	end
+	self.enemyMgr:ClearEnemy()
 
 	self.marker.enable = false
 	self.encountCnt = 0
-	self.addTopEnemyDelay = 0
-	self.enemyTopSpanCnt = 0
-	self.addBottomEnemyDelay = 0
-	self.enemyBottomSpanCnt = 0
 	
 	self.game:ChangeRoutine("StateWatchDemo")
 end
@@ -546,27 +550,14 @@ function Stage:InitClearDemo()
 	self.demoType = "Clear"
 	self.demoSkipable = true
 
-	-- ‚·‚×‚Ä‚Ì“G‚ðbom
-	local deadTargets = {}
-	for idx, enemy in ipairs(self.allEnemies) do
-		enemy.hp = 1
-		if enemy.attacker == nil then
-			table.insert(deadTargets, enemy)
-		end
-	end
-	while table.getn(deadTargets) > 0 do
-		local enemy = deadTargets[1]
-		enemy:DeadAction(DEAD_REASON_TIME_UP)
-		self:RemoveEnemy(enemy)
-		RemoveValue(deadTargets, enemy)
-	end
+	self.enemyMgr:BurstAllEnemy()
 	
 	for idx, chr in ipairs(self:GetChild()) do
 		if chr.BeginClearDemo ~= nil then
 			chr:BeginClearDemo(self.stageNum)
 		end
 	end
-	
+
 	self.game:ChangeRoutine("StateWatchDemo")
 end
 
@@ -770,125 +761,17 @@ function Stage:StateGame(rt)
 				self:ChangeRoutine("StateEnding")
 			end
 		end
-		
-		self:CheckAddEnemy()
-		
 		rt:Wait()
 	end
 end
 
-function Stage:GetEnemies()
-	return self.allEnemies
-end
 
-function Stage:AddEnemy(enemy)
-	self:AddChild(enemy)
-	table.insert(self.allEnemies, enemy)
-end
-function Stage:RemoveEnemy(enemy)
-	enemy:Dead()
-	RemoveValue(self.allEnemies, enemy)
-	self:RemoveChild(enemy)
-end
-
-function Stage:CheckAddEnemy()
-	self.enemyTopSpanCnt = self.enemyTopSpanCnt + 1
-	self.enemyBottomSpanCnt = self.enemyBottomSpanCnt + 1
-	
-	if self.enemyTopSpanCnt == TOP_ENEMY_SPAN_MIN then
-		local span = TOP_ENEMY_SPAN_MAX - TOP_ENEMY_SPAN_MIN
-		local chance = span / ENEMY_ENCOUNT_FRAME
-		self.addTopEnemyDelay = math.random(1, chance)
-	end
-	
-	if self.enemyBottomSpanCnt == BOTTOM_ENEMY_SPAN_MIN then
-		local span = BOTTOM_ENEMY_SPAN_MAX - BOTTOM_ENEMY_SPAN_MIN
-		local chance = span / ENEMY_ENCOUNT_FRAME
-		self.addBottomEnemyDelay = math.random(1, chance)
-	end
-
-	if self.encountCnt >= ENEMY_ENCOUNT_FRAME then
-		-- ã’i’Ç‰Á”»’è
-		local forceAddTopEnemy = false
-		if self.addTopEnemyDelay > 0 then
-			self.addTopEnemyDelay = self.addTopEnemyDelay - 1
-			if self.addTopEnemyDelay == 0 then
-				forceAddTopEnemy = true
-			end
-		end
-	
-		-- ‰º’i’Ç‰Á”»’è
-		local forceAddBottomEnemy = false
-		if not forceAddTopEnemy then
-			if self.addBottomEnemyDelay > 0 then
-				self.addBottomEnemyDelay = self.addBottomEnemyDelay - 1
-				if self.addBottomEnemyDelay == 0 then
-					forceAddBottomEnemy = true
-				end
-			end
-		end
-
-		local back = self.back
-		
-		local line = nil
-		local spd = nil
-		if forceAddTopEnemy then
-			line = LINE_TOP
-			spd = (back.scrollSpd * TOP_ENEMY_SPD) / SCROLL_SPD
-			self.enemyTopSpanCnt = 0
-		elseif forceAddBottomEnemy then
-			line = LINE_BOTTOM
-			spd = (back.scrollSpd * BOTTOM_ENEMY_SPD) / SCROLL_SPD
-			self.enemyBottomSpanCnt = 0
-		else
-			line = LINE_MIDDLE
-			spd = (back.scrollSpd * MIDDLE_ENEMY_SPD) / SCROLL_SPD
-		end
-		
-		local enemy = nil
-		if line == LINE_BOTTOM then
-			enemy = Rock()
-		else
-			-- zako or ceres
-			if self.stageNum == 1 then
-				enemy = Enemy(math.random(0, 5))
-			elseif self.stageNum == 2 then
-				if math.random(1, 100) <= PROB_CELES_STAGE2 then
-					enemy = Celes()
-				else
-					enemy = Enemy(math.random(0, 5))
-				end
-			elseif self.stageNum == 3 then
-				if math.random(1, 100) <= PROB_CELES_STAGE3 then
-					enemy = Celes()
-				else
-					enemy = Enemy(math.random(0, 5))
-				end
-			end
-		end
-		enemy:Begin()
-		
-		enemy.line = line
-		enemy.spd = spd
-		enemy.x = GetProperty("WindowWidth") + 30
-		enemy.y = LINE_HEIGHTS[enemy.line]
-		enemy:ApplyPosToSprUseCamera(GetCamera())
-		GetCamera():AddAutoApplyPosItem(enemy)
-		self:AddEnemy(enemy)
-		self:GetSpr():SortZ()
-
-		self.encountCnt = 0
-	end
-	self.encountCnt = self.encountCnt + 1
-end
 
 
 
 function Stage:StateEnding(rt)
 	-- remove all enemy
-	while table.getn(self.allEnemies) > 0 do
-		self:RemoveEnemy(self.allEnemies[1])
-	end
+	self.enemyMgr:ClearEnemy()
 
 	local spr = Sprite()
 	spr.x = 30
@@ -928,24 +811,16 @@ end
 
 
 function Stage:ChangeScrollSpd(spd)
-	for idx, enemy in ipairs(self.allEnemies) do
-		if enemy.line == LINE_TOP then
-			enemy.spd = (TOP_ENEMY_SPD * spd) / SCROLL_SPD
-			
-		elseif enemy.line == LINE_MIDDLE then
-			enemy.spd = (MIDDLE_ENEMY_SPD * spd) / SCROLL_SPD
-			
-		elseif enemy.line == LINE_BOTTOM then
-			enemy.spd = (BOTTOM_ENEMY_SPD * spd) / SCROLL_SPD
-		else
-			error("unknown line")
-		end
+	for idx, enemy in ipairs(self.enemyMgr:GetEnemies()) do
+		enemy.spd = (ENEMY_SPD[enemy.line] * spd) / SCROLL_SPD
 	end
 	
 	self.back.scrollSpd = (SCROLL_SPD * spd) / SCROLL_SPD
 end
 
-
+function Stage:GetEnemies()
+	return self.enemyMgr:GetEnemies()
+end
 
 
 
@@ -1284,7 +1159,7 @@ end
 function Attacker:Attack()
 	if self.target:Damage(ATTACK_DAMAGE[self.kind]) then
 		self.target:DeadAction(self.kind)
-		GetStage():RemoveEnemy(self.target)
+		GetStage().enemyMgr:RemoveEnemy(self.target)
 	end
 	self.target.attacker = nil
 end
@@ -1371,6 +1246,130 @@ end
 
 
 
+class'EnemyManager'(Actor)
+function EnemyManager:__init(idCnt)
+	Actor.__init(self)
+	self.enemies = {}
+end
+
+function EnemyManager:Begin()
+	Actor.Begin(self)
+end
+
+function EnemyManager:BeginStartDemo()
+	self.enable = false
+end
+
+function EnemyManager:BeginStage()
+	self.enable = true
+end
+
+function EnemyManager:BeginClearDemo()
+	self.enable = false
+end
+
+function EnemyManager:GetEnemies()
+	return self.enemies
+end
+
+function EnemyManager:AddEnemy(enemy)
+	GetStage():AddChild(enemy)
+	table.insert(self.enemies, enemy)
+	GetStage():GetSpr():SortZ()
+end
+
+function EnemyManager:RemoveEnemy(enemy)
+	enemy:Dead()
+	RemoveValue(self.enemies, enemy)
+	GetStage():RemoveChild(enemy)
+end
+
+function EnemyManager:ClearEnemy()
+	while table.getn(self.enemies) > 0 do
+		self:RemoveEnemy(self.enemies[1])
+	end
+end
+
+function EnemyManager:BurstAllEnemy()
+	-- ‚·‚×‚Ä‚Ì“G‚ðbom
+	local deadTargets = {}
+	for idx, enemy in ipairs(self.enemies) do
+		enemy.hp = 1
+		if enemy.attacker == nil then
+			table.insert(deadTargets, enemy)
+		end
+	end
+	while table.getn(deadTargets) > 0 do
+		local enemy = deadTargets[1]
+		enemy:DeadAction(DEAD_REASON_TIME_UP)
+		self:RemoveEnemy(enemy)
+		RemoveValue(deadTargets, enemy)
+	end
+	
+end
+
+function EnemyManager:StateStart(rt)
+	local updateCnt = 0
+	local data = {}
+	local spanData = STAGE_DATA[1].ENEMY_SPAN
+
+	for line = LINE_TOP, LINE_BOTTOM do
+		table.insert(data, {waitCycle=0})
+	end
+
+	while true do
+		for line = LINE_TOP, LINE_BOTTOM do
+		
+			if data[line].waitCycle <= 0 then 
+				-- oŒ»‚³‚¹‚é
+				local enemy = self:CreateEnemy(line)
+				self:AddEnemy(enemy)
+				
+				-- ‰½ŽüŠúŒã‚ÉoŒ»‚·‚é‚©Œˆ‚ß‚é
+				local span = spanData[line].max - spanData[line].min
+				local chance = span / ENEMY_ENCOUNT_FRAME
+				data[line].waitCycle = math.random(0, chance) + spanData[line].min / ENEMY_ENCOUNT_FRAME
+			end
+			data[line].waitCycle = data[line].waitCycle - 1
+		end
+		rt:Wait(ENEMY_ENCOUNT_FRAME)
+	end
+end
+
+function EnemyManager:CreateEnemy(line)
+	local back = GetStage().back
+	local spd = (back.scrollSpd * ENEMY_SPD[line]) / SCROLL_SPD
+	
+	local enemy = nil
+	if line == LINE_BOTTOM then
+		enemy = Rock()
+	else
+		if GetStage().stageNum == 1 then
+			enemy = Enemy(math.random(0, 5))
+		elseif GetStage().stageNum == 2 then
+			if math.random(1, 100) <= PROB_CELES_STAGE2 then
+				enemy = Celes()
+			else
+				enemy = Enemy(math.random(0, 5))
+			end
+		elseif GetStage().stageNum == 3 then
+			if math.random(1, 100) <= PROB_CELES_STAGE3 then
+				enemy = Celes()
+			else
+				enemy = Enemy(math.random(0, 5))
+			end
+		end
+	end
+	enemy:Begin()
+	
+	enemy.line	= line
+	enemy.spd		= spd
+	enemy.x			= GetProperty("WindowWidth") + 30
+	enemy.y			= LINE_HEIGHTS[enemy.line]
+	enemy:ApplyPosToSprUseCamera(GetCamera())
+	GetCamera():AddAutoApplyPosItem(enemy)
+	return enemy
+end
 
 
 --@Enemy
@@ -1477,7 +1476,7 @@ function Enemy:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
 		if self.x < -30 then
-			GetStage():RemoveEnemy(self)
+			GetStage().enemyMgr:RemoveEnemy(self)
 			rt:Wait()
 		end
 		
@@ -1555,7 +1554,7 @@ function Rock:StateStart(rt)
 			pcl:ApplyPosToSpr()
 			GetStage():AddChild(pcl)
 
-			GetStage():RemoveEnemy(self)
+			GetStage().enemyMgr:RemoveEnemy(self)
 			rt:Wait()
 		end
 		self:GetSpr().rot = self:GetSpr().rot + math.rad(ROCK_ROT_SPD)
@@ -1617,15 +1616,13 @@ function Celes:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
 		if self.x < -30 then
-			GetStage():RemoveEnemy(self)
+			GetStage().enemyMgr:RemoveEnemy(self)
 			rt:Wait()
 		end
 		self:ApplyPosToSprUseCamera(GetCamera())
 		rt:Wait()
 	end
 end
-
-
 
 
 --@GameBack
