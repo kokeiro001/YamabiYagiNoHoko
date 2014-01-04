@@ -325,12 +325,10 @@ function Actor:MoveJump(maxTime, maxY, enableTime)
 end
 
 function Actor:StateMoveJump(rt)
-	print("maxTime="..self.maxTime)
 	for i=1, self.enableTime do
 		self.y = self.srcY 
 						 + (2*self.maxY*i)/self.maxTime
 						 -0.5*(2*self.maxY*(i*i)) / (self.maxTime * self.maxTime)
-		print("y="..self.y)
 		rt:Wait()
 	end
 	self.y = self.srcY
@@ -339,7 +337,63 @@ end
 
 
 
+class 'FadeHelper'(Actor)
+function FadeHelper:__init(owner)
+	Actor.__init(self)
+	self.owner = owner
+end
 
+function FadeHelper:StateStart(rt)
+	while true do
+		rt:Wait()
+	end
+end
+
+function FadeHelper:Fade(cnt, fromX, fromY, fromAlpha, toX, toY, toAlpha)
+	local spr = self.owner:GetSpr()
+	self.cnt				= cnt
+	self.fromX			= fromX
+	self.fromY			= fromY
+	self.fromAlpha	= fromAlpha
+	self.toX				= toX
+	self.toY				= toY
+	self.toAlpha		= toAlpha
+	
+	self.owner:SetPos(fromX, fromY)
+	spr.alpha = fromAlpha
+	self.owner:ApplyPosToSpr()
+
+	for i=0, spr:GetChildCnt()-1 do
+		local chr = spr:GetChild(i)
+		chr.alpha = self.fromAlpha
+	end
+	
+	self:ChangeRoutine("StateFade")
+end
+
+function FadeHelper:StateFade(rt)
+	local owner = self.owner
+	local spr = owner:GetSpr()
+
+	local len = spr:GetChildCnt()
+	local saX = self.fromX - self.toX
+	local saY = self.fromY - self.toY
+	local saAlpha = self.fromAlpha - self.toAlpha
+	
+	for i=1, self.cnt do
+		owner.x = self.toX + saX * (1 - (i / self.cnt))
+		owner.y = self.toY + saY * (1 - (i / self.cnt))
+		spr.alpha = self.toAlpha + saAlpha * (1 - (i / self.cnt))
+		
+		for j=0, len-1 do
+			local chr = spr:GetChild(j)
+			chr.alpha = self.toAlpha + saAlpha * (1 - (i / self.cnt))
+		end
+		owner:ApplyPosToSpr()
+		rt:Wait()
+	end
+	self:Goto("StateStart")
+end
 
 
 

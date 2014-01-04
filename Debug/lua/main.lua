@@ -11,13 +11,13 @@ GS = {
 }
 
 Color = {
+	Transparent = ColorF(0, 0, 0, 0),
 	Black = ColorF(0, 0, 0),
 	White = ColorF(1, 1, 1),
 	Gray	= ColorF(0.5, 0.5, 0.5),
 	Red		= ColorF(1, 0, 0),
 	Green	= ColorF(0, 0.5, 0),
 	Blue	= ColorF(0, 0, 1)
-	
 }
 
 function OnPower(appli)

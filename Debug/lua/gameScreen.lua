@@ -6,6 +6,8 @@ local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ステージの背景透明度
 
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
 
+local UI_FADE_FRAME = 30
+
 -- scoore
 local SCORE_X = 500
 local SCORE_Y = 5
@@ -46,7 +48,7 @@ local MIDDLE_ENEMY_SPD	= SCROLL_SPD	-- 中段
 local BOTTOM_ENEMY_SPD	= SCROLL_SPD	-- 下段
 
 local TOP_ENEMY_SPAN_MIN				=  60		-- 敵の出現間隔
-local TOP_ENEMY_SPAN_MAX				= 120
+local TOP_ENEMY_SPAN_MAX				= 240
 local BOTTOM_ENEMY_SPAN_MIN			=  60
 local BOTTOM_ENEMY_SPAN_MAX			= 120
 
@@ -263,8 +265,7 @@ function Stage:Begin()
 	self.scoreMgr:ApplyPosToSpr()
 	self:AddChild(self.scoreMgr)
 	
-	self.stageNumAct = Actor()
-	self.stageNumAct:SetText("")
+	self.stageNumAct = StageNumber()
 	self.stageNumAct:Begin()
 	self.stageNumAct.x = 10
 	self.stageNumAct.y = 5
@@ -311,7 +312,6 @@ end
 
 function Stage:BeginStage(num)
 	self.stageNum = num
-	self.stageNumAct:SetText("STAGE"..self.stageNum)
 	
 	self.game:BeginFadeIn(STARTDEMO_FADEIN_FRAME)
 	
@@ -347,7 +347,6 @@ function Stage:InitStartDemoWait(cnt)
 		self:RemoveEnemy(self.allEnemies[1])
 	end
 
-	self.stageNumAct:SetText("STAGE"..self.stageNum)
 	self.marker.enable = false
 	self.encountCnt = 0
 	self.addTopEnemyDelay = 0
@@ -538,6 +537,7 @@ function Stage:InitClearDemo()
 	-- すべての敵をbom
 	local deadTargets = {}
 	for idx, enemy in ipairs(self.allEnemies) do
+		enemy.hp = 1
 		if enemy.attacker == nil then
 			table.insert(deadTargets, enemy)
 		end
@@ -555,7 +555,7 @@ function Stage:InitClearDemo()
 		end
 	end
 	
-	self:Wait(40)
+	self.game:ChangeRoutine("StateWatchDemo")
 end
 
 function Stage:FinalizeClearDemo()
@@ -592,6 +592,7 @@ end
 function Stage:StateClearDemo1(rt)
 	self:InitClearDemo()
 	
+	rt:Wait(60)
 	self:MoveActWait(self.player, 120, GetProperty("WindowWidth") / 2, PLAYER_Y)
 	rt:Wait(20)
 	
@@ -625,6 +626,7 @@ end
 
 function Stage:StateClearDemo2(rt)
 	self:InitClearDemo()
+	rt:Wait(60)
 	
 	-- プレイヤー、パトカーを前に進める
 	self:ChangeScrollSpd(SCROLL_SPD + 1)
@@ -681,6 +683,7 @@ end
 
 function Stage:StateClearDemo3(rt)
 	self:InitClearDemo()
+	rt:Wait(60)
 	
 	self:MoveActWait(self.player, 120, GetProperty("WindowWidth") / 2, PLAYER_Y)
 	rt:Wait(20)
@@ -877,7 +880,6 @@ function Stage:StateEnding(rt)
 	
 	
 	self.player:ClearItem()
-	self.stageNumAct:Hide()
 	self.marker.enable = false
 	self.marker:Hide()
 	
@@ -1154,7 +1156,9 @@ function PlayerCursorCharge:Begin()
 		for idx, enemy in ipairs(GetStage():GetEnemies()) do
 			self:ThrowSuriken(enemy, ATTACK_CHARGE2_SURIKEN)
 		end
-		GetPlayer():DecItem()
+		if GetPlayer():GetItemCnt() > 0 then
+			GetPlayer():DecItem()
+		end
 	end
 	
 	gauge:Begin(releaseFunc, releaseFunc2)
@@ -1388,10 +1392,10 @@ function Enemy:UpdateScore(kind)
 	pointAct.x = self.x
 	pointAct.y = self.y + self.floatPointY
 	pointAct:SetText(tostring(point), Color.Black)
-	pointAct:GetSpr():SetFontSize(12)
+	pointAct:GetSpr():SetFontSize(24)
 	pointAct:GetSpr().cx = pointAct:GetSpr().width / 2
 	pointAct:GetSpr().yx = pointAct:GetSpr().height / 2
-	
+	pointAct:ApplyPosToSpr()
 	GetCamera():AddAutoApplyPosItem(pointAct)
 	
 	pointAct:ChangeFunc(function(rt)
@@ -1828,8 +1832,9 @@ function StageMarker:Begin(func)
 	yamabi.cy 				= 16
 	self:GetSpr():AddChild(yamabi)
 	self.maker = yamabi
-	
 
+	self.fadeHelper = FadeHelper(self)
+	
 	self.animCnt = 0
 end
 
@@ -1840,10 +1845,19 @@ function StageMarker:BeginStartDemo(stageNum)
 	self.nowFrame = 0
 	self.maker.x = MARKER_LEFT_X
 	self.stageFrame = STAGE_FRAME[stageNum]
+	
+	self:Hide()
 end
+
 
 function StageMarker:BeginStage(stageNum)
 	self.enable = true
+	local toX, toY = self:GetPos()
+	
+	self:Show()
+	self.fadeHelper:Fade(UI_FADE_FRAME,
+											 toX, toY - 10, 0,
+											 toX, toY, 1)
 end
 
 function StageMarker:StateStart(rt)
@@ -1965,6 +1979,20 @@ end
 function StageScore:Begin()
 	Actor.Begin(self)
 	self:UpdateText()
+	self.fadeHelper = FadeHelper(self)
+end
+
+function StageScore:BeginStartDemo(stageNum)
+	self.point = 0
+	self:UpdateText()
+	self:Hide()
+end
+
+function StageScore:BeginStage(num)
+	self:Show()
+	self.fadeHelper:Fade(UI_FADE_FRAME,
+											 self.x, self.y - 10, 0,
+											 self.x, self.y, 1)
 end
 
 function StageScore:AddPoint(point)
@@ -1976,12 +2004,29 @@ function StageScore:UpdateText()
 	self:SetText("得点："..self.point)
 end
 
-function StageScore:BeginStartDemo(stageNum)
-	self.point = 0
-	self:UpdateText()
+
+class'StageNumber'(Actor)
+function StageNumber:__init()
+	Actor.__init(self)
 end
 
+function StageNumber:Begin()
+	Actor.Begin(self)
+	self:SetText("")
+	self.fadeHelper = FadeHelper(self)
+end
 
+function StageNumber:BeginStartDemo(stageNum)
+	self:SetText("STAGE"..stageNum)
+	self:Hide()
+end
+
+function StageNumber:BeginStage(num)
+	self:Show()
+	self.fadeHelper:Fade(UI_FADE_FRAME,
+											 self.x, self.y - 10, 0,
+											 self.x, self.y, 1)
+end
 
 
 
