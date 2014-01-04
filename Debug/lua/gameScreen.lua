@@ -53,7 +53,21 @@ local STAGE_DATA = {
 			{min=60, max=240},	-- min max
 			{min=20, max= 80},
 			{min=60, max=120}
-		}
+		},
+	},
+	{	-- stage2
+		ENEMY_SPAN = {
+			{min=60, max=240},	-- min max
+			{min=20, max= 80},
+			{min=60, max=120}
+		},
+	},
+	{	-- stage3
+		ENEMY_SPAN = {
+			{min=60, max=240},	-- min max
+			{min=20, max= 80},
+			{min=60, max=120}
+		},
 	}
 }
 
@@ -1311,7 +1325,7 @@ end
 function EnemyManager:StateStart(rt)
 	local updateCnt = 0
 	local data = {}
-	local spanData = STAGE_DATA[1].ENEMY_SPAN
+	local spanData = STAGE_DATA[GetStage().stageNum].ENEMY_SPAN
 
 	for line = LINE_TOP, LINE_BOTTOM do
 		table.insert(data, {waitCycle=0})

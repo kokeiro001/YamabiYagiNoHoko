@@ -120,22 +120,27 @@ end
 function RockCrashParticle:Begin()
 	Particle.Begin(self)
 	
-	self:SetDivTexture("rock", 4, 1, 50, 50)
+	self:SetDivTexture("crash", 5, 1, 80, 80)
 	self:GetSpr().divTexIdx = 0
 	self:GetSpr().name = "rock clash pcl spr"
 	
-	self:GetSpr().cx = 25
-	self:GetSpr().cy = 25
+	self:GetSpr().cx = 40
+	self:GetSpr().cy = 40
 	
 	GS.SoundMgr:PlaySe("burst")
 	GetCamera():AddAutoApplyPosItem(self)
 end
  
 function RockCrashParticle:StateStart(rt)
-	local span = 10
-	for i = span, 0, -1 do
-		self.spr.alpha = (i / span)
-		rt:Wait()
+	local wait = 3
+	local tmp = 0
+	for idx = 0, 4 do
+		self.spr.divTexIdx = idx
+		self.spr.alpha = self.spr.alpha - 0.025
+		for i = 1, wait do
+			rt:Wait()
+			self.spr.alpha = self.spr.alpha - 0.025
+		end
 	end
 	self:Dead()
 	return "exit"

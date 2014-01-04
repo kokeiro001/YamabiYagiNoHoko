@@ -43,9 +43,11 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("s-stage3.jpg", "stage3back")
 	GS.GrMgr:LoadTexture2("pato.png", "patcar")
 	GS.GrMgr:LoadTexture2("suriken.png", "suriken")
+	
 	GS.GrMgr:LoadTexture2("burst0.png", "burst0")
 	GS.GrMgr:LoadTexture2("run_marker.png", "runMarker")
 	GS.GrMgr:LoadTexture2("zan.png", "slash")
+	GS.GrMgr:LoadTexture2("kudake.png", "crash")
 	
 	GS.GrMgr:LoadTexture2("stage1demo.png", "stage1demo")
 	GS.GrMgr:LoadTexture2("stage2demo.png", "stage2demo")
