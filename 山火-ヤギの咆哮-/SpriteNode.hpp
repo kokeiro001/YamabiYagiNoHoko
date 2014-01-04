@@ -157,6 +157,8 @@ public:
 	void SetParent(boost::shared_ptr<Sprite> parent) { m_pParent = parent; }
 	void RemoveFromParent();
 	void RemoveFromParentForce();
+	int GetChildCnt() { return m_children.size(); }
+	boost::shared_ptr<Sprite> GetChild(int idx);
 
 	void DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY);
 	void Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY, int level);

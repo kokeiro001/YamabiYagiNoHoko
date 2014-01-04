@@ -64,6 +64,15 @@ void Sprite::RemoveFromParentForce()
 		m_pParent.reset();
 	}
 }
+boost::shared_ptr<Sprite> Sprite::GetChild(int idx)
+{
+	int i = 0;
+	foreach(boost::shared_ptr<Sprite> chr, m_children)
+	{
+		if(i++ == idx) return chr;
+	}
+}
+
 
 void Sprite::SetAlpha(float alpha)
 { 
@@ -325,6 +334,9 @@ void Sprite::RegistLua()
 		.def("RemoveChild", &RemoveChild)
 		.def("RemoveFromParent", &RemoveFromParent)
 		.def("ClearChild", &ClearChild)
+		.def("GetChild", &GetChild)
+		.def("GetChildCnt", &GetChildCnt)
+
 		.def("SetPos", &SetPos)
 		.def("SortZ", &SortZ)
 

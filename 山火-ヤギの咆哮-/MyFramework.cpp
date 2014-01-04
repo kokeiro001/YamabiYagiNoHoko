@@ -80,6 +80,7 @@ bool MyFramework::OnPowerInit()
 
 		luabind::class_<ColorF>("ColorF")
 		.def(luabind::constructor<float, float, float>())
+		.def(luabind::constructor<float, float, float, float>())
 		.def_readwrite("r", &ColorF::r)
 		.def_readwrite("b", &ColorF::g)
 		.def_readwrite("g", &ColorF::b),

@@ -8,6 +8,13 @@ local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
 
 local UI_FADE_FRAME = 30
 
+local HANT_ID = {
+	ZAKO = 1, 
+	ROCK = 2, 
+	CELES =3 , 
+	CLASH_ROCK = 4
+}
+
 -- scoore
 local SCORE_X = 500
 local SCORE_Y = 5
@@ -1347,6 +1354,7 @@ end
 class 'Enemy'(Actor)
 function Enemy:__init(kind)
 	Actor.__init(self)
+	self.hantId = HANT_ID.ZAKO
 	
 	self.spd = 0
 	self.kind = kind
@@ -1387,6 +1395,8 @@ function Enemy:UpdateScore(kind)
 	end
 	
 	GetStage().scoreMgr:AddPoint(point)
+	GetStage().scoreMgr:AddHantCnt(self.hantId)
+	
 	local pointAct = Actor()
 	pointAct:Begin()
 	pointAct.x = self.x
@@ -1457,6 +1467,8 @@ end
 class 'Rock'(Enemy)
 function Rock:__init()
 	Enemy.__init(self)
+	self.hantId = HANT_ID.ROCK
+
 	self.hp = HP_ROCK
 	self.point = POINT_ROCK
 	self.floatPointY = FLOAT_POINT_Y_ROCK
@@ -1513,6 +1525,8 @@ end
 class 'Celes'(Enemy)
 function Celes:__init()
 	Enemy.__init(self)
+	self.hantId = HANT_ID.CELES
+
 	self.hp = HP_CELES
 	self.point = POINT_CELES
 	self.floatPointY = FLOAT_POINT_Y_CELES
@@ -1974,15 +1988,26 @@ class'StageScore'(Actor)
 function StageScore:__init()
 	Actor.__init(self)
 	self.point = 0
+	self.idCnt = {}
 end
 
 function StageScore:Begin()
 	Actor.Begin(self)
 	self:UpdateText()
 	self.fadeHelper = FadeHelper(self)
+
+	self.debugSpr = Sprite()
+	self.debugSpr:SetTextMode("")
+	self.debugSpr:SetFontSize(12)
+	self.debugSpr.x = 10
+	self.debugSpr.y = 30
+	
+	self:GetSpr():AddChild(self.debugSpr)
 end
 
 function StageScore:BeginStartDemo(stageNum)
+	self.update = true
+	ClearTable(self.idCnt)
 	self.point = 0
 	self:UpdateText()
 	self:Hide()
@@ -2000,9 +2025,32 @@ function StageScore:AddPoint(point)
 	self:UpdateText()
 end
 
+function StageScore:AddHantCnt(hantId)
+	self.idCnt[hantId] = (self.idCnt[hantId] or 0) + 1
+	self.update = true
+end
+
 function StageScore:UpdateText()
 	self:SetText("ìæì_ÅF"..self.point)
 end
+
+function StageScore:StateStart(rt)
+	while true do
+		if self.update then
+			self.update = false
+			local text = "count\n"
+			for id, cnt in pairs(self.idCnt) do
+				text = text..string.format("id=%d cnt=%d\n", id, cnt)
+			end
+			self.debugSpr:SetText(text)
+		end
+		rt:Wait()
+	end
+end
+
+
+
+
 
 
 class'StageNumber'(Actor)
