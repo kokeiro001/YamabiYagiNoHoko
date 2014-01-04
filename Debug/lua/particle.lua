@@ -107,3 +107,39 @@ function SlashedRock:StateStart(rt)
 end
 
 
+
+
+
+--@RockCrashParticle
+class 'RockCrashParticle'(Particle)
+function RockCrashParticle:__init()
+	Particle.__init(self)
+end
+
+
+function RockCrashParticle:Begin()
+	Particle.Begin(self)
+	
+	self:SetDivTexture("rock", 4, 1, 50, 50)
+	self:GetSpr().divTexIdx = 0
+	self:GetSpr().name = "rock clash pcl spr"
+	
+	self:GetSpr().cx = 25
+	self:GetSpr().cy = 25
+	
+	GS.SoundMgr:PlaySe("burst")
+	GetCamera():AddAutoApplyPosItem(self)
+end
+ 
+function RockCrashParticle:StateStart(rt)
+	local span = 10
+	for i = span, 0, -1 do
+		self.spr.alpha = (i / span)
+		rt:Wait()
+	end
+	self:Dead()
+	return "exit"
+end
+
+
+

@@ -1529,6 +1529,13 @@ function Rock:StateStart(rt)
 			GetStage().scoreMgr:AddHantCnt(HANT_ID.CLASH_ROCK)
 			local pact = self:AddPointAct(POINT_PLAYER_ROCK_HIT)
 			pact.y = pact.y - 20
+			
+			local pcl = RockCrashParticle()
+			pcl:Begin()
+			pcl:SetPos(self.x, self.y)
+			pcl:ApplyPosToSpr()
+			GetStage():AddChild(pcl)
+
 			GetStage():RemoveEnemy(self)
 			rt:Wait()
 		end
