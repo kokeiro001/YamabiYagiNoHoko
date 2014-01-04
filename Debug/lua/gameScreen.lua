@@ -6,6 +6,7 @@ local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ƒXƒe[ƒW‚Ì”wŒi“§–¾“x
 
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
 
+
 local UI_FADE_FRAME = 30
 
 local HANT_ID = {
@@ -23,6 +24,7 @@ local POINT_ZAKO 				= 100
 local POINT_CELES 			= 300
 local POINT_ROCK 				= 50
 local POINT_USE_CHARGE2	= 200
+local POINT_PLAYER_ROCK_HIT	= -50
 
 local FLOAT_POINT_Y_ZAKO		= 0
 local FLOAT_POINT_Y_CELES		= 0
@@ -58,6 +60,8 @@ local TOP_ENEMY_SPAN_MIN				=  60		-- “G‚ÌoŒ»ŠÔŠu
 local TOP_ENEMY_SPAN_MAX				= 240
 local BOTTOM_ENEMY_SPAN_MIN			=  60
 local BOTTOM_ENEMY_SPAN_MAX			= 120
+
+local HIT_PLAYER_ROCK_X = PLAYER_X + 10
 
 
 local HP_ZAKO			= 1		-- hp
@@ -1396,12 +1400,22 @@ function Enemy:UpdateScore(kind)
 	
 	GetStage().scoreMgr:AddPoint(point)
 	GetStage().scoreMgr:AddHantCnt(self.hantId)
-	
+	self:AddPointAct(point)
+end
+
+function Enemy:AddPointAct(point)
 	local pointAct = Actor()
 	pointAct:Begin()
 	pointAct.x = self.x
 	pointAct.y = self.y + self.floatPointY
-	pointAct:SetText(tostring(point), Color.Black)
+	
+	local col
+	if point > 0 then 
+		col = Color.Black
+	else
+		col = Color.Red
+	end
+	pointAct:SetText(tostring(point), col)
 	pointAct:GetSpr():SetFontSize(24)
 	pointAct:GetSpr().cx = pointAct:GetSpr().width / 2
 	pointAct:GetSpr().yx = pointAct:GetSpr().height / 2
@@ -1418,6 +1432,7 @@ function Enemy:UpdateScore(kind)
 		return "exit"
 	end)
 	GetStage():AddChild(pointAct)
+	return pointAct
 end
 
 function Enemy:Dead()
@@ -1509,7 +1524,11 @@ end
 function Rock:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
-		if self.x < -30 then
+		if self.x < HIT_PLAYER_ROCK_X then
+			GetStage().scoreMgr:AddPoint(POINT_PLAYER_ROCK_HIT)
+			GetStage().scoreMgr:AddHantCnt(HANT_ID.CLASH_ROCK)
+			local pact = self:AddPointAct(POINT_PLAYER_ROCK_HIT)
+			pact.y = pact.y - 20
 			GetStage():RemoveEnemy(self)
 			rt:Wait()
 		end
