@@ -48,7 +48,7 @@ local PLAYER_Y = LINE_HEIGHTS[LINE_BOTTOM]
 
 -- enemy
 local STAGE_DATA = {
-	{
+	{	-- stage1
 		ENEMY_SPAN = {
 			{min=60, max=240},	-- min max
 			{min=20, max= 80},
@@ -57,9 +57,9 @@ local STAGE_DATA = {
 	},
 	{	-- stage2
 		ENEMY_SPAN = {
-			{min=60, max=240},	-- min max
-			{min=20, max= 80},
-			{min=60, max=120}
+			{min=20, max=20},	-- min max
+			{min=20, max=20},
+			{min=20, max=20}
 		},
 	},
 	{	-- stage3
@@ -1274,8 +1274,9 @@ function EnemyManager:BeginStartDemo()
 	self.enable = false
 end
 
-function EnemyManager:BeginStage()
+function EnemyManager:BeginStage(num)
 	self.enable = true
+	self:ChangeRoutine("StateStart")
 end
 
 function EnemyManager:BeginClearDemo()
@@ -1327,6 +1328,16 @@ function EnemyManager:StateStart(rt)
 	local data = {}
 	local spanData = STAGE_DATA[GetStage().stageNum].ENEMY_SPAN
 
+	for k, v in pairs(spanData) do
+		print(tostring(k))
+		print(tostring(v))
+		for k2, v2 in pairs(v) do
+			print("  "..tostring(k2))
+			print("  "..tostring(v2))
+		end
+		print("")
+	end
+	
 	for line = LINE_TOP, LINE_BOTTOM do
 		table.insert(data, {waitCycle=0})
 	end
