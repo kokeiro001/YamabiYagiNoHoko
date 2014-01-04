@@ -25,6 +25,7 @@ local POINT_CELES 			= 300
 local POINT_ROCK 				= 50
 local POINT_USE_CHARGE2	= 200
 local POINT_PLAYER_ROCK_HIT	= -50
+local POINT_ITEM 				= 1000
 
 local FLOAT_POINT_Y_ZAKO		= 0
 local FLOAT_POINT_Y_CELES		= 0
@@ -605,7 +606,10 @@ function Stage:StateClearDemo1(rt)
 	
 	rt:Wait(60)
 	self:MoveActWait(self.player, 120, GetProperty("WindowWidth") / 2, PLAYER_Y)
-	rt:Wait(20)
+	--rt:Wait(20)
+	
+	self:AddShowResult()
+	rt:Wait(300)
 	
 	local haiku = self:ShowHaiku()
 	table.insert(self.demoAct, haiku)
@@ -663,6 +667,9 @@ function Stage:StateClearDemo2(rt)
 	rt:Wait(10)
 	GS.SoundMgr:PlaySe("bosu")
 	
+	self:AddShowResult()
+	rt:Wait(300)
+	
 	-- ハイク表示
 	local haiku = self:ShowHaiku()
 	table.insert(self.demoAct, haiku)
@@ -698,6 +705,9 @@ function Stage:StateClearDemo3(rt)
 	
 	self:MoveActWait(self.player, 120, GetProperty("WindowWidth") / 2, PLAYER_Y)
 	rt:Wait(20)
+	
+	self:AddShowResult()
+	rt:Wait(300)
 	
 	local haiku = self:ShowHaiku()
 	table.insert(self.demoAct, haiku)
@@ -948,6 +958,15 @@ function Stage:ShowHaiku()
 	haiku:ApplyPosToSpr()
 	self:AddChild(haiku)
 	return haiku
+end
+
+function Stage:AddShowResult()
+	local result = StageResult(self.scoreMgr.idCnt)
+	result:Begin()
+	result:SetPos(170, 20)
+	result:ApplyPosToSpr()
+	self:AddChild(result)
+	table.insert(self.demoAct, result)
 end
 
 function Stage:FadeSprWait(spr, cnt, from, to)
@@ -2021,14 +2040,6 @@ function StageScore:Begin()
 	Actor.Begin(self)
 	self:UpdateText()
 	self.fadeHelper = FadeHelper(self)
-
-	self.debugSpr = Sprite()
-	self.debugSpr:SetTextMode("")
-	self.debugSpr:SetFontSize(12)
-	self.debugSpr.x = 10
-	self.debugSpr.y = 30
-	
-	self:GetSpr():AddChild(self.debugSpr)
 end
 
 function StageScore:BeginStartDemo(stageNum)
@@ -2058,20 +2069,6 @@ end
 
 function StageScore:UpdateText()
 	self:SetText("得点："..self.point)
-end
-
-function StageScore:StateStart(rt)
-	while true do
-		if self.update then
-			self.update = false
-			local text = "count\n"
-			for id, cnt in pairs(self.idCnt) do
-				text = text..string.format("id=%d cnt=%d\n", id, cnt)
-			end
-			self.debugSpr:SetText(text)
-		end
-		rt:Wait()
-	end
 end
 
 
@@ -2106,9 +2103,135 @@ end
 
 
 
+class'StageResult'(Actor)
+function StageResult:__init(idCnt)
+	Actor.__init(self)
+	
+	self.idCnt = CopyTable(idCnt)
+end
+
+function StageResult:Begin()
+	Actor.Begin(self)
+	
+	self:CreateSpr()
+	
+	self.lines = {}
+	local score = 0
+	score = score + self:CreateLineFact("zako")
+	score = score + self:CreateLineFact("rock")
+	if GetStage().stageNum > 1 or true then
+		score = score + self:CreateLineFact("celes")
+	end
+	score = score + self:CreateLineFact("crash")
+	score = score + self:CreateLineFact("item")
+	
+	self.totalSpr = Sprite()
+	self.totalSpr:SetTextMode(string.format("総合　%d", score))
+	self.totalSpr:SetFontSize(30)
+	self:GetSpr():AddChild(self.totalSpr)
+	
+	for idx, line in ipairs(self.lines) do
+		line.y = idx * 40
+		line:Hide()
+		line.target:Hide()
+		line.textSpr:Hide()
+		line:ApplyPosToSpr()
+	end
+	self.totalSpr:Hide()
+	self.totalSpr:SetDrawPosAbsolute()
+	self.totalSpr.x = (GetProperty("WindowWidth") - self.totalSpr.width) / 2
+	self.totalSpr.y = 6 * 40 + 15
+end
+
+function StageResult:StateStart(rt) 
+	local tmp = 30
+	for idx, line in ipairs(self.lines) do
+		line:Show()
+		line.target:Show()
+		line.textSpr:Show()
+		GS.SoundMgr:PlaySe("bosu")
+		rt:Wait(30)
+	end
+	
+	rt:Wait(60)
+	self.totalSpr:Show()
+	GS.SoundMgr:PlaySe("bosu")
+	rt:Wait(5)
+	GS.SoundMgr:PlaySe("bosu")
+
+	while true do
+		rt:Wait()
+	end
+end
 
 
 
+function StageResult:CreateLineFact(name, score)
+	local act = Actor()
+	act:Begin()
+	act:CreateSpr()
+	
+	act.target = DemoActor()
+	act.target:Begin()
+	local anim = nil
+	local point = nil
+	local cnt = nil
+	if name == "zako" then
+		point = POINT_ZAKO
+		cnt = self.idCnt[HANT_ID.ZAKO] or 0
+		anim = SimpleAnimation()
+		act.target:SetDivTexture("zako", 6, 5, 32, 32)
+		act.target:GetSpr().cx = 16
+		act.target:GetSpr().cy = 16
+		anim:AddFrameAnimData("def", 0, 4, 3)
+	elseif name == "rock" then
+		point = POINT_ROCK
+		cnt = self.idCnt[HANT_ID.ROCK] or 0
+		act.target:SetDivTexture("rock", 4, 1, 50, 50)
+		act.target:GetSpr().drawWidth = 25
+		act.target:GetSpr().drawHeight = 25
+		act.target:GetSpr().cx = 12
+		act.target:GetSpr().cy = 12
+	elseif name == "celes" then
+		point = POINT_CELES
+		cnt = self.idCnt[HANT_ID.CELES] or 0
+		anim = CelesAnim()
+	elseif name == "crash" then
+		point = POINT_PLAYER_ROCK_HIT
+		cnt = self.idCnt[HANT_ID.CLASH_ROCK] or 0
+		act.target:SetDivTexture("rock", 4, 1, 50, 50)
+		act.target:GetSpr().drawWidth = 25
+		act.target:GetSpr().drawHeight = 25
+		act.target:GetSpr().cx = 12
+		act.target:GetSpr().cy = 12
+	elseif name == "item" then
+		point = POINT_ITEM
+		cnt = GetPlayer():GetItemCnt()
+		act.target:SetDivTexture("suriken", 4, 1, 32, 32)
+		act.target:GetSpr().cx = 16
+		act.target:GetSpr().cy = 16
+	else
+		error("not def")
+	end
+	
+	if anim ~= nil then
+		act.target:SetAnimation(anim)
+		anim:BeginAnim("def")
+	end
+	act:AddChild(act.target)
+	
+	act.textSpr = Sprite()
+	local score = point * cnt
+	local text = string.format("%5d ×%3d = %8d", point, cnt, score)
+	act.textSpr:SetTextMode(text)
+	act.textSpr.cy = act.textSpr.height / 2
+	act.textSpr.x = 40
+	act:GetSpr():AddChild(act.textSpr)
+	table.insert(self.lines, act)
+	
+	self:AddChild(act)
+	return score
+end
 
 
 
