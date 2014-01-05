@@ -1581,7 +1581,7 @@ end
 function Rock:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
-		if self.x < HIT_PLAYER_ROCK_X then
+		if self.x < HIT_PLAYER_ROCK_X and self.attacker == nil then
 			GetStage().scoreMgr:AddPoint(POINT_PLAYER_ROCK_HIT)
 			GetStage().scoreMgr:AddHantCnt(HANT_ID.CLASH_ROCK)
 			local pact = self:AddPointAct(POINT_PLAYER_ROCK_HIT)
