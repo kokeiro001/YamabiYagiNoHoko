@@ -974,6 +974,7 @@ end
 
 function Player:BeginStartDemo(num)
 	self:ClearItem()
+	self.anim:BeginAnim("run")
 end
 
 function Player:AddItem(x, y)
