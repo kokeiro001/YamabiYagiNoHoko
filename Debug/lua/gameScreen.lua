@@ -20,6 +20,7 @@ local HANT_ID = {
 local SCORE_X = 500
 local SCORE_Y = 5
 
+local POINT_PERFECT_BOUNUS = 10000
 local POINT_ZAKO 				= 100
 local POINT_CELES 			= 300
 local POINT_ROCK 				= 50
@@ -616,10 +617,13 @@ function Stage:StateClearDemo1(rt)
 	--rt:Wait(20)
 	
 	self:AddShowResult()
-	rt:Wait(300)
-	
-	local haiku = self:ShowHaiku()
-	table.insert(self.demoAct, haiku)
+	while true do
+		rt:Wait()
+	end
+end
+
+function Stage:StateShownResult1(rt)
+	self:ShowHaiku()
 	rt:Wait(SHOW_HAIKU_FRAME)
 	
 	self.game:BeginFadeOut(60)
@@ -644,7 +648,6 @@ function Stage:StateClearDemo1(rt)
 	-- 終了
 	self:FinalizeClearDemo()
 end
-
 
 function Stage:StateClearDemo2(rt)
 	self:InitClearDemo()
@@ -675,11 +678,14 @@ function Stage:StateClearDemo2(rt)
 	GS.SoundMgr:PlaySe("bosu")
 	
 	self:AddShowResult()
-	rt:Wait(300)
-	
+	while true do
+		rt:Wait()
+	end
+end
+
+function Stage:StateShownResult2(rt)
 	-- ハイク表示
-	local haiku = self:ShowHaiku()
-	table.insert(self.demoAct, haiku)
+	self:ShowHaiku()
 	rt:Wait(SHOW_HAIKU_FRAME)
 	
 	self.game:BeginFadeOut(60)
@@ -704,7 +710,6 @@ function Stage:StateClearDemo2(rt)
 	-- 終了
 	self:FinalizeClearDemo()
 end
-
 
 function Stage:StateClearDemo3(rt)
 	self:InitClearDemo()
@@ -714,10 +719,13 @@ function Stage:StateClearDemo3(rt)
 	rt:Wait(20)
 	
 	self:AddShowResult()
-	rt:Wait(300)
-	
-	local haiku = self:ShowHaiku()
-	table.insert(self.demoAct, haiku)
+	while true do
+		rt:Wait()
+	end
+end
+
+function Stage:StateShownResult3(rt)
+	self:ShowHaiku()
 	rt:Wait(SHOW_HAIKU_FRAME)
 	
 	self.game:BeginFadeOut(60)
@@ -742,8 +750,6 @@ function Stage:StateClearDemo3(rt)
 	-- 終了
 	self:FinalizeClearDemo()
 end
-
-
 
 
 
@@ -848,11 +854,19 @@ function Stage:ShowHaiku()
 	haiku.y = 120
 	haiku:ApplyPosToSpr()
 	self:AddChild(haiku)
+	table.insert(self.demoAct, haiku)
 	return haiku
 end
 
 function Stage:AddShowResult()
-	local result = StageResult(self.scoreMgr.idCnt)
+	local shownFunc = function()
+		GS.SoundMgr:PlaySe("bell")
+		self:ChangeRoutine("StateShownResult"..self.stageNum)
+	end
+	
+	local result = StageResult(self.scoreMgr.idCnt, 
+														 self.scoreMgr.isPerfect, 
+														 shownFunc)
 	result:Begin()
 	result:SetPos(170, 20)
 	result:ApplyPosToSpr()
@@ -1330,16 +1344,6 @@ function EnemyManager:StateStart(rt)
 	local data = {}
 	local spanData = STAGE_DATA[GetStage().stageNum].ENEMY_SPAN
 
-	for k, v in pairs(spanData) do
-		print(tostring(k))
-		print(tostring(v))
-		for k2, v2 in pairs(v) do
-			print("  "..tostring(k2))
-			print("  "..tostring(v2))
-		end
-		print("")
-	end
-	
 	for line = LINE_TOP, LINE_BOTTOM do
 		table.insert(data, {waitCycle=0})
 	end
@@ -1502,8 +1506,9 @@ end
 function Enemy:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
-		if self.x < -30 then
+		if self.x < -30 and self.attacker == nil then
 			GetStage().enemyMgr:RemoveEnemy(self)
+			GetStage().scoreMgr:FailedPerfect()
 			rt:Wait()
 		end
 		
@@ -1582,6 +1587,7 @@ function Rock:StateStart(rt)
 			GetStage():AddChild(pcl)
 
 			GetStage().enemyMgr:RemoveEnemy(self)
+			GetStage().scoreMgr:FailedPerfect()
 			rt:Wait()
 		end
 		self:GetSpr().rot = self:GetSpr().rot + math.rad(ROCK_ROT_SPD)
@@ -1642,8 +1648,9 @@ end
 function Celes:StateStart(rt)
 	while true do
 		self.x = self.x - self.spd
-		if self.x < -30 then
+		if self.x < -30 and self.attacker == nil  then
 			GetStage().enemyMgr:RemoveEnemy(self)
+			GetStage().scoreMgr:FailedPerfect()
 			rt:Wait()
 		end
 		self:ApplyPosToSprUseCamera(GetCamera())
@@ -2058,6 +2065,7 @@ function StageScore:__init()
 	Actor.__init(self)
 	self.point = 0
 	self.idCnt = {}
+	self.isPerfect = nil
 end
 
 function StageScore:Begin()
@@ -2068,6 +2076,7 @@ end
 
 function StageScore:BeginStartDemo(stageNum)
 	self.update = true
+	self.isPerfect = true
 	ClearTable(self.idCnt)
 	self.point = 0
 	self:UpdateText()
@@ -2095,8 +2104,13 @@ function StageScore:UpdateText()
 	self:SetText("得点："..self.point)
 end
 
+function StageScore:FailedPerfect()
+	self.isPerfect = false
+end
 
-
+function StageScore:GetPointVal()
+	return self.point
+end
 
 
 
@@ -2128,10 +2142,12 @@ end
 
 
 class'StageResult'(Actor)
-function StageResult:__init(idCnt)
+function StageResult:__init(idCnt, isPerfect, shownFunc)
 	Actor.__init(self)
 	
 	self.idCnt = CopyTable(idCnt)
+	self.isPerfect = isPerfect
+	self.shownFunc = shownFunc
 end
 
 function StageResult:Begin()
@@ -2140,122 +2156,190 @@ function StageResult:Begin()
 	self:CreateSpr()
 	
 	self.lines = {}
-	local score = 0
-	score = score + self:CreateLineFact("zako")
-	score = score + self:CreateLineFact("rock")
-	if GetStage().stageNum > 1 or true then
-		score = score + self:CreateLineFact("celes")
+
+	local hantCnt = 0
+	for k, v in pairs(self.idCnt) do
+		if k ~= HANT_ID.CLASH_ROCK then
+			hantCnt = hantCnt + v
+		end
 	end
-	score = score + self:CreateLineFact("crash")
-	score = score + self:CreateLineFact("item")
 	
-	self.totalSpr = Sprite()
-	self.totalSpr:SetTextMode(string.format("総合　%d", score))
-	self.totalSpr:SetFontSize(30)
-	self:GetSpr():AddChild(self.totalSpr)
+	self.hantAct = Actor()
+	self.hantAct:Begin()
+	self.hantAct:SetText(string.format("撃破数 %10d", hantCnt))
+	self.hantAct:Hide()
+	self.hantAct:SetPos(0, 40)
+	self.hantAct:ApplyPosToSpr()
+	self:AddChild(self.hantAct)
 	
-	for idx, line in ipairs(self.lines) do
-		line.y = idx * 40
-		line:Hide()
-		line.target:Hide()
-		line.textSpr:Hide()
-		line:ApplyPosToSpr()
+	self.crashAct = Actor()
+	self.crashAct:Begin()
+	self.crashAct:SetText(string.format("衝突数 %10d", self.idCnt[HANT_ID.CLASH_ROCK] or 0))
+	self.crashAct:Hide()
+	self.crashAct:SetPos(0, 80)
+	self.crashAct:ApplyPosToSpr()
+	self:AddChild(self.crashAct)
+
+	-- item
+	self.itemAct = Actor()
+	self.itemAct:Begin()
+	self.itemAct:SetDivTexture("suriken", 4, 1, 32, 32)
+	self.itemAct:GetSpr().cx = 16
+	self.itemAct:GetSpr().cy = 16
+	self.itemAct:SetPos(0, 150)
+	self.itemAct:ApplyPosToSpr()
+	
+	-- item text
+	self.itemAct.textSpr = Sprite()
+	local cnt = GetPlayer():GetItemCnt()
+	local score = POINT_ITEM * cnt
+	local text = string.format("%d × %d = ", POINT_ITEM, cnt)
+	self.itemAct.textSpr:SetTextMode(text)
+	self.itemAct.textSpr.cy = self.itemAct.textSpr.height / 2
+	self.itemAct.textSpr.x = 40
+	self.itemAct:GetSpr():AddChild(self.itemAct.textSpr)
+	
+	-- item score
+	local itemScoreSpr = Sprite()
+	itemScoreSpr:SetTextMode(tostring(POINT_ITEM*cnt))
+	itemScoreSpr.cx = itemScoreSpr.width
+	itemScoreSpr.x = 300
+	itemScoreSpr.cy = itemScoreSpr.height / 2
+	self.itemAct.scoreSpr = itemScoreSpr
+	self.itemAct:GetSpr():AddChild(itemScoreSpr)
+	self.itemAct.score = POINT_ITEM * cnt
+	
+	self.itemAct:Hide()
+	self.itemAct.textSpr:Hide()
+	self.itemAct.scoreSpr:Hide()
+	self:AddChild(self.itemAct)
+	
+	-- perfect
+	if self.isPerfect then
+		self.perfectAct = Actor()
+		self.perfectAct:Begin()
+		self.perfectAct:SetText("全滅ボーナス")
+		self.perfectAct:GetSpr().cy = self.perfectAct:GetSpr().height / 2
+		self.perfectAct:SetPos(0, 190)
+		self.perfectAct:ApplyPosToSpr()
+
+		local spr = Sprite()
+		spr:SetTextMode(tostring(POINT_PERFECT_BOUNUS))
+		spr.cx = spr.width
+		spr.x = 300
+		spr.cy = spr.height / 2
+		self.perfectAct.scoreSpr = spr
+		self.perfectAct:GetSpr():AddChild(spr)
+
+		self.perfectAct.score = POINT_PERFECT_BOUNUS
+	
+		self.perfectAct:Hide()
+		self.perfectAct.scoreSpr:Hide()
+		self:AddChild(self.perfectAct)
 	end
-	self.totalSpr:Hide()
-	self.totalSpr:SetDrawPosAbsolute()
-	self.totalSpr.x = (GetProperty("WindowWidth") - self.totalSpr.width) / 2
-	self.totalSpr.y = 6 * 40 + 15
+
+	self.totalAct = Actor()
+	self.totalAct:Begin()
+	self.totalAct:SetText("総合")
+	self.totalAct:GetSpr():SetFontSize(30)
+	self.totalAct:GetSpr().cy = self.totalAct:GetSpr().height / 2
+	self.totalAct:SetPos(0, 250)
+	self.totalAct:ApplyPosToSpr()
+
+	local totalVal = GetStage().scoreMgr:GetPointVal()
+	local spr = Sprite()
+	spr:SetTextMode(tostring(totalVal))
+	spr:SetFontSize(30)
+	spr.cx = spr.width
+	spr.x = 300
+	spr.cy = spr.height / 2
+	self.totalAct.scoreSpr = spr
+	self.totalAct:GetSpr():AddChild(spr)
+
+	self.totalAct.score = totalVal
+
+	self.totalAct:Hide()
+	self.totalAct.scoreSpr:Hide()
+	self:AddChild(self.totalAct)
 end
 
 function StageResult:StateStart(rt) 
-	local tmp = 30
-	for idx, line in ipairs(self.lines) do
-		line:Show()
-		line.target:Show()
-		line.textSpr:Show()
+	self.hantAct:Show()
+	GS.SoundMgr:PlaySe("bosu")
+	rt:Wait(30)
+
+	self.crashAct:Show()
+	GS.SoundMgr:PlaySe("bosu")
+	rt:Wait(30)
+
+	self.itemAct:Show()
+	self.itemAct.textSpr:Show()
+	self.itemAct.scoreSpr:Show()
+	GS.SoundMgr:PlaySe("bosu")
+	rt:Wait(30)
+
+	if self.isPerfect then
+		self.perfectAct:Show()
+		self.perfectAct.scoreSpr:Show()
 		GS.SoundMgr:PlaySe("bosu")
 		rt:Wait(30)
 	end
-	
-	rt:Wait(60)
-	self.totalSpr:Show()
-	GS.SoundMgr:PlaySe("bosu")
-	rt:Wait(5)
+
+	self.totalAct:Show()
+	self.totalAct.scoreSpr:Show()
 	GS.SoundMgr:PlaySe("bosu")
 
+	rt:Wait(60)
+
+	local tmp = 100
+	while self.itemAct.score > 0 do
+		local hoge = nil
+		if self.itemAct.score < tmp then
+			hoge = self.itemAct.score
+		else
+			hoge = tmp
+		end
+		GetStage().scoreMgr:AddPoint(hoge)
+		self.itemAct.score = self.itemAct.score - hoge
+		self.itemAct.scoreSpr:SetText(tostring(self.itemAct.score))
+		self.itemAct.scoreSpr.cx = self.itemAct.scoreSpr.width
+
+		self.totalAct.score = self.totalAct.score + hoge
+		self.totalAct.scoreSpr:SetText(tostring(self.totalAct.score))
+		self.totalAct.scoreSpr.cx = self.totalAct.scoreSpr.width
+		rt:Wait()
+	end
+	rt:Wait(60)
+
+	if self.isPerfect then
+		while self.perfectAct.score > 0 do
+			local hoge = nil
+			if self.perfectAct.score < tmp then
+				hoge = self.perfectAct.score
+			else
+				hoge = tmp
+			end
+			GetStage().scoreMgr:AddPoint(hoge)
+			self.perfectAct.score = self.perfectAct.score - hoge
+			self.perfectAct.scoreSpr:SetText(tostring(self.perfectAct.score))
+			self.perfectAct.scoreSpr.cx = self.perfectAct.scoreSpr.width
+
+			self.totalAct.score = self.totalAct.score + hoge
+			self.totalAct.scoreSpr:SetText(tostring(self.totalAct.score))
+			self.totalAct.scoreSpr.cx = self.totalAct.scoreSpr.width
+			rt:Wait()
+		end
+		rt:Wait(60)
+	end
+
+	if self.shownFunc ~= nil then
+		self.shownFunc()
+	end
 	while true do
 		rt:Wait()
 	end
 end
 
-
-
-function StageResult:CreateLineFact(name, score)
-	local act = Actor()
-	act:Begin()
-	act:CreateSpr()
-	
-	act.target = DemoActor()
-	act.target:Begin()
-	local anim = nil
-	local point = nil
-	local cnt = nil
-	if name == "zako" then
-		point = POINT_ZAKO
-		cnt = self.idCnt[HANT_ID.ZAKO] or 0
-		anim = SimpleAnimation()
-		act.target:SetDivTexture("zako", 6, 5, 32, 32)
-		act.target:GetSpr().cx = 16
-		act.target:GetSpr().cy = 16
-		anim:AddFrameAnimData("def", 0, 4, 3)
-	elseif name == "rock" then
-		point = POINT_ROCK
-		cnt = self.idCnt[HANT_ID.ROCK] or 0
-		act.target:SetDivTexture("rock", 4, 1, 50, 50)
-		act.target:GetSpr().drawWidth = 25
-		act.target:GetSpr().drawHeight = 25
-		act.target:GetSpr().cx = 12
-		act.target:GetSpr().cy = 12
-	elseif name == "celes" then
-		point = POINT_CELES
-		cnt = self.idCnt[HANT_ID.CELES] or 0
-		anim = CelesAnim()
-	elseif name == "crash" then
-		point = POINT_PLAYER_ROCK_HIT
-		cnt = self.idCnt[HANT_ID.CLASH_ROCK] or 0
-		act.target:SetDivTexture("rock", 4, 1, 50, 50)
-		act.target:GetSpr().drawWidth = 25
-		act.target:GetSpr().drawHeight = 25
-		act.target:GetSpr().cx = 12
-		act.target:GetSpr().cy = 12
-	elseif name == "item" then
-		point = POINT_ITEM
-		cnt = GetPlayer():GetItemCnt()
-		act.target:SetDivTexture("suriken", 4, 1, 32, 32)
-		act.target:GetSpr().cx = 16
-		act.target:GetSpr().cy = 16
-	else
-		error("not def")
-	end
-	
-	if anim ~= nil then
-		act.target:SetAnimation(anim)
-		anim:BeginAnim("def")
-	end
-	act:AddChild(act.target)
-	
-	act.textSpr = Sprite()
-	local score = point * cnt
-	local text = string.format("%5d ×%3d = %8d", point, cnt, score)
-	act.textSpr:SetTextMode(text)
-	act.textSpr.cy = act.textSpr.height / 2
-	act.textSpr.x = 40
-	act:GetSpr():AddChild(act.textSpr)
-	table.insert(self.lines, act)
-	
-	self:AddChild(act)
-	return score
-end
 
 
 
