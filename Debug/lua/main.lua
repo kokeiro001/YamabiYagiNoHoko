@@ -69,6 +69,7 @@ function OnPower(appli)
 	GS.SoundMgr:LoadSe("slash.wav", "slash")
 
 	GS.SoundMgr:SetSeVol("burst", 30)
+	GS.SoundMgr:SetSeVol("selesDamage", 25)
 	
 	ChangeScreen(TitleScreen())
 	
