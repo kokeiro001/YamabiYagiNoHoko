@@ -51,22 +51,22 @@ local PLAYER_Y = LINE_HEIGHTS[LINE_BOTTOM]
 local STAGE_DATA = {
 	{	-- stage1
 		ENEMY_SPAN = {
-			{min=60, max=240},	-- min max
-			{min=20, max= 80},
+			{min=60, max=240}, 
+			{min=20, max= 60},
 			{min=60, max=120}
 		},
 	},
 	{	-- stage2
 		ENEMY_SPAN = {
-			{min=20, max=20},	-- min max
-			{min=20, max=20},
-			{min=20, max=20}
+			{min=60, max=240}, 
+			{min=20, max= 60},
+			{min=60, max=120}
 		},
 	},
 	{	-- stage3
 		ENEMY_SPAN = {
-			{min=60, max=240},	-- min max
-			{min=20, max= 80},
+			{min=80, max=260},	-- min max
+			{min=40, max=100},
 			{min=60, max=120}
 		},
 	}
