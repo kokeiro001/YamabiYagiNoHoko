@@ -31,7 +31,7 @@ public:
 	void SetSeVol(const char* name, float vol);
 
 	void PlayBgm(const char* path);
-	void SetBgmVol();
+	void SetBgmVol(float vol);
 	void StopBgm();
 
 	void Update();

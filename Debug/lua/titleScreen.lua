@@ -1,5 +1,7 @@
 local DEBUG_MODE = true
 
+local IS_PLAY_BGM = true
+local BGM_NAME = "kamikaze.ogg"
 
 class'ScreenBase'(Actor)
 function ScreenBase:__init()
@@ -50,6 +52,11 @@ function TitleScreen:Begin()
 	menu:AddMenuItem("èIóπ", function()
 		GS.Appli:Exit(0)
 	end)
+	
+	if IS_PLAY_BGM then
+		GS.SoundMgr:PlayBgm(BGM_NAME)
+		GS.SoundMgr:SetBgmVol(50)
+	end
 end
 
 function TitleScreen:StateToGame(rt)

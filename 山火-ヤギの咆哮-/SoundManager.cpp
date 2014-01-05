@@ -98,8 +98,9 @@ void SoundManager::StopBgm()
 	}
 }
 
-void SoundManager::SetBgmVol()
+void SoundManager::SetBgmVol(float vol)
 {
+	m_pCurrentBgm->SetVolume(vol);
 }
 
 	
@@ -119,6 +120,7 @@ void SoundManager::RegistLua()
 
 		.def("PlayBgm", &PlayBgm)
 		.def("StopBgm", &StopBgm)
+		.def("SetBgmVol", &SetBgmVol)
 		.scope[
 			luabind::def("GetInst", &GetInst)
 		]

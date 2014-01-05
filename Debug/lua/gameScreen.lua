@@ -1,11 +1,13 @@
 local DEBUG_MODE 	= true
-local IS_PLAY_BGM	= false
+
+local IS_PLAY_BGM	= true
+local STAGE_BGM_NAME	= "karyuu_kyouen.ogg"
+local ENDING_BGM_NAME	= "yukinagori.ogg"
 
 local STAGE_FRAME = {	3000, 3000, 3000	}	-- ステージのクリアまでの時間
 local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ステージの背景透明度
 
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
-
 
 local UI_FADE_FRAME = 30
 
@@ -342,7 +344,8 @@ function Stage:Begin()
 	end
 
 	if IS_PLAY_BGM then
-		GS.SoundMgr:PlayBgm("gameBgm.ogg")
+		GS.SoundMgr:PlayBgm(STAGE_BGM_NAME)
+		GS.SoundMgr:SetBgmVol(50)
 	end
 
 end
@@ -794,6 +797,9 @@ end
 function Stage:StateEnding(rt)
 	-- remove all enemy
 	self.enemyMgr:ClearEnemy()
+
+	GS.SoundMgr:PlayBgm(ENDING_BGM_NAME)
+	GS.SoundMgr:SetBgmVol(50)
 
 	local spr = Sprite()
 	spr.x = 30
