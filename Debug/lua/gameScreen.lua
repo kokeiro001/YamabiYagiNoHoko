@@ -78,9 +78,9 @@ local CELES_ANIM_SPD	= 10
 local ROCK_ROT_SPD 		= 0
 
 local ENEMY_SPD = {
-	10,
-	SCROLL_SPD,
-	SCROLL_SPD
+	10,					-- LINE_TOP
+	SCROLL_SPD,	-- LINE_MIDDLE
+	SCROLL_SPD	-- LINE_BOTTOM
 }
 
 local HIT_PLAYER_ROCK_X = PLAYER_X + 10
@@ -395,6 +395,7 @@ function Stage:FinalizeStartDemo()
 		self:GetSpr():RemoveChild(spr)
 	end
 	for idx, act in ipairs(self.demoAct) do
+		act:Dead()
 		self:RemoveChild(act)
 	end
 
@@ -593,6 +594,7 @@ function Stage:FinalizeClearDemo()
 		self:GetSpr():RemoveChild(spr)
 	end
 	for idx, act in ipairs(self.demoAct) do
+		act:Dead()
 		self:RemoveChild(act)
 	end
 
