@@ -2186,8 +2186,8 @@ function Camera:Begin(stageNum)
 end
 
 function Camera:BeginStartDemo(num)
-	self.x = 0
-	self.y = 0
+	self:SetPos(0, 0)
+	self.shakeAct:SetPos(0, 0)
 end
 
 function Camera:StateStart(rt)
