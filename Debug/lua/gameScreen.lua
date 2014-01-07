@@ -1,6 +1,3 @@
-local DEBUG_MODE 	= true
-
-local IS_PLAY_BGM			= false
 local STAGE_BGM_NAME	= "karyuu_kyouen.ogg"
 local ENDING_BGM_NAME	= "yukinagori.ogg"
 
@@ -22,7 +19,7 @@ local HANT_ID = {
 local SCORE_X = 500
 local SCORE_Y = 5
 
-local POINT_PERFECT_BOUNUS = 10000
+local POINT_PERFECT_BOUNUS = 5000
 local POINT_ZAKO 				= 100
 local POINT_CELES 			= 300
 local POINT_ROCK 				= 50
@@ -324,7 +321,7 @@ function Stage:Begin()
 	self.marker:Begin(clearFunc)
 	self:AddChild(self.marker)
 
-	if DEBUG_MODE then
+	if GS.IsDebug then
 		local window = Actor()
 		window:Begin()
 		window.x = -1
@@ -334,7 +331,7 @@ function Stage:Begin()
 		self:AddChild(window)
 	end
 
-	if IS_PLAY_BGM then
+	if GS.IsPlayBgm then
 		GS.SoundMgr:PlayBgm(STAGE_BGM_NAME)
 		GS.SoundMgr:SetBgmVol(50)
 	end
@@ -411,6 +408,7 @@ function Stage:StateStartDemo1(rt)
 		self.player.x = PLAYER_X
 	end
 	
+	-- 一枚絵
 	local topSpr = Sprite()
 	topSpr.z = -100
 	topSpr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
@@ -420,7 +418,8 @@ function Stage:StateStartDemo1(rt)
 	
 	self:Wait(STARTDEMO_FADEIN_FRAME)
 	
-	rt:Wait(60)
+	-- 一枚絵表示時間
+	rt:Wait(120)
 	
 	local height = 10
 	local top, bottom = self:AddObi(height)
@@ -468,7 +467,9 @@ function Stage:StateStartDemo2(rt)
 	table.insert(self.demoSpr , topSpr)
 	
 	self:Wait(STARTDEMO_FADEIN_FRAME)
-	rt:Wait(30)
+
+	-- 一枚絵表示時間
+	rt:Wait(120)
 	
 	-- 帯表示
 	local height = 10
@@ -536,7 +537,9 @@ function Stage:StateStartDemo3(rt)
 	
 	-- 一枚絵をフェードアウト
 	self:FadeSprWait(topSpr, 30, 1, 0)
-	rt:Wait(30)
+
+	-- 一枚絵表示時間
+	rt:Wait(120)
 	
 	-- プレイヤーを定位置へ
 	self:MoveActWait(self.player, 60, PLAYER_X, PLAYER_Y)
@@ -753,7 +756,7 @@ function Stage:StateGame(rt)
 	end
 
 	while true do
-		if DEBUG_MODE then
+		if GS.IsDebug then
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_A) then
 				self.player:OnAddItem()
 			end
@@ -788,7 +791,7 @@ end
 function Stage:StateEnding(rt)
 	-- remove all enemy
 	self.enemyMgr:ClearEnemy()
-	if IS_PLAY_BGM then
+	if GS.IsPlayBgm then
 		GS.SoundMgr:PlayBgm(ENDING_BGM_NAME)
 		GS.SoundMgr:SetBgmVol(50)
 	end
@@ -2193,17 +2196,19 @@ end
 function Camera:StateStart(rt)
 	local spd = 6
 	while true do
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_J) then
-			self.x = self.x - spd
-		end
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_L) then
-			self.x = self.x + spd
-		end
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_I) then
-			self.y = self.y - spd
-		end
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_K) then
-			self.y = self.y + spd
+		if GS.IsDebug then
+			if GS.InputMgr:IsKeyHold(KeyCode.KEY_J) then
+				self.x = self.x - spd
+			end
+			if GS.InputMgr:IsKeyHold(KeyCode.KEY_L) then
+				self.x = self.x + spd
+			end
+			if GS.InputMgr:IsKeyHold(KeyCode.KEY_I) then
+				self.y = self.y - spd
+			end
+			if GS.InputMgr:IsKeyHold(KeyCode.KEY_K) then
+				self.y = self.y + spd
+			end
 		end
 		self:AutoApply()
 		rt:Wait()

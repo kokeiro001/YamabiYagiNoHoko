@@ -1,6 +1,3 @@
-local DEBUG_MODE = true
-
-local IS_PLAY_BGM = false
 local BGM_NAME = "kamikaze.ogg"
 
 local TUTORIAL_MARK = {
@@ -58,7 +55,7 @@ function TitleScreen:Begin()
 	end)
 	
 	-- play bgm
-	if IS_PLAY_BGM then
+	if GS.IsPlayBgm then
 		GS.SoundMgr:PlayBgm(BGM_NAME)
 		GS.SoundMgr:SetBgmVol(50)
 	end
@@ -69,7 +66,10 @@ function TitleScreen:OpenTutorial()
 	
 	local closed = function()
 		self.menu.enable = true
+		GS.SoundMgr:PlaySe("slash")
 	end
+	
+	GS.SoundMgr:PlaySe("slash")
 	
 	local tutorial = Tutorial()
 	tutorial:Begin(closed)
@@ -110,11 +110,6 @@ function Tutorial:Begin(closedFunc)
 	self.closedFunc = closedFunc
 	self:CreateSpr()
 	
-	
-	local mouse = DebugMouseViewer()
-	mouse:Begin()
-	self:AddChild(mouse)
-	
 	self.backSpr = Sprite()
 	self.backSpr.z = 1000
 	self.backSpr:SetTextureMode("asoBack")
@@ -154,18 +149,20 @@ function Tutorial:ChangeMark(num)
 	
 	self.setumeiSpr.divTexIdx = num - 1
 	self.markSprites[self.markNum].divTexIdx = 1
+
+	GS.SoundMgr:PlaySe("slash")
 end
 
 function Tutorial:StateStart(rt)
 	while true do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_RIGHT) then
 			local tmp = self.markNum + 1
-			if tmp > 7 then tmp = 7 end
+			if tmp > 7 then tmp = 1 end
 			self:ChangeMark(tmp)
 		end
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_LEFT) then
 			local tmp = self.markNum - 1
-			if tmp < 1 then tmp = 1 end
+			if tmp < 1 then tmp = 7 end
 			self:ChangeMark(tmp)
 		end
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
@@ -212,9 +209,11 @@ function TitleMenu:StateStart(rt)
 	while true do
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_UP) then
 			self:ChangeCursor(-1)
+			GS.SoundMgr:PlaySe("bosu")
 		end
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_DOWN) then
 			self:ChangeCursor(1)
+			GS.SoundMgr:PlaySe("bosu")
 		end
 
 		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then

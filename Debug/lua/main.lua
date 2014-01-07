@@ -8,6 +8,9 @@ GS = {
 	
 	CurrentScreen = nil,
 	NextScreen = nil,
+	
+	IsDebug = true,
+	IsPlayBgm = true
 }
 
 Color = {
@@ -48,12 +51,13 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("zan.png", "slash")
 	GS.GrMgr:LoadTexture2("kudake.png", "crash")
 	
-	GS.GrMgr:LoadTexture2("stage1demo.png", "stage1demo")
-	GS.GrMgr:LoadTexture2("stage2demo.png", "stage2demo")
+	-- demo
+	GS.GrMgr:LoadTexture2("s-demo_Start01.jpg", "stage1demo")
+	GS.GrMgr:LoadTexture2("s-demo_Start02.jpg", "stage2demo")
 	GS.GrMgr:LoadTexture2("stage3demo.png", "stage3demo")
 	
 	GS.GrMgr:LoadTexture2("stage1clear.png", "stage1clear")
-	GS.GrMgr:LoadTexture2("stage2clear.png", "stage2clear")
+	GS.GrMgr:LoadTexture2("s-demo_stage2end.jpg", "stage2clear")
 	GS.GrMgr:LoadTexture2("stage3clear.png", "stage3clear")
 	
 	GS.GrMgr:LoadTexture2("debug_window.png", "debugWindow")
