@@ -1,6 +1,6 @@
 local DEBUG_MODE 	= true
 
-local IS_PLAY_BGM	= true
+local IS_PLAY_BGM	= false
 local STAGE_BGM_NAME	= "karyuu_kyouen.ogg"
 local ENDING_BGM_NAME	= "yukinagori.ogg"
 
@@ -332,15 +332,6 @@ function Stage:Begin()
 		window:SetTexture("debugWindow")
 		GetCamera():AddAutoApplyPosItem(window)
 		self:AddChild(window)
-		
-	
-		local slash = Actor()
-		slash:Begin()
-		slash:SetText("|")
-		slash.x = SLASHABEL_X_MAX
-		slash.y = LINE_HEIGHTS[LINE_BOTTOM]
-		GetCamera():AddAutoApplyPosItem(slash)
-		self:AddChild(slash)
 	end
 
 	if IS_PLAY_BGM then
@@ -581,19 +572,19 @@ function Stage:InitClearDemo()
 end
 
 function Stage:FinalizeClearDemo()
+	-- スキップ情報を初期化
 	self.demoType = nil
 	self.demoSkipable = false
+	self:ChangeRoutine("StateGame")
+	self.game:ChangeRoutine("StateStart")
 
-	for idx, spr in ipairs(self.demoSpr) do
-		self:GetSpr():RemoveChild(spr)
-	end
+	-- 終了関数が用意されてるなら実行
 	if self.demoEndFunc ~= nil then
 		self:demoEndFunc()
 		self.demoEndFunc = nil
 	end
-	self:ChangeRoutine("StateGame")
-	self.game:ChangeRoutine("StateStart")
 
+	-- デモで使用したオブジェクトを削除
 	for idx, spr in ipairs(self.demoSpr) do
 		self:GetSpr():RemoveChild(spr)
 	end
@@ -617,7 +608,6 @@ function Stage:StateClearDemo1(rt)
 	
 	rt:Wait(60)
 	self:MoveActWait(self.player, 120, GetProperty("WindowWidth") / 2, PLAYER_Y)
-	--rt:Wait(20)
 	
 	self:AddShowResult()
 	while true do
@@ -632,13 +622,12 @@ function Stage:StateShownResult1(rt)
 	self.game:BeginFadeOut(60)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
-	-- 一枚絵どーん
-	local stageClear = Actor()
+	-- 一枚絵
+	
+	local stageClear = self:MakeDemoActor()
 	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
 	stageClear:ApplyPosToSpr()
-	self:AddChild(stageClear)
 	self:GetSpr():SortZ()
-	table.insert(self.demoAct, stageClear)
 
 	-- フェードイン
 	self.game:BeginFadeIn(20)
@@ -695,12 +684,10 @@ function Stage:StateShownResult2(rt)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
 	-- 一枚絵どーん
-	local stageClear = Actor()
+	local stageClear = self:MakeDemoActor()
 	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
 	stageClear:ApplyPosToSpr()
-	self:AddChild(stageClear)
 	self:GetSpr():SortZ()
-	table.insert(self.demoAct, stageClear)
 
 	-- フェードイン
 	self.game:BeginFadeIn(20)
@@ -735,12 +722,10 @@ function Stage:StateShownResult3(rt)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
 	-- 一枚絵どーん
-	local stageClear = Actor()
+	local stageClear = self:MakeDemoActor()
 	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
 	stageClear:ApplyPosToSpr()
-	self:AddChild(stageClear)
 	self:GetSpr():SortZ()
-	table.insert(self.demoAct, stageClear)
 
 	-- フェードイン
 	self.game:BeginFadeIn(20)
@@ -852,6 +837,12 @@ end
 
 
 
+function Stage:MakeDemoActor()
+	local act = Actor()
+	self:AddChild(act)
+	table.insert(self.demoAct, act)
+	return act
+end
 
 function Stage:ShowHaiku()
 	local haiku = Haiku()
@@ -1084,6 +1075,7 @@ end
 function PlayerCursorCharge:Begin()
 	PlayerCursor.Begin(self)
 	
+	-- make gauge
 	local gauge = Gauge()
 	gauge.enable = false
 	
@@ -1106,10 +1098,28 @@ function PlayerCursorCharge:Begin()
 	gauge:Begin(releaseFunc, releaseFunc2)
 	gauge.x = PLAYER_X - MAX_GAUGE_WIDTH / 2 + 15
 	gauge.y = GAUGE_Y
-	
 	GetStage():AddChild(gauge)
-	self.gaugeId = gauge.id
+
+	-- slash line
+	self.slashLine = Actor()
+	self.slashLine:Begin()
+	self.slashLine:SetText("|")
+	self.slashLine.x = SLASHABEL_X_MAX
+	self.slashLine.y = LINE_HEIGHTS[LINE_BOTTOM]
+	GetCamera():AddAutoApplyPosItem(self.slashLine)
+	self:AddChild(self.slashLine)
 end
+
+function PlayerCursorCharge:BeginStartDemo(num)
+	self.slashLine:Hide()
+end
+function PlayerCursorCharge:BeginStage(num)
+	self.slashLine:Show()
+end
+function PlayerCursorCharge:BeginClearDemo(num)
+	self.slashLine:Hide()
+end
+
 
 function PlayerCursorCharge:StateStart(rt)
 	local inputStack = {}
@@ -1774,23 +1784,28 @@ function Gauge:Begin(func, func2)
 	self:GetSpr():SetTextureColorF(Color.White)
 	self:GetSpr().drawWidth  = 1
 
-	local back = Sprite()
-	back:SetTextureMode("whitePix")
-	back.alpha = 0.3
-	back.drawWidth  = MAX_GAUGE_WIDTH
-	back.drawHeight = GAUGE_HEIGHT
-	back.z = 10
-	self:GetSpr():AddChild(back)
+	self.backSpr = Sprite()
+	self.backSpr:SetTextureMode("whitePix")
+	self.backSpr.alpha = 0.3
+	self.backSpr.drawWidth  = MAX_GAUGE_WIDTH
+	self.backSpr.drawHeight = GAUGE_HEIGHT
+	self.backSpr.z = 10
+	self:GetSpr():AddChild(self.backSpr)
 	
 	GetCamera():AddAutoApplyPosItem(self)
 end
 
 function Gauge:BeginStartDemo(num)
 	self.enable = false
+	self:Hide()
+	self.backSpr:Hide()
 end
 
 function Gauge:BeginStage(num)
 	self.enable = true
+
+	self:Show()
+	self.backSpr:Show()
 end
 
 function Gauge:BeginClearDemo(num)
@@ -1798,6 +1813,9 @@ function Gauge:BeginClearDemo(num)
 	self.chargeCnt = 0
 	self:GetSpr():SetTextureColorF(Color.White)
 	self:GetSpr().drawWidth  = 1
+	
+	self:Hide()
+	self.backSpr:Hide()
 end
 
 function Gauge:StateStart(rt)
