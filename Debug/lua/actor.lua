@@ -205,8 +205,9 @@ function Actor:ApplyPosToSpr()
 end
 
 function Actor:ApplyPosToSprUseCamera(camera)
-	self.spr.x = self.x - camera.x
-	self.spr.y = self.y - camera.y
+	local x, y = camera:GetValidPos()
+	self.spr.x = self.x - x
+	self.spr.y = self.y - y
 end
 
 function Actor:Show()

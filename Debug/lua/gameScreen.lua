@@ -668,6 +668,8 @@ function Stage:StateClearDemo2(rt)
 	
 	rt:Wait(10)
 	GS.SoundMgr:PlaySe("bosu")
+	GetCamera():Shake(10, 10, 10)
+	rt:Wait(60)
 	
 	self:AddShowResult()
 	while true do
@@ -755,6 +757,10 @@ function Stage:StateGame(rt)
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_A) then
 				self.player:OnAddItem()
 			end
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_S) then
+				GetCamera():Shake(5, 20, 20)
+			end
+			
 			if GS.InputMgr:IsKeyPush(KeyCode.KEY_C) then
 				self.marker:OnGoal()
 			end
@@ -2035,6 +2041,39 @@ function Haiku:StateStart(rt)
 	end
 end
 
+class 'CameraShakeActor'(Actor)
+function CameraShakeActor:__init(camera)
+	Actor.__init(self)
+	self.camera = camera
+end
+
+function CameraShakeActor:Begin(stageNum)
+	Actor.Begin(self)
+end
+
+function CameraShakeActor:Shake(cnt, x, y)
+	self.enable = true
+	self.params.cnt	= cnt
+	self.params.x		= x
+	self.params.y		= y
+	self:ChangeRoutine("StateShake")
+end
+
+function CameraShakeActor:StateShake(rt)
+	local params = self.params
+	local wait = 2
+	local camera = self.camera
+	for i=1, params.cnt, wait do
+		self.x = math.random(-params.x, params.x)
+		self.y = math.random(-params.y, params.y)
+		rt:Wait(2)
+	end
+	self.enable = false
+	self.x = 0
+	self.y = 0
+	rt:Wait()
+end
+
 
 class 'Camera'(Actor)
 function Camera:__init()
@@ -2042,9 +2081,13 @@ function Camera:__init()
 	self.items = {}
 end
 
-function Camera:Begin(stageNum, score)
+function Camera:Begin(stageNum)
 	Actor.Begin(self)
 	self.updateOrder = -10000
+	
+	self.shakeAct = CameraShakeActor(self)
+	self.shakeAct:Begin()
+	self.shakeAct:AddChild(self.shakeAct)
 end
 
 function Camera:BeginStartDemo(num)
@@ -2072,6 +2115,11 @@ function Camera:StateStart(rt)
 	end
 end
 
+function Camera:Shake(cnt, x, y)
+	self.shakeAct:Shake(cnt, x, y)
+end
+
+
 function Camera:AddAutoApplyPosItem(item)
 	table.insert(self.items, item)
 end
@@ -2082,7 +2130,10 @@ function Camera:AutoApply()
 	end
 end
 
-
+function Camera:GetValidPos()
+	return self.x + self.shakeAct.x,
+				 self.y + self.shakeAct.y
+end
 
 
 class'StageScore'(Actor)
