@@ -788,46 +788,44 @@ end
 function Stage:StateEnding(rt)
 	-- remove all enemy
 	self.enemyMgr:ClearEnemy()
-
-	GS.SoundMgr:PlayBgm(ENDING_BGM_NAME)
-	GS.SoundMgr:SetBgmVol(50)
-
-	local spr = Sprite()
-	spr.x = 30
-	spr.y = 30
-	spr:SetTextMode(
-		"企画 　　　　スーパーウルトラサンボマンボマーシャルアーツ\n"..
-		"グラフィック　ねちょ、ガンサー\n"..
-		"プログラマ　　コケいろ")
-	self:GetSpr():AddChild(spr)
+	if IS_PLAY_BGM then
+		GS.SoundMgr:PlayBgm(ENDING_BGM_NAME)
+		GS.SoundMgr:SetBgmVol(50)
+	end
 	
+	for idx, chr in ipairs(self:GetChild()) do
+		if chr.BeginEnding ~= nil then
+			chr:BeginEnding()
+		end
+	end
 	
+	self.player:SetPos(PLAYER_X, PLAYER_Y)
 	self.player:ClearItem()
 	self.marker.enable = false
 	self.marker:Hide()
+	self.stageNumAct:Hide()
+	self.scoreMgr:Hide()
 	
 	local span = 20
-	-- fade in
 	self.game:BeginFadeIn(span)
 	rt:Wait(span)
 	
 	while true do
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
-			break
-		end
-		
 		rt:Wait()
 	end
 	
+end
+function Stage:StateEnding2(rt)
 	-- fade out
+	local span = 60
 	self.game:BeginFadeOut(span)
 	rt:Wait(span)
 	
-	self:GetSpr():RemoveChild(spr)
+	rt:Wait(60)
+	
 	ChangeScreen(TitleScreen())
 	return "exit"
 end
-
 
 function Stage:ChangeScrollSpd(spd)
 	for idx, enemy in ipairs(self.enemyMgr:GetEnemies()) do
@@ -1072,6 +1070,19 @@ function PlayerCursorCharge:__init()
 	self.itemCnt = 0
 end
 
+function PlayerCursorCharge:BeginStartDemo(num)
+	self.slashLine:Hide()
+end
+function PlayerCursorCharge:BeginStage(num)
+	self.slashLine:Show()
+end
+function PlayerCursorCharge:BeginClearDemo(num)
+	self.slashLine:Hide()
+end
+function PlayerCursorCharge:BeginEnding()
+	self.slashLine:Show()
+end
+
 
 function PlayerCursorCharge:ThrowSuriken(act, kind)
 	PlayerCursor.ThrowSuriken(self, act, kind)
@@ -1115,17 +1126,6 @@ function PlayerCursorCharge:Begin()
 	GetCamera():AddAutoApplyPosItem(self.slashLine)
 	self:AddChild(self.slashLine)
 end
-
-function PlayerCursorCharge:BeginStartDemo(num)
-	self.slashLine:Hide()
-end
-function PlayerCursorCharge:BeginStage(num)
-	self.slashLine:Show()
-end
-function PlayerCursorCharge:BeginClearDemo(num)
-	self.slashLine:Hide()
-end
-
 
 function PlayerCursorCharge:StateStart(rt)
 	local inputStack = {}
@@ -1322,6 +1322,13 @@ function EnemyManager:BeginClearDemo()
 	self.enable = false
 end
 
+function EnemyManager:BeginEnding()
+	self.enable = true
+	self:ChangeRoutine("StateEnding")
+end
+
+
+
 function EnemyManager:GetEnemies()
 	return self.enemies
 end
@@ -1387,6 +1394,52 @@ function EnemyManager:StateStart(rt)
 			data[line].waitCycle = data[line].waitCycle - 1
 		end
 		rt:Wait(ENEMY_ENCOUNT_FRAME)
+	end
+end
+
+function EnemyManager:StateEnding(rt)
+	while true do
+		self:AddTextEnemy("ドット絵　ねちょ", LINE_TOP)
+		rt:Wait(120)
+		self:AddTextEnemy("イラスト　ガンサー", LINE_MIDDLE)
+		rt:Wait(120)
+		
+		self:AddTextEnemy("プログラム　コケいろ", LINE_TOP)
+		rt:Wait(120)
+		
+		self:AddTextEnemy("企画　スーパーウルトラサンボマンボマーシャルアーツ", LINE_MIDDLE)
+		rt:Wait(300)
+
+		self:AddTextEnemy("さんきゅーふぉーぷれいんぐ！", LINE_MIDDLE)
+		rt:Wait(240)
+		
+		GetStage():ChangeRoutine("StateEnding2")
+		self.enable = false
+		rt:Wait()
+	end
+end
+
+function EnemyManager:AddTextEnemy(text, line)
+	local x = 640
+	for i=1, string.len(text), 2 do
+		local char = string.sub(text, i, i+1)
+		if char ~= "　" then
+			local enemy = CharactorEnemy(char)
+			enemy:Begin()
+			enemy.spdDownCnt	= 30
+			enemy.spd			= 8
+			enemy.spd2		= 2
+			enemy.line		= line
+			enemy.x 			= x
+			enemy.y				= LINE_HEIGHTS[enemy.line]
+			enemy:ApplyPosToSprUseCamera(GetCamera())
+			GetCamera():AddAutoApplyPosItem(enemy)
+
+			self:AddEnemy(enemy)
+			x = x + enemy:GetSpr().width
+		else
+			x = x + 20
+		end
 	end
 end
 
@@ -1476,6 +1529,9 @@ function Enemy:UpdateScore(kind)
 end
 
 function Enemy:AddPointAct(point)
+	if point == 0 then
+		return nil
+	end
 	local pointAct = Actor()
 	pointAct:Begin()
 	pointAct.x = self.x
@@ -1601,7 +1657,9 @@ function Rock:StateStart(rt)
 			GetStage().scoreMgr:AddPoint(POINT_PLAYER_ROCK_HIT)
 			GetStage().scoreMgr:AddHantCnt(HANT_ID.CLASH_ROCK)
 			local pact = self:AddPointAct(POINT_PLAYER_ROCK_HIT)
-			pact.y = pact.y - 20
+			if pact ~= nil then
+				pact.y = pact.y - 20
+			end
 			
 			local pcl = RockCrashParticle()
 			pcl:Begin()
@@ -1680,6 +1738,43 @@ function Celes:StateStart(rt)
 		rt:Wait()
 	end
 end
+
+
+
+class 'CharactorEnemy'(Enemy)
+function CharactorEnemy:__init(char)
+	Enemy.__init(self)
+	self.hp = 1
+	self.char = char
+	self.liveCnt = 0
+	self.point = 0
+end
+
+function CharactorEnemy:SetActTexture()
+	self:SetText(self.char)
+	self:GetSpr().name = "char spr"
+	self:GetSpr().cx = self:GetSpr().width  / 2
+	self:GetSpr().cy = self:GetSpr().height / 2
+end
+
+
+function CharactorEnemy:StateStart(rt)
+	while true do
+		self.liveCnt = self.liveCnt + 1
+		if self.liveCnt > self.spdDownCnt then
+			self.spd = self.spd2
+		end
+		
+		self.x = self.x - self.spd
+		if self.x < -30 and self.attacker == nil  then
+			GetStage().enemyMgr:RemoveEnemy(self)
+			GetStage().scoreMgr:FailedPerfect()
+			rt:Wait()
+		end
+		rt:Wait()
+	end
+end
+
 
 
 --@GameBack
@@ -2146,6 +2241,7 @@ end
 
 function StageScore:Begin()
 	Actor.Begin(self)
+	self:CreateSpr()
 	self:UpdateText()
 	self.fadeHelper = FadeHelper(self)
 end
@@ -2177,7 +2273,9 @@ function StageScore:AddHantCnt(hantId)
 end
 
 function StageScore:UpdateText()
-	self:SetText("得点："..self.point)
+	if self:GetSpr():IsDraw() then
+		self:SetText("得点："..self.point)
+	end
 end
 
 function StageScore:FailedPerfect()

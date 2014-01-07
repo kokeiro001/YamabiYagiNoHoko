@@ -3,8 +3,6 @@ local coresume = coroutine.resume
 local coyield = coroutine.yield
 
 class 'Scheduler'
-
--- コンストラクタ
 function Scheduler:__init()
 	self.actors = {}					-- スケジュール対象アクターリスト
 	self.addedActors = {}		-- スケジュール中に追加されたアクター
