@@ -260,6 +260,10 @@ function Actor:Goto(label)
 	coroutine.yield("goto", label)
 end
 
+function Actor:Exit(label)
+	coroutine.yield("exit")
+end
+
 
 function Actor:SetAnimation(anim)
 	anim:Begin()
@@ -418,3 +422,26 @@ end
 
 
 
+class 'DebugMouseViewer'(Actor)
+function DebugMouseViewer:__init()
+	Actor.__init(self)
+end
+
+function DebugMouseViewer:Begin()
+	Actor.Begin(self)
+	self:SetText("tmp")
+	self:GetSpr():SetFontSize(12)
+	self:GetSpr().z = -100000000
+end
+
+function DebugMouseViewer:StateStart(rt)
+	local prePos = Point2DI()
+	while true do
+		local pos = GS.InputMgr:GetMousePos()
+		if pos.x ~= prePos.x and pos.y ~= prePos.y then
+			prePos = pos
+			self:GetSpr():SetText(string.format("MousePos(%3d, %3d)", pos.x, pos.y))
+		end
+		rt:Wait()
+	end
+end

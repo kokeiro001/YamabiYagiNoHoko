@@ -214,6 +214,10 @@ void Sprite::UpdateSize()
 		m_drawHeight = size.y;
 	}
 }
+Point2DI Sprite::GetOriginTexSize()
+{
+	return m_pTexBuf->GetTextureSize();
+}
 
 void Sprite::DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY)
 {
@@ -337,7 +341,9 @@ void Sprite::RegistLua()
 		.def("GetChild", &GetChild)
 		.def("GetChildCnt", &GetChildCnt)
 
-		.def("SetPos", &SetPos)
+		.def("SetPos", (void(Sprite::*)(float, float))&Sprite::SetPos)
+		.def("SetPos", (void(Sprite::*)(float, float, float))&Sprite::SetPos)
+		.def("SetCenter", &SetCenter)
 		.def("SortZ", &SortZ)
 
 		.def("GetBounds", &GetBounds)
@@ -349,6 +355,7 @@ void Sprite::RegistLua()
 		.property("z", &GetZ, &SetZ)
 		.def_readonly("width", &GetWidth)
 		.def_readonly("height", &GetHeight)
+		.def_readonly("originTexSize", &GetOriginTexSize)
 		.property("drawWidth", &GetDrawWidth, &SetDrawWidth)
 		.property("drawHeight", &GetDrawHeight, &SetDrawHeight)
 		.property("cx", &GetCenterX, &SetCenterX)

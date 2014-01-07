@@ -1,7 +1,17 @@
 local DEBUG_MODE = true
 
-local IS_PLAY_BGM = true
+local IS_PLAY_BGM = false
 local BGM_NAME = "kamikaze.ogg"
+
+local TUTORIAL_MARK = {
+	{x =	164, 	y =	290},	-- 1
+	{x =	143,	y =	138},	-- 2
+	{x =	322,	y =	115},	-- 3
+	{x =	220,	y =	223},	-- 4
+	{x =	315,	y =	165},	-- 5
+	{x =	337,	y =	280},	-- 6
+	{x =	323, 	y =	220},	-- 7
+}
 
 class'ScreenBase'(Actor)
 function ScreenBase:__init()
@@ -19,44 +29,51 @@ function TitleScreen:Begin()
 	ScreenBase.Begin(self)
 	
 	self:CreateSpr()
+	
+	-- back
 	local backSpr = Sprite()
 	backSpr:SetTextureMode("titleBack")
 	self:GetSpr():AddChild(backSpr)
 	
-	if DEBUG_MODE then
-		local act = TestObject()
-		act:Begin()
-		act.params.spd = 3
-		self:AddChild(act)
-	end
+	-- menu
+	self.menu = TitleMenu()
+	self.menu:Begin()
+	self.menu:CreateSpr()
+	self.menu:GetSpr().name = "menu"
+	self.menu:GetSpr():Show()
+	self:AddChild(self.menu)
+	self.menu:SetPos(0, 260)
+	self.menu:ApplyPosToSpr()
 	
-	local menu = TitleMenu()
-	menu:Begin()
-	menu:CreateSpr()
-	menu:GetSpr().name = "menu"
-	menu:GetSpr():Show()
-	self:AddChild(menu)
-	
-	menu.x = 0
-	menu.y = 260
-	menu:ApplyPosToSpr()
-	
-	menu:AddMenuItem("ƒQ[ƒ€ŠJŽn", function()
+	self.menu:AddMenuItem("ƒQ[ƒ€ŠJŽn", function()
 		self:ChangeRoutine("StateToGame")
 	end)
 	
-	menu:AddMenuItem("—V‚Ñ•û", function()
-		GS.SoundMgr:PlaySe("metal")
+	self.menu:AddMenuItem("—V‚Ñ•û", function()
+		self:OpenTutorial()
 	end)
 
-	menu:AddMenuItem("I—¹", function()
+	self.menu:AddMenuItem("I—¹", function()
 		GS.Appli:Exit(0)
 	end)
 	
+	-- play bgm
 	if IS_PLAY_BGM then
 		GS.SoundMgr:PlayBgm(BGM_NAME)
 		GS.SoundMgr:SetBgmVol(50)
 	end
+end
+
+function TitleScreen:OpenTutorial()
+	self.menu.enable = false
+	
+	local closed = function()
+		self.menu.enable = true
+	end
+	
+	local tutorial = Tutorial()
+	tutorial:Begin(closed)
+	self:AddChild(tutorial)
 end
 
 function TitleScreen:StateToGame(rt)
@@ -80,36 +97,90 @@ function TitleScreen:StateToGame(rt)
 end
 
 
-class 'TestObject'(Actor)
-function TestObject:__init()
+
+class 'Tutorial'(Actor)
+function Tutorial:__init(exitFunc)
 	Actor.__init(self)
-
+	self.exitFunc = exitFunc
 end
 
-function TestObject:Begin()
+function Tutorial:Begin(closedFunc)
 	Actor.Begin(self)
-	self:SetTexture("player")
+
+	self.closedFunc = closedFunc
+	self:CreateSpr()
+	
+	
+	local mouse = DebugMouseViewer()
+	mouse:Begin()
+	self:AddChild(mouse)
+	
+	self.backSpr = Sprite()
+	self.backSpr.z = 1000
+	self.backSpr:SetTextureMode("asoBack")
+	self:GetSpr():AddChild(self.backSpr)
+	
+	self.markSprites = {}
+	for i=1, 7 do
+		local name = "aso"..i
+		local spr = Sprite()
+		local size = GS.GrMgr:GetTextureSize(name)
+		spr:SetDivTextureMode(name, 2, 1, size.x / 2, size.y)
+		spr.divTexIdx = 0
+		spr:SetPos(TUTORIAL_MARK[i].x, TUTORIAL_MARK[i].y, -100000)
+		spr:SetCenter(size.x / 4, size.y / 2)
+		self:GetSpr():AddChild(spr)
+		table.insert(self.markSprites, spr)
+	end
+	
+	self.setumeiSpr = Sprite()
+	self.setumeiSpr:SetDivTextureMode("asoSetumei", 4, 3, 146, 242)
+	self.setumeiSpr:SetPos(475, 80)
+	self.setumeiSpr.drawWidth = 130
+	self:GetSpr():AddChild(self.setumeiSpr)
+	
+	self:GetSpr():SortZ()
+	
+	self.markNum = nil
+	self:ChangeMark(1)
 end
 
-function TestObject:StateStart(rt)
-	local spd = self.params.spd
+function Tutorial:ChangeMark(num)
+	if self.markNum ~= nil then
+		self.markSprites[self.markNum].divTexIdx = 0
+	end
+	
+	self.markNum = num
+	
+	self.setumeiSpr.divTexIdx = num - 1
+	self.markSprites[self.markNum].divTexIdx = 1
+end
+
+function Tutorial:StateStart(rt)
 	while true do
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_LEFT) then
-			self.x = self.x - spd
+		if GS.InputMgr:IsKeyPush(KeyCode.KEY_RIGHT) then
+			local tmp = self.markNum + 1
+			if tmp > 7 then tmp = 7 end
+			self:ChangeMark(tmp)
 		end
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_RIGHT) then
-			self.x = self.x + spd
+		if GS.InputMgr:IsKeyPush(KeyCode.KEY_LEFT) then
+			local tmp = self.markNum - 1
+			if tmp < 1 then tmp = 1 end
+			self:ChangeMark(tmp)
 		end
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_UP) then
-			self.y = self.y - spd
+		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
+			self:Close()
 		end
-		if GS.InputMgr:IsKeyHold(KeyCode.KEY_DOWN) then
-			self.y = self.y + spd
-		end
-		self:ApplyPosToSpr()
 		rt:Wait()
 	end
 end
+
+function Tutorial:Close()
+	self:closedFunc()
+	self:Exit()
+end
+
+
 
 
 class 'TitleMenu'(Actor)

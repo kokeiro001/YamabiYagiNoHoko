@@ -36,6 +36,7 @@ public:
 	void LoadTexture2(const std::string path, const std::string name);
 
 	Texture* GetTexture(const std::string name);
+	Point2DI GetTextureSize(const std::string name);
 	Graphics::Simple::ITextRenderer* GetTextRenderer(std::string font, int size);
 
 	void RemoveTexture(const std::string name);

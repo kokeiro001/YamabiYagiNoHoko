@@ -32,7 +32,6 @@ function OnPower(appli)
 
 	-- load textures
 	GS.GrMgr:LoadTexture2("‚â‚¬‚Ì‚Ù‚¤‚±‚¤/‘S‘Ì2.png", "titleBack")
-	GS.GrMgr:LoadTexture2("player.png", "player")
 	GS.GrMgr:LoadTexture2("yamabi.png", "yamabi")
 	GS.GrMgr:LoadTexture2("zako.png", "zako")
 	GS.GrMgr:LoadTexture2("seresu.png", "celes")
@@ -58,6 +57,17 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("stage3clear.png", "stage3clear")
 	
 	GS.GrMgr:LoadTexture2("debug_window.png", "debugWindow")
+	
+	-- tutorial
+	GS.GrMgr:LoadTexture2("asobikata/aso1.png", "aso1")
+	GS.GrMgr:LoadTexture2("asobikata/aso2.png", "aso2")
+	GS.GrMgr:LoadTexture2("asobikata/aso3.png", "aso3")
+	GS.GrMgr:LoadTexture2("asobikata/aso4.png", "aso4")
+	GS.GrMgr:LoadTexture2("asobikata/aso5.png", "aso5")
+	GS.GrMgr:LoadTexture2("asobikata/aso6.png", "aso6")
+	GS.GrMgr:LoadTexture2("asobikata/aso7.png", "aso7")
+	GS.GrMgr:LoadTexture2("asobikata/asobikata01_back.png", "asoBack")
+	GS.GrMgr:LoadTexture2("asobikata/setumei.png", "asoSetumei")
 	
 	
 	GS.SoundMgr:LoadSe("bell00.wav", "bell")

@@ -85,6 +85,11 @@ public:
 		m_x = x;
 		m_y = y;
 	}
+	void SetPos(float x, float y, float z) {
+		m_x = x;
+		m_y = y;
+		m_z = z;
+	}
 
 	std::string const GetName() { return m_name; }
 	void				SetName(std::string name) { m_name = name; }
@@ -107,11 +112,19 @@ public:
 	float const GetHeight() { return m_height; }
 	void				SetHeight(float height) { m_height = height; }
 
+	Point2DI		GetOriginTexSize();
+
 	float const GetDrawWidth() { return m_drawWidth; }
 	void				SetDrawWidth(float width) { m_drawWidth = width; }
 
 	float const GetDrawHeight() { return m_drawHeight; }
 	void				SetDrawHeight(float height) { m_drawHeight = height; }
+
+	void	SetCenter(float x, float y) 
+	{
+		m_centerX = x; 
+		m_centerY = y; 
+	}
 
 	float const GetCenterX() { return m_centerX; }
 	void				SetCenterX(float x) { m_centerX = x; }

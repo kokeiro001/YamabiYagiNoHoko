@@ -92,6 +92,11 @@ Texture* GraphicsManager::GetTexture(const std::string name)
 	return m_textures[name];
 }
 
+Point2DI GraphicsManager::GetTextureSize(const std::string name)
+{
+	return GetTexture(name)->GetTextureSize();
+}
+
 ITextRenderer* GraphicsManager::GetTextRenderer(std::string font, int size)
 {
 	// フォントがあるか。無ければ追加。
@@ -148,6 +153,7 @@ void GraphicsManager::RegistLua()
 		.def("LoadTexture", &LoadTexture)
 		.def("LoadTexture2", &LoadTexture2)
 		.def("GetTexture", &GetTexture)
+		.def("GetTextureSize", &GetTextureSize)
 		.def("RemoveTexture", &RemoveTexture)
 		.def("ClearTexture", &ClearTexture)
 		.scope[

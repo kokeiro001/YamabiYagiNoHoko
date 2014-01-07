@@ -1,6 +1,6 @@
 local DEBUG_MODE 	= true
 
-local IS_PLAY_BGM	= false
+local IS_PLAY_BGM			= false
 local STAGE_BGM_NAME	= "karyuu_kyouen.ogg"
 local ENDING_BGM_NAME	= "yukinagori.ogg"
 

@@ -90,7 +90,7 @@ function Reload(appli, reloadType)
 	-- スクリプトをロード
 	for i, path in ipairs(targetFiles) do
 		if not appli:GetLua():DoFile(path) then
-			return false
+			error(appli:GetLua():GetError())
 		end
 		print("script<"..path.."> reload success.")
 	end
