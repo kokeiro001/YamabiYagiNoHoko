@@ -1080,7 +1080,7 @@ function PlayerCursorCharge:BeginClearDemo(num)
 	self.slashLine:Hide()
 end
 function PlayerCursorCharge:BeginEnding()
-	self.slashLine:Show()
+	self.slashLine:Hide()
 end
 
 
