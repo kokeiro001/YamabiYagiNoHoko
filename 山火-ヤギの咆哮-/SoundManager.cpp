@@ -85,7 +85,7 @@ void SoundManager::PlayBgm(const char* path)
 		// 使い終わったファイルの削除
 		SAFE_RELEASE( pFile );
 
-		m_pCurrentBgm->Play();
+		m_pCurrentBgm->Play(-1);
 	}
 }
 
