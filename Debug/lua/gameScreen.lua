@@ -206,9 +206,11 @@ end
 
 function GameScreen:StateWatchDemo(rt)
 	while true do
-		if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
-			self.stage:SkipDemo()
-			self:Goto("StateStart")
+		if GS.IsDebug then
+			if GS.InputMgr:IsKeyPush(KeyCode.KEY_Z) then
+				self.stage:SkipDemo()
+				self:Goto("StateStart")
+			end
 		end
 		rt:Wait()
 	end
@@ -1913,6 +1915,16 @@ function Gauge:BeginStage(num)
 end
 
 function Gauge:BeginClearDemo(num)
+	self.enable = false
+	self.chargeCnt = 0
+	self:GetSpr():SetTextureColorF(Color.White)
+	self:GetSpr().drawWidth  = 1
+	
+	self:Hide()
+	self.backSpr:Hide()
+end
+
+function Gauge:BeginEnding()
 	self.enable = false
 	self.chargeCnt = 0
 	self:GetSpr():SetTextureColorF(Color.White)
