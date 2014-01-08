@@ -148,13 +148,13 @@ function CheckSkip()
 		return 2
 	end
 	if GS.InputMgr:IsKeyHold(KeyCode.KEY_W) then
-		return 3
+		return 5
 	end
 	if GS.InputMgr:IsKeyHold(KeyCode.KEY_E) then
-		return 4
+		return 10
 	end
 	if GS.InputMgr:IsKeyHold(KeyCode.KEY_R) then
-		return 5
+		return 20
 	end
 	return 1
 end
