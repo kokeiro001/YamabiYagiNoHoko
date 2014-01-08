@@ -59,14 +59,10 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("ハイク.png", 					"haiku")
 	GS.GrMgr:LoadTexture2("ハイクハイケイ.png", 	"haikuBack")
 	
-	GS.GrMgr:LoadTexture2("demo_Start01.jpg", 	"stage1demo")
-	GS.GrMgr:LoadTexture2("demo_stage1end.jpg",	"stage1clear")
-
-	GS.GrMgr:LoadTexture2("stage2demo.png", 	"stage2demo")
-	GS.GrMgr:LoadTexture2("demo_stage2end.jpg",	"stage2clear")
-	
-	GS.GrMgr:LoadTexture2("stage3demo.png", "stage3demo")
-	GS.GrMgr:LoadTexture2("demo_stage3end.jpg", "stage3clear")
+	GS.GrMgr:LoadTexture2("demo_stage1start.jpg", 	"stage1start")
+	GS.GrMgr:LoadTexture2("demo_stage2start.jpg", 	"stage2start")
+	GS.GrMgr:LoadTexture2("demo_stage3start.jpg", 	"stage3start")
+	GS.GrMgr:LoadTexture2("demo_stage3clear.jpg", 	"stage3clear")
 	
 	GS.GrMgr:LoadTexture2("debug_window.png", "debugWindow")
 	

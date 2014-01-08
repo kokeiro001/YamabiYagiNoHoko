@@ -125,8 +125,7 @@ local MARKER_HEIGHT			= 20
 local MARKER_ANIM_SPD		= 10
 
 -- demo tex names
-local STAGE_START_DEMO_NAMES = {"stage1demo", "stage2demo", "stage3demo"}
-local STAGE_CLEAR_DEMO_NAMES = {"stage1clear", "stage2clear", "stage3clear"}
+local STAGE_START_DEMO_NAMES = {"stage1start", "stage2start", "stage3start", "stage3clear"}
 
 
 local STARTDEMO_FADEIN_FRAME	= 20
@@ -476,10 +475,26 @@ function Stage:StateStartDemo2(rt)
 	table.insert(self.demoSpr , topSpr)
 	
 	self:Wait(STARTDEMO_FADEIN_FRAME)
+	self:Wait(120)
 
-	-- 一枚絵表示時間
-	rt:Wait(120)
+	self:BeginMsg(30)
+	self:MsgWait("奥さん「もしもし？ポリスの方ザマス？")
+	self:Wait(30)
+	self:MsgWait("うちのトモちゃんがドブネズミに狙われているので")
+	self:MsgWait("何とかしてほしいザマス。」")
+	self:Wait(120)
 	
+	self:ClearMsg()
+	self:MsgWait("セレスっち「ぬまぁ！！私のヤマビちゃんを")
+	self:MsgWait("トモミなんかに取られてなるもんですか！！」")
+	self:Wait(120)
+	
+	-- フェードアウト
+	self.game:BeginFadeOut(20)
+	self:Wait(20)
+	self:CloseMsg(1)
+	topSpr:Hide()
+
 	-- 帯表示
 	local height = 10
 	local top, bottom = self:AddObi(height)
@@ -496,10 +511,9 @@ function Stage:StateStartDemo2(rt)
 	self.player:Show()
 	self.player.x = tmp
 	self.player:MoveSpd(100, 3, 0)
-
-	-- 一枚絵をフェードアウト
-	self:FadeSprWait(topSpr, 30, 1, 0)
-	rt:Wait(30)
+	
+	self.game:BeginFadeIn(20)
+	self:Wait(60)
 
 	for i=1, SCROLL_SPD + 2 do
 		self.pat:MoveSpd(100, 3 - i, 0)
@@ -507,7 +521,7 @@ function Stage:StateStartDemo2(rt)
 		self:ChangeScrollSpd(i)
 		rt:Wait(3)
 	end
-	
+
 	rt:Wait(80)
 	self:ChangeScrollSpd(SCROLL_SPD)
 	self.pat:Move(30, PATCAR_X, PATCAR_Y)
@@ -527,16 +541,28 @@ function Stage:StateStartDemo3(rt)
 		self.player.x = PLAYER_X
 	end
 	
+	-- 一枚絵作成、表示
 	local topSpr = Sprite()
 	topSpr.z = -100
 	topSpr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
 	self:GetSpr():AddChild(topSpr)
 	self:GetSpr():SortZ()
 	table.insert(self.demoSpr , topSpr)
-	
 	self:Wait(STARTDEMO_FADEIN_FRAME)
 	
 	rt:Wait(60)
+	
+	self:BeginMsg(30)
+	self:MsgWait("セレスっち「ぜったい！ぜぇーったい！")
+	self:MsgWait("ヤマビちゃんは私のものなんだからぁーーーん！！")
+	self:Wait(120)
+	self:CloseMsg(30)
+	
+	-- 暗転
+	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
+	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
+	
+	topSpr:Hide()
 	
 	local height = 10
 	local top, bottom = self:AddObi(height)
@@ -544,15 +570,14 @@ function Stage:StateStartDemo3(rt)
 	table.insert(self.demoSpr , bottom)
 	self.player.x = -30
 	
-	-- 一枚絵をフェードアウト
-	self:FadeSprWait(topSpr, 30, 1, 0)
-
-	-- 一枚絵表示時間
-	rt:Wait(120)
+	self.game:BeginFadeIn(30)
 	
 	-- プレイヤーを定位置へ
 	self:MoveActWait(self.player, 60, PLAYER_X, PLAYER_Y)
 	rt:Wait(60)
+
+	-- フェードイン
+
 	
 	-- 帯削除、開始
 	self.demoSkipable = false
@@ -634,34 +659,6 @@ function Stage:StateShownResult1(rt)
 	self.game:BeginFadeOut(60)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
-	-- 一枚絵
-	local stageClear = self:MakeDemoActor()
-	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
-	stageClear:ApplyPosToSpr()
-	self:GetSpr():SortZ()
-
-	-- フェードイン
-	self.game:BeginFadeIn(20)
-	rt:Wait(120)
-
-	self:BeginMsg(30)
-	self:MsgWait("奥さん「もしもし？ポリスの方ザマス？")
-	self:Wait(30)
-	self:MsgWait("うちのトモちゃんがドブネズミに狙われているので")
-	self:MsgWait("何とかしてほしいザマス。」")
-	self:Wait(120)
-	
-	self:ClearMsg()
-	self:MsgWait("セレスっち「ぬまぁ！！私のヤマビちゃんを")
-	self:MsgWait("トモミなんかに取られてなるもんですか！！」")
-	self:Wait(120)
-	self:CloseMsg(30)
-
-	-- フェードアウト
-	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
-	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
-
-	-- 終了
 	self:FinalizeClearDemo()
 end
 
@@ -709,26 +706,6 @@ function Stage:StateShownResult2(rt)
 	self.game:BeginFadeOut(60)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
-	-- 一枚絵どーん
-	local stageClear = self:MakeDemoActor()
-	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
-	stageClear:ApplyPosToSpr()
-	self:GetSpr():SortZ()
-
-	-- フェードイン
-	self.game:BeginFadeIn(20)
-	rt:Wait(60)
-
-	self:BeginMsg(30)
-	self:MsgWait("セレスっち「ぜったい！ぜぇーったい！")
-	self:MsgWait("ヤマビちゃんは私のものなんだからぁーーーん！！")
-	self:Wait(120)
-	self:CloseMsg(30)
-	
-	-- フェードアウト
-	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
-	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
-
 	-- 終了
 	self:FinalizeClearDemo()
 end
@@ -753,20 +730,6 @@ function Stage:StateShownResult3(rt)
 	self.game:BeginFadeOut(60)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
-	-- 一枚絵どーん
-	local stageClear = self:MakeDemoActor()
-	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
-	stageClear:ApplyPosToSpr()
-	self:GetSpr():SortZ()
-
-	-- フェードイン
-	self.game:BeginFadeIn(20)
-	rt:Wait(30)
-	
-	-- フェードアウト
-	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
-	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
-
 	-- 終了
 	self:FinalizeClearDemo()
 end
@@ -887,8 +850,8 @@ function Stage:BeginMsg(cnt)
 	self:AddChild(self.msgMgr)
 	table.insert(self.demoAct, self.msgMgr)
 end
-function Stage:CloseMsg()
-	self.msgMgr:Close()
+function Stage:CloseMsg(cnt)
+	self.msgMgr:Close(cnt)
 end
 function Stage:Msg(text)
 	self.msgMgr:Msg(text)
@@ -2651,7 +2614,8 @@ function MessageManager:ClearMsg()
 	self.msgAct:GetSpr():SetText("")
 end
 
-function MessageManager:Close()
+function MessageManager:Close(cnt)
+	self.fadeCnt = cnt
 	self:ChangeRoutine("StateClose")
 end
 
@@ -2704,7 +2668,7 @@ function MessageManager:StateStart(rt)
 end
 
 function MessageManager:StateClose(rt)
-	local span = 30
+	local span = self.fadeCnt
 	for i=1, span do
 		self.backSpr.alpha 					= 1 - (i / span)
 		self.msgAct:GetSpr().alpha	= 1 - (i / span)
