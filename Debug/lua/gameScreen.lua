@@ -4,6 +4,12 @@ local ENDING_BGM_NAME	= "yukinagori.ogg"
 local STAGE_FRAME = {	3000, 3000, 3000	}	-- ステージのクリアまでの時間
 local STAGE_BACK_ALPHA = {	0.8, 0.8, 0.8	}	-- ステージの背景透明度
 
+local HAIKU_RANK = {
+	{	0,		10000	},	-- 0未満 ランク1	0以上10000未満 ランク２	10000以上 ランク３
+	{	0,		10000	},
+	{	0,		10000	},
+}
+
 local MAX_STAGE_NUM = table.getn(STAGE_FRAME)
 
 local UI_FADE_FRAME = 30
@@ -912,7 +918,7 @@ end
 
 function Stage:ShowHaiku()
 	local haiku = Haiku()
-	haiku:Begin(self.stageNum, self.score)
+	haiku:Begin(self.stageNum, self.scoreMgr.point)
 	local size = GS.GrMgr:GetTextureSize("haikuBack")
 	haiku:SetPos(GetProperty("WindowWidth") / 2, GetProperty("WindowHeight") / 2)
 	haiku:ApplyPosToSpr()
@@ -2291,12 +2297,24 @@ function Haiku:Begin(stageNum, score)
 	backSpr:SetCenter(backSpr.width  / 2, backSpr.height / 2)
 	self:GetSpr():AddChild(backSpr)
 	
-	local rank = 2	-- 0 - 2
+	
+	local rank = nil
+	print("score="..score)
+	print("HAIKU_RANK[stageNum][1]="..HAIKU_RANK[stageNum][1])
+	print("HAIKU_RANK[stageNum][2]="..HAIKU_RANK[stageNum][2])
+	if score < HAIKU_RANK[stageNum][1] then
+		rank = 0
+	elseif score < HAIKU_RANK[stageNum][2] then
+		rank = 1
+	else
+		rank = 2
+	end
+	
 	local spr = Sprite()
 	spr:SetDivTextureMode("haiku", 5, 2, 72, 203)
 	spr.divTexIdx = (stageNum - 1) * 3 + rank
 	spr:SetCenter(spr.width / 2, spr.height / 2)
-	spr:SetPos(0, 10)
+	spr:SetPos(0, 0)
 	self:GetSpr():AddChild(spr)
 	
 	self:GetSpr():SortZ()
