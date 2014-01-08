@@ -32,25 +32,24 @@ void SoundManager::LoadSe(const char* path, const char* name)
 	SimpleHelpers::CharToWChar(wpath, path, LENGTH);
 
 	Engine::File::IFile* pFile = GetCore()->GetFileManager()->OpenSyncFile( wpath );
-	if ( pFile != NULL )
-	{
-		Se* se = m_pManager->CreateStaticSound(wpath,
-																					pFile->GetData(),
-																					pFile->GetSize(),
-																					MAX_SE_LAYER,
-																					false);
-		SAFE_RELEASE( pFile );
+	assert(pFile != NULL);
 
-		// すでに同名のSeが存在する場合、前のファイルを消去する
-		SeItr itr = m_seMap.find(name);
-		if(itr != m_seMap.end())
-		{
-			SAFE_RELEASE(m_seMap[name]);
-			m_seMap.erase(itr);
-		}
+	Se* se = m_pManager->CreateStaticSound(wpath,
+																				pFile->GetData(),
+																				pFile->GetSize(),
+																				MAX_SE_LAYER,
+																				false);
+	SAFE_RELEASE( pFile );
+
+	// すでに同名のSeが存在する場合、前のファイルを消去する
+	SeItr itr = m_seMap.find(name);
+	if(itr != m_seMap.end())
+	{
+		SAFE_RELEASE(m_seMap[name]);
+		m_seMap.erase(itr);
+	}
 
 	m_seMap.insert(SePair(name, se));
-	}
 }
 
 void SoundManager::PlaySe(const char* name)

@@ -10,7 +10,10 @@ GS = {
 	NextScreen = nil,
 	
 	IsDebug = true,
-	IsPlayBgm = false
+	IsPlayBgm = false,
+	Param = {
+		IsCleared = true
+	},
 }
 
 Color = {
@@ -33,14 +36,20 @@ function OnPower(appli)
 	
 	GS.DrawSys:ClearSprite()
 
+	--GS.Param.IsCleared = false
+
+
 	GS.GrMgr:LoadFont("aoyagi.spb", "aoyagi.sff", "aoyagi")
 
 	-- load textures
 	GS.GrMgr:LoadTexture2("‘S‘Ì2.png", "titleBack")
 	GS.GrMgr:LoadTexture2("yamabi.png", "yamabi")
+	
+	-- enemy
 	GS.GrMgr:LoadTexture2("zako.png", "zako")
 	GS.GrMgr:LoadTexture2("seresu.png", "celes")
 	GS.GrMgr:LoadTexture2("Šâ.png", "rock")
+	GS.GrMgr:LoadTexture2("yagi.png", "yagi")
 	
 	GS.GrMgr:LoadTexture2("stage1.jpg", "stage1back")
 	GS.GrMgr:LoadTexture2("stage2.jpg", "stage2back")
@@ -77,7 +86,7 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("asobikata/asobikata01_back.png", "asoBack")
 	GS.GrMgr:LoadTexture2("asobikata/setumei.png", "asoSetumei")
 	
-	
+	-- se
 	GS.SoundMgr:LoadSe("bell00.wav", "bell")
 	GS.SoundMgr:LoadSe("bosu28_a.wav", "bosu")
 	GS.SoundMgr:LoadSe("metal02.wav", "metal")
@@ -85,6 +94,13 @@ function OnPower(appli)
 	GS.SoundMgr:LoadSe("seles_damage.wav", "selesDamage")
 	GS.SoundMgr:LoadSe("seles_dead.wav", "selesDead")
 	GS.SoundMgr:LoadSe("slash.wav", "slash")
+
+	GS.SoundMgr:LoadSe("yagi_01.wav", "yagi01")
+	GS.SoundMgr:LoadSe("yagi_02.wav", "yagi02")
+	GS.SoundMgr:LoadSe("yagi_03.wav", "yagi03")
+	GS.SoundMgr:LoadSe("yagi_04.wav", "yagi04")
+	GS.SoundMgr:LoadSe("yagi_05.wav", "yagi05")
+	GS.SoundMgr:LoadSe("yagi_06.wav", "yagi06")
 
 	GS.SoundMgr:SetSeVol("burst", 30)
 	GS.SoundMgr:SetSeVol("selesDamage", 25)

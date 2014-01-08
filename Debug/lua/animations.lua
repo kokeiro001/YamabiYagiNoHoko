@@ -24,17 +24,15 @@ end
 
 
 class 'PlayerAnim'(Animation)
-function PlayerAnim:__init()
+function PlayerAnim:__init(mode)
 	Actor.__init(self)
-	
 end
 
 function PlayerAnim:ChangedOwner()
 	local spr = self.owner:GetSpr()
 	spr.name = "player anim spr"
 	spr.divTexIdx = 0
-	spr.cx = 16
-	spr.cy = 16
+	spr:SetCenter(16, 16)
 end
 
 function PlayerAnim:BeginAnim(name)
@@ -65,6 +63,32 @@ function PlayerAnim:StateJump(rt)
 		rt:Wait(10000)
 	end
 end
+
+class 'PlayerYagiAnim'(PlayerAnim)
+function PlayerYagiAnim:__init(mode)
+	PlayerAnim.__init(self)
+end
+
+function PlayerYagiAnim:StateRun(rt)
+	local spr = self.owner:GetSpr()
+
+	while true do
+		for idx=12, 17 do
+			spr.divTexIdx = idx
+			rt:Wait(3)
+		end
+	end
+end
+
+function PlayerYagiAnim:StateJump(rt)
+	local spr = self.owner:GetSpr()
+	while true do
+		spr.divTexIdx = 17
+		rt:Wait(10000)
+	end
+end
+
+
 
 local PAT_ANIM_SPD	= 1
 

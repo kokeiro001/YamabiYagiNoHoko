@@ -40,19 +40,29 @@ function TitleScreen:Begin()
 	self.menu:GetSpr():Show()
 	self:AddChild(self.menu)
 	self.menu:SetPos(0, 260)
-	self.menu:ApplyPosToSpr()
 	
-	self.menu:AddMenuItem("ゲーム開始", function()
+	self.menu:AddMenuItem("任務開始", function()
 		self:ChangeRoutine("StateToGame")
 	end)
+	
+	if GS.Param.IsCleared then
+		self.menu:AddMenuItem("？？？", function()
+			self:ChangeRoutine("StateToYagiGame")
+		end)
+	end
 	
 	self.menu:AddMenuItem("遊び方", function()
 		self:OpenTutorial()
 	end)
 
-	self.menu:AddMenuItem("終了", function()
+	self.menu:AddMenuItem("撤退", function()
 		GS.Appli:Exit(0)
 	end)
+	
+	if GS.Param.IsCleared then
+		self.menu:SetPos(0, 240)
+	end
+	self.menu:ApplyPosToSpr()
 	
 	-- play bgm
 	if GS.IsPlayBgm then
@@ -92,7 +102,27 @@ function TitleScreen:StateToGame(rt)
 		rt:Wait(0)
 	end
 	
-	ChangeScreen(GameScreen())
+	ChangeScreen(GameScreen("normal"))
+	rt:Wait()
+end
+
+function TitleScreen:StateToYagiGame(rt)
+	local fadeSpr = Sprite()
+	fadeSpr:SetTextureMode("whitePix")
+	fadeSpr:SetTextureColorF(Color.Black)
+	fadeSpr.drawWidth  = GetProperty("WindowWidth")
+	fadeSpr.drawHeight = GetProperty("WindowHeight")
+	fadeSpr.z = -1000
+	self:GetSpr():AddChild(fadeSpr)
+	self:GetSpr():SortZ()
+	
+	local span = 20
+	for i=0, span do
+		fadeSpr.alpha = i / span
+		rt:Wait(0)
+	end
+	
+	ChangeScreen(GameScreen("yagi"))
 	rt:Wait()
 end
 

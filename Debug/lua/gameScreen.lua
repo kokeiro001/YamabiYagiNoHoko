@@ -151,6 +151,13 @@ function GetZOrder(name)
 	end
 end
 
+function GetGame()
+	if GS.CurrentScreen.name == "GameScreen" then
+		return GS.CurrentScreen
+	end
+	return nil
+end
+
 function GetStage()
 	if GS.CurrentScreen.name == "GameScreen" then
 		return GS.CurrentScreen.stage
@@ -166,10 +173,12 @@ end
 
 
 class'GameScreen'(ScreenBase)
-function GameScreen:__init()
+function GameScreen:__init(mode)
 	ScreenBase.__init(self)
 	self.name = "GameScreen"
 	self.stage = nil
+	
+	self.mode = mode or "normal"
 end
 
 function GameScreen:Begin()
@@ -306,7 +315,14 @@ function Stage:Begin()
 	self.pat.y = PATCAR_Y
 	self:AddChild(self.pat)
 	
-	self.enemyMgr = EnemyManager()
+	local mode = GetGame().mode
+	if mode == "normal" then
+		self.enemyMgr = EnemyManager()
+	elseif mode == "yagi" then
+		self.enemyMgr = YagiManager()
+	else
+		error("not def mode"..mode)
+	end
 	self.enemyMgr:Begin()
 	self:AddChild(self.enemyMgr)
 	
@@ -730,6 +746,19 @@ function Stage:StateShownResult3(rt)
 	self.game:BeginFadeOut(60)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
+	-- 一枚絵どーん
+	local stageClear = self:MakeDemoActor()
+	stageClear:SetTexture("stage3clear")
+	self:GetSpr():SortZ()
+
+	-- フェードイン
+	self.game:BeginFadeIn(20)
+	rt:Wait(120)
+	
+	-- フェードアウト
+	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
+	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
+
 	-- 終了
 	self:FinalizeClearDemo()
 end
@@ -816,6 +845,7 @@ function Stage:StateEnding2(rt)
 	
 	rt:Wait(60)
 	
+	GS.Param.IsCleared = true
 	ChangeScreen(TitleScreen())
 	return "exit"
 end
@@ -990,7 +1020,13 @@ function Player:Begin()
 	Actor.Begin(self)
 	
 	self:SetDivTexture("yamabi", 6, 4, 50, 50)
-	self:SetAnimation(PlayerAnim())
+	if GetGame().mode == "normal" then
+		self:SetAnimation(PlayerAnim())
+	elseif GetGame().mode == "yagi" then
+		self:SetAnimation(PlayerYagiAnim())
+	else
+		error("not def mode="..GetGame().mode)
+	end
 	self.anim:BeginAnim("run")
 	
 	local cursor = PlayerCursorCharge()
@@ -1511,6 +1547,52 @@ function EnemyManager:CreateEnemy(line)
 end
 
 
+class'YagiManager'(EnemyManager)
+function YagiManager:__init(idCnt)
+	EnemyManager.__init(self)
+end
+
+function YagiManager:Begin()
+	EnemyManager.Begin(self)
+end
+
+function YagiManager:CreateEnemy(line)
+	local back = GetStage().back
+	local spd = (back.scrollSpd * ENEMY_SPD[line]) / SCROLL_SPD
+	
+	local enemy = nil
+	if line == LINE_BOTTOM then
+		enemy = Rock()
+	else
+		if GetStage().stageNum == 1 then
+			enemy = Yagi()
+		elseif GetStage().stageNum == 2 then
+			if math.random(1, 100) <= PROB_CELES_STAGE2 then
+				enemy = Yagi()
+			else
+				enemy = Yagi(math.random(0, 5))
+			end
+		elseif GetStage().stageNum == 3 then
+			if math.random(1, 100) <= PROB_CELES_STAGE3 then
+				enemy = Yagi()
+			else
+				enemy = Yagi(math.random(0, 5))
+			end
+		end
+	end
+	enemy:Begin()
+	
+	enemy.line	= line
+	enemy.spd		= spd
+	enemy.x			= GetProperty("WindowWidth") + 50
+	enemy.y			= LINE_HEIGHTS[enemy.line]
+	enemy:ApplyPosToSprUseCamera(GetCamera())
+	GetCamera():AddAutoApplyPosItem(enemy)
+	return enemy
+end
+
+
+
 --@Enemy
 class 'Enemy'(Actor)
 function Enemy:__init(kind)
@@ -1772,7 +1854,6 @@ function Celes:StateStart(rt)
 end
 
 
-
 class 'CharactorEnemy'(Enemy)
 function CharactorEnemy:__init(char)
 	Enemy.__init(self)
@@ -1806,6 +1887,45 @@ function CharactorEnemy:StateStart(rt)
 		rt:Wait()
 	end
 end
+
+class 'Yagi'(Enemy)
+function Yagi:__init(char)
+	Enemy.__init(self)
+	self.hp = 1
+	self.char = char
+	self.point = 100
+end
+
+function Yagi:SetActTexture()
+	self:SetTexture("yagi")
+	local spr = self:GetSpr()
+	spr.name = "yagi spr"
+	spr:SetCenter(spr.width / 2 , spr.height / 2)
+end
+
+function Yagi:DeadAction(attackKind)
+	Enemy.DeadAction(self, attackKind)
+	
+	if attackKind ~= DEAD_REASON_TIME_UP then
+		local rnd = math.random(1, 6)
+		local name = "yagi0"..rnd
+		GS.SoundMgr:PlaySe(name)
+	end
+end
+
+function Yagi:StateStart(rt)
+	while true do
+		self.x = self.x - self.spd
+		if self.x < -30 and self.attacker == nil  then
+			GetStage().enemyMgr:RemoveEnemy(self)
+			GetStage().scoreMgr:FailedPerfect()
+			rt:Wait()
+		end
+		self:ApplyPosToSprUseCamera(GetCamera())
+		rt:Wait()
+	end
+end
+
 
 
 
