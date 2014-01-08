@@ -199,6 +199,16 @@ function Actor:SetText(text, col)
 	end
 end
 
+function Actor:SetText2(text, fontName, col)
+	if self.spr == nil then
+		self:CreateSpr()
+	end
+	self.spr:SetTextMode2(text, fontName)
+	if col ~= nil then
+		self.spr:SetTextColorF(col)
+	end
+end
+
 function Actor:ApplyPosToSpr()
 	self.spr.x = self.x
 	self.spr.y = self.y

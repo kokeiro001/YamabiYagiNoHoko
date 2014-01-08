@@ -161,6 +161,7 @@ public:
 	void SetTextMode(const char* text);
 	void SetTextMode2(const char* text, const char* font);
 	void SetText(const char* text);
+	std::string GetText();
 	void SetTextColorF(ColorF color);
 	void SetTextColor1(float r, float g, float b);
 	void SetTextColor255(int r, int g, int b);

@@ -412,11 +412,23 @@ function Stage:StateStartDemo1(rt)
 	self:GetSpr():AddChild(topSpr)
 	self:GetSpr():SortZ()
 	table.insert(self.demoSpr , topSpr)
-	
 	self:Wait(STARTDEMO_FADEIN_FRAME)
 	
-	-- 一枚絵表示時間
+	self:BeginMsg(30)
+	self:Wait(30)
+
+	self:MsgWait("山火、彼はニホンイチうつくしく　つよいニンジャである。")
+	self:Wait(60)
+	self:MsgWait("そんな彼の今回のニンムは・・・・・・")
+	self:Wait(120)
+	self:ClearMsg()
+	
+	self:SetMsgSize(40)
+	self:SetMsgWait(15)
+	self:MsgWait("秋田ユリホン城の")
+	self:MsgWait("トモミ姫とカケオチ")
 	rt:Wait(120)
+	self:CloseMsg(30)
 	
 	local height = 10
 	local top, bottom = self:AddObi(height)
@@ -623,7 +635,6 @@ function Stage:StateShownResult1(rt)
 	self:MoveActWait(self.player, 60, GetProperty("WindowWidth") , PLAYER_Y)
 	
 	-- 一枚絵
-	
 	local stageClear = self:MakeDemoActor()
 	stageClear:SetTexture(STAGE_CLEAR_DEMO_NAMES[self.stageNum])
 	stageClear:ApplyPosToSpr()
@@ -631,8 +642,21 @@ function Stage:StateShownResult1(rt)
 
 	-- フェードイン
 	self.game:BeginFadeIn(20)
-	rt:Wait(30)
+	rt:Wait(120)
+
+	self:BeginMsg(30)
+	self:MsgWait("奥さん「もしもし？ポリスの方ザマス？")
+	self:Wait(30)
+	self:MsgWait("うちのトモちゃんがドブネズミに狙われているので")
+	self:MsgWait("何とかしてほしいザマス。」")
+	self:Wait(120)
 	
+	self:ClearMsg()
+	self:MsgWait("セレスっち「ぬまぁ！！私のヤマビちゃんを")
+	self:MsgWait("トモミなんかに取られてなるもんですか！！」")
+	self:Wait(120)
+	self:CloseMsg(30)
+
 	-- フェードアウト
 	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
 	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
@@ -693,7 +717,13 @@ function Stage:StateShownResult2(rt)
 
 	-- フェードイン
 	self.game:BeginFadeIn(20)
-	rt:Wait(30)
+	rt:Wait(60)
+
+	self:BeginMsg(30)
+	self:MsgWait("セレスっち「ぜったい！ぜぇーったい！")
+	self:MsgWait("ヤマビちゃんは私のものなんだからぁーーーん！！")
+	self:Wait(120)
+	self:CloseMsg(30)
 	
 	-- フェードアウト
 	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
@@ -847,6 +877,45 @@ function Stage:MakeDemoActor()
 	table.insert(self.demoAct, act)
 	return act
 end
+
+
+function Stage:BeginMsg(cnt)
+	self.msgMgr = MessageManager()
+	self.msgMgr:Begin(cnt)
+	self:SetMsgWait(3)
+	self:SetMsgSize(24)
+	self:AddChild(self.msgMgr)
+	table.insert(self.demoAct, self.msgMgr)
+end
+function Stage:CloseMsg()
+	self.msgMgr:Close()
+end
+function Stage:Msg(text)
+	self.msgMgr:Msg(text)
+end
+function Stage:MsgWait(text)
+	local isWait = true
+	local shown = function()
+		isWait = false
+	end
+	self.msgMgr:Msg(text, shown)
+	while isWait do
+		self:Wait()
+	end
+end
+
+function Stage:SetMsgWait(wait)
+	self.msgMgr:SetWait(wait)
+end
+
+function Stage:ClearMsg()
+	self.msgMgr:ClearMsg()
+end
+	
+function Stage:SetMsgSize(size)
+	self.msgMgr:SetMsgSize(size)
+end
+
 
 function Stage:ShowHaiku()
 	local haiku = Haiku()
@@ -2535,6 +2604,132 @@ function StageResult:StateStart(rt)
 		rt:Wait()
 	end
 end
+
+
+
+
+
+class'MessageManager'(Actor)
+function MessageManager:__init()
+	Actor.__init(self)
+
+	self.msgQueue = {}
+end
+
+function MessageManager:Begin(cnt)
+	Actor.Begin(self)
+	
+	self:CreateSpr()
+	
+	self.fadeCnt = cnt
+
+	self.backSpr = Sprite()
+	self.backSpr:SetTextureMode("whitePix")
+	self.backSpr.drawWidth  = GetProperty("WindowWidth") - 100
+	self.backSpr.drawHeight = 100
+	self.backSpr.alpha = 0
+	self:GetSpr():AddChild(self.backSpr)
+	
+	self.msgAct = Actor()
+	self.msgAct:Begin()
+	self.msgAct:SetText2("a", "aoyagi")
+	self.msgAct:SetPos(10, 10)
+	self.msgAct:ApplyPosToSpr()
+	self:AddChild(self.msgAct)
+	
+	self:SetPos(50, GetProperty("WindowHeight") - 110)
+	self:ApplyPosToSpr()
+	
+	self:ChangeRoutine("StateFadeIn")
+end
+
+function MessageManager:Msg(text, shownFunc)
+	table.insert(self.msgQueue, text)
+	self.shownFunc = shownFunc
+end
+function MessageManager:ClearMsg()
+	self.msgAct:GetSpr():SetText("")
+end
+
+function MessageManager:Close()
+	self:ChangeRoutine("StateClose")
+end
+
+function MessageManager:SetMsgSize(size)
+	self.msgAct:GetSpr():SetFontSize(size)
+end
+
+function MessageManager:SetWait(wait)
+	self.msgWait = wait
+end
+
+function MessageManager:StateFadeIn(rt)
+	local lastAlpha = 0.9
+	local spr = self.backSpr
+	for i=1, self.fadeCnt do
+		spr.alpha = lastAlpha * (i / self.fadeCnt)
+		rt:Wait()
+	end
+	self:Goto("StateStart")
+end
+
+function MessageManager:StateAppendMsg(rt)
+	local spr = self.msgAct:GetSpr()
+	while table.getn(self.msgQueue) > 0 do
+		local baseText = spr.text
+		local text = self.msgQueue[1]
+		table.remove(self.msgQueue, 1)
+		
+		for i=1, string.len(text), 2 do
+			spr:SetText(baseText..string.sub(text, 1, i+1))
+			rt:Wait(self.msgWait)
+		end
+		spr:SetText(baseText..text.."\n")
+	end
+	
+	if self.shownFunc ~= nil then
+	 	self:shownFunc()
+	 	self.shownFunc = nil
+	end
+	self:Goto("StateStart")
+end
+
+function MessageManager:StateStart(rt)
+	while true do
+		if table.getn(self.msgQueue) > 0 then
+			self:Goto("StateAppendMsg")
+		end
+		rt:Wait()
+	end
+end
+
+function MessageManager:StateClose(rt)
+	local span = 30
+	for i=1, span do
+		self.backSpr.alpha 					= 1 - (i / span)
+		self.msgAct:GetSpr().alpha	= 1 - (i / span)
+		rt:Wait()
+	end
+	self:Exit()
+end
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

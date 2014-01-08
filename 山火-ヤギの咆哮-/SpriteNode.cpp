@@ -177,6 +177,13 @@ void Sprite::SetText(const char* text)
 	SimpleHelpers::CharToWChar(m_text, text, MAX_TEXT);
 	UpdateSize();
 }
+std::string Sprite::GetText()
+{
+	std::string str;
+	SimpleHelpers::WcharToStr(&str, m_text);
+	return str;
+}
+
 void Sprite::SetFontSize(int size)
 {
 	if(m_mode == SPR_TEXT)
@@ -297,14 +304,18 @@ void Sprite::DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float bas
 		if(m_useTextRenderer)
 		{
 			m_pTextRdr->CacheReset();
-			m_pTextRdr->DrawRequest(Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY), m_textColor, m_text);
+			m_pTextRdr->DrawRequest(
+				Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY), 
+				m_textColor, 
+				m_text);
 			m_pTextRdr->CacheDraw();
 		}
 		else
 		{
+			m_pTextData->SetDrawFontSize(m_fontSize);
 			m_pTextData->DrawDirect(
 				Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY),
-				ColorF(1, 1, 1),
+				m_textColor, 
 				m_text);
 		}
 	}
@@ -411,6 +422,8 @@ void Sprite::RegistLua()
 		.property("rotX", &GetRotOffcetX, &SetRotOffcetX)
 		.property("rotY", &GetRotOffcetY, &SetRotOffcetY)
 		.property("divTexIdx", &GetDivDrawTexIdx, &SetDivDrawTexIdx)
+
+		.property("text", &GetText, &SetText)
 	];
 }
 

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdlib.h>
+
+#include <iostream>
 #include <list>
 #include <sstream>
 #include <string>
@@ -15,6 +18,9 @@
 #include <boost\shared_ptr.hpp>
 #include <boost\enable_shared_from_this.hpp>
 
+#include "atlbase.h"
+#include "atlstr.h"
+#include "comutil.h"
 
 
 using namespace Selene;

@@ -33,7 +33,7 @@ function OnPower(appli)
 	
 	GS.DrawSys:ClearSprite()
 
-	GS.GrMgr:LoadFont("aoyagi.spb", "aoyagi.sff", "ao")
+	GS.GrMgr:LoadFont("aoyagi.spb", "aoyagi.sff", "aoyagi")
 
 	-- load textures
 	GS.GrMgr:LoadTexture2("‘S‘Ì2.png", "titleBack")
@@ -62,11 +62,11 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("demo_Start01.jpg", 	"stage1demo")
 	GS.GrMgr:LoadTexture2("demo_stage1end.jpg",	"stage1clear")
 
-	GS.GrMgr:LoadTexture2("demo_Start02.jpg", 	"stage2demo")
+	GS.GrMgr:LoadTexture2("stage2demo.png", 	"stage2demo")
 	GS.GrMgr:LoadTexture2("demo_stage2end.jpg",	"stage2clear")
 	
 	GS.GrMgr:LoadTexture2("stage3demo.png", "stage3demo")
-	GS.GrMgr:LoadTexture2("stage3clear.png", "stage3clear")
+	GS.GrMgr:LoadTexture2("demo_stage3end.jpg", "stage3clear")
 	
 	GS.GrMgr:LoadTexture2("debug_window.png", "debugWindow")
 	
