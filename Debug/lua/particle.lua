@@ -4,6 +4,13 @@ local SLASHED_ROCK_PCL_SPAN = 60
 local SLASH_ANIM_SPD = 1
 
 
+function CalcPhyMove(maxX, maxTime, nowTime)
+	return (2 * maxX * nowTime) / maxTime - 
+					0.5*( 2 * maxX * (nowTime * nowTime)) / (maxTime * maxTime)
+end
+
+
+
 class 'Particle'(Actor)
 function Particle:__init()
 	Actor.__init(self)

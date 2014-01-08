@@ -141,7 +141,7 @@ local STAGE_BACK_NAMES = { "stage1back", "stage2back", "stage3back" }
 local GET_ITEM_WAIT_FRAME = 10
 
 -- haiku
-local SHOW_HAIKU_FRAME = 120
+local SHOW_HAIKU_FRAME = 240
 
 
 
@@ -920,7 +920,7 @@ function Stage:ShowHaiku()
 	local haiku = Haiku()
 	haiku:Begin(self.stageNum, self.scoreMgr.point)
 	local size = GS.GrMgr:GetTextureSize("haikuBack")
-	haiku:SetPos(GetProperty("WindowWidth") / 2, GetProperty("WindowHeight") / 2)
+	haiku:SetPos(GetProperty("WindowWidth") / 2, 50)
 	haiku:ApplyPosToSpr()
 	self:AddChild(haiku)
 	table.insert(self.demoAct, haiku)
@@ -2292,16 +2292,28 @@ function Haiku:Begin(stageNum, score)
 	Actor.Begin(self)
 	self:CreateSpr()
 	
-	local backSpr = Sprite()
-	backSpr:SetTextureMode("haikuBack")
-	backSpr:SetCenter(backSpr.width  / 2, backSpr.height / 2)
-	self:GetSpr():AddChild(backSpr)
+	self.headSpr = Sprite()
+	self.headSpr:SetTextureMode("haikuBack")
+	self.headSpr:SetTextureSrc(0, 0, self.headSpr.width, 22)
+	self.headSpr:SetCenter(self.headSpr.width / 2, 0)
+	self:GetSpr():AddChild(self.headSpr)
+
+	self.bodySpr = Sprite()
+	self.bodySpr:SetTextureMode("haikuBack")
+	self.bodySpr:SetTextureSrc(0, 23, self.bodySpr.width, 1)
+	self.bodySpr:SetPos(0, 22)
+	self.bodySpr:SetCenter(self.bodySpr.width / 2, 0)
+	self:GetSpr():AddChild(self.bodySpr)
+	
+	self.footSpr = Sprite()
+	self.footSpr:SetTextureMode("haikuBack")
+	self.footSpr:SetTextureSrc(0, 275, self.footSpr.width, 13)
+	self.footSpr:SetPos(0, 20)
+	self.footSpr:SetCenter(self.footSpr.width / 2, 0)
+	self:GetSpr():AddChild(self.footSpr)
 	
 	
 	local rank = nil
-	print("score="..score)
-	print("HAIKU_RANK[stageNum][1]="..HAIKU_RANK[stageNum][1])
-	print("HAIKU_RANK[stageNum][2]="..HAIKU_RANK[stageNum][2])
 	if score < HAIKU_RANK[stageNum][1] then
 		rank = 0
 	elseif score < HAIKU_RANK[stageNum][2] then
@@ -2309,22 +2321,61 @@ function Haiku:Begin(stageNum, score)
 	else
 		rank = 2
 	end
+
+	self.rankSpr = Sprite()
+	self.rankSpr:SetDivTextureMode("rank", 3, 1, 500, 500)
+	self.rankSpr:SetCenter(250, 250)
+	self.rankSpr:SetPos(-200, 50)
+	self:GetSpr():AddChild(self.rankSpr)
+	self.rankSpr.divTexIdx = rank
 	
-	local spr = Sprite()
-	spr:SetDivTextureMode("haiku", 5, 2, 72, 203)
-	spr.divTexIdx = (stageNum - 1) * 3 + rank
-	spr:SetCenter(spr.width / 2, spr.height / 2)
-	spr:SetPos(0, 0)
-	self:GetSpr():AddChild(spr)
+	self.textSpr = Sprite()
+	self.textSpr:SetDivTextureMode("haiku", 5, 2, 72, 203)
+	self.textSpr.divTexIdx = (stageNum - 1) * 3 + rank
+	self.textSpr:SetCenter(self.textSpr.width / 2, 0)
+	self.textSpr:SetPos(0, 40)
+	self:GetSpr():AddChild(self.textSpr)
+
+	self.rankSpr:Hide()
+	self.textSpr:Hide()
 	
 	self:GetSpr():SortZ()
 end
 
 function Haiku:StateStart(rt)
+	local cnt = 60
+	
+
+	local footFromY = self.footSpr.y
+	local footSa = 275 - footFromY
+	
+	local bodyFromY	= self.bodySpr.drawHeight
+	local bodySa 		= 275 - bodyFromY -self.bodySpr.y
+
+	for i=1, cnt do
+		self.footSpr.y = footFromY + CalcPhyMove(footSa, cnt, i)
+
+		local bodyHeight = bodyFromY + CalcPhyMove(bodySa, cnt, i)
+		self.bodySpr:SetTextureSrc(0, 23, self.headSpr.width, bodyHeight)
+		rt:Wait()
+	end
+	
+	rt:Wait(30)
+	
+	self.textSpr:Show()
+	self.rankSpr:Show()
+	GS.SoundMgr:PlaySe("bosu")
+	
 	while true do
 		rt:Wait()
 	end
 end
+
+
+
+
+
+
 
 class 'CameraShakeActor'(Actor)
 function CameraShakeActor:__init(camera)

@@ -67,6 +67,7 @@ function OnPower(appli)
 	-- demo
 	GS.GrMgr:LoadTexture2("ハイク.png", 					"haiku")
 	GS.GrMgr:LoadTexture2("ハイクハイケイ.png", 	"haikuBack")
+	GS.GrMgr:LoadTexture2("氷菓.png", 	"rank")
 	
 	GS.GrMgr:LoadTexture2("demo_stage1start.jpg", 	"stage1start")
 	GS.GrMgr:LoadTexture2("demo_stage2start.jpg", 	"stage2start")
@@ -105,6 +106,10 @@ function OnPower(appli)
 	GS.SoundMgr:SetSeVol("burst", 30)
 	GS.SoundMgr:SetSeVol("selesDamage", 25)
 	
+	for i=1, 6 do
+		GS.SoundMgr:SetSeVol("yagi0"..i, 70)
+	end
+
 	ChangeScreen(TitleScreen())
 	
 	collectgarbage("collect")
