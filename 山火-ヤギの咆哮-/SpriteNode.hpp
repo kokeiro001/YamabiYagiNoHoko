@@ -25,7 +25,7 @@ protected:
 	enum Mode{
 		SPR_NONE,
 		SPR_TEXTURE,
-		SPR_TEXT
+		SPR_TEXT,
 	};
 
 	Mode m_mode;
@@ -63,7 +63,9 @@ protected:
 	int m_srcW, m_srcH;
 
 	// text data
+	bool m_useTextRenderer;
 	Engine::Graphics::Simple::ITextRenderer* m_pTextRdr;
+	Graphics::Resource::Text::ITextData* m_pTextData;
 	wchar_t m_text[MAX_TEXT];
 	ColorF m_textColor;
 	std::string m_fontName;
@@ -154,15 +156,16 @@ public:
 	void SetTextureMode(const char* name);
 	void SetDivTextureMode(const char* name, int xnum, int ynum, int width, int height);
 	void SetTextureSrc(int x, int y, int w, int h);
-
 	void SetTextureColorF(ColorF color);
 	
 	void SetTextMode(const char* text);
+	void SetTextMode2(const char* text, const char* font);
 	void SetText(const char* text);
 	void SetTextColorF(ColorF color);
 	void SetTextColor1(float r, float g, float b);
 	void SetTextColor255(int r, int g, int b);
 	void SetFontSize(int size);
+
 
 	void AddChild(boost::shared_ptr<Sprite> chr);
 	void RemoveChild(boost::shared_ptr<Sprite> chr);

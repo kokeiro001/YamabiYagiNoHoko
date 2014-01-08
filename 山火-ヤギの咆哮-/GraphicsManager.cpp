@@ -2,7 +2,30 @@
 #include "GraphicsManager.hpp"
 
 typedef Graphics::Resource::ITexture Texture;
+typedef Graphics::Resource::Text::ITextData TextData;
+
 using namespace Selene::Engine::Graphics::Simple;
+
+class FontSpriteTextureLoader
+	: public Engine::Graphics::Resource::IFileLoadListener
+{
+private:
+	virtual bool OnLoad( const wchar_t* pFileName, const void*& pFileBuffer, Sint32& FileSize, void*& pUserData, void* pUserSetData )
+	{
+		Engine::File::IPackFile* pPackFile = static_cast<Engine::File::IPackFile*>(pUserSetData);
+		if ( pPackFile->Seek( pFileName ) )
+		{
+			pFileBuffer	= pPackFile->GetData();
+			FileSize	= pPackFile->GetSize();
+
+			return true;
+		}
+		return false;
+	}
+	virtual void OnRelease( const void* pFileBuffer, Sint32 FileSize, void* pUserData, void* pUserSetData )
+	{
+	}
+};
 
 GraphicsManager::GraphicsManager(void)
 {
@@ -16,7 +39,6 @@ bool GraphicsManager::OnPowerInit(Graphics::IManager* mgr)
 {
 	m_pManager = mgr;
 	m_pSprite = m_pManager->CreateSpriteRenderer();
-
 	CreateSimpleTextures();
 	RegistLua();
 	return true;
@@ -97,6 +119,49 @@ Point2DI GraphicsManager::GetTextureSize(const std::string name)
 	return GetTexture(name)->GetTextureSize();
 }
 
+TextData* GraphicsManager::GetText(std::string font)
+{
+	assert(m_texts.find(font) != m_texts.end());
+	return m_texts[font]; 
+}
+
+void GraphicsManager::LoadFont(const std::string fileName, const std::string fontName, const std::string registName)
+{
+
+	wchar_t wFileName[128];
+	SimpleHelpers::StrToWChar(wFileName, fileName);
+	FontSpriteTextureLoader Loader;
+
+	File::IFile* pFile = GetCore()->GetFileManager()->OpenSyncFile( wFileName );
+	File::IPackFile* pFontPack = GetCore()->GetFileManager()->CreatePackFile( pFile );
+
+	Engine::Graphics::STextureLoadParameter Param;
+	Param.IsFromFile				= true;
+	Param.IsCompressFormat	= false;
+	Param.IsMipmapEnable		= false;
+	Param.SizeDivide				= 1;
+	Param.ColorKey					= 0x00000000;
+
+	wchar_t wFontName[128];
+	SimpleHelpers::StrToWChar(wFontName, fontName);
+	if(!pFontPack->Seek( wFontName ))
+	{
+		MessageBox(NULL, "aaa", "bbb", 0);
+	}
+	Graphics::Resource::Text::ITextData*	pText = 
+			GetCore()->GetGraphicsManager()->CreateText(
+											pFontPack->GetData(),		// ファイルデータ
+											pFontPack->GetSize(),		// ファイルサイズ
+											pFontPack->GetFileName(),	// ファイル名
+											Param,						// テクスチャ生成用パラメーター
+											&Loader,					// リソース読み込み用リスナー
+											pFontPack );				// ユーザーデータ（Resource::IFileLoadListenerのpUserSetData引数）
+
+	SAFE_RELEASE( pFontPack );
+	SAFE_RELEASE( pFile );
+	m_texts.insert(TextMapPair(registName, pText));
+}
+
 ITextRenderer* GraphicsManager::GetTextRenderer(std::string font, int size)
 {
 	// フォントがあるか。無ければ追加。
@@ -152,6 +217,7 @@ void GraphicsManager::RegistLua()
 		luabind::class_<GraphicsManager>("GraphicsManager")
 		.def("LoadTexture", &LoadTexture)
 		.def("LoadTexture2", &LoadTexture2)
+		.def("LoadFont", &LoadFont)
 		.def("GetTexture", &GetTexture)
 		.def("GetTextureSize", &GetTextureSize)
 		.def("RemoveTexture", &RemoveTexture)

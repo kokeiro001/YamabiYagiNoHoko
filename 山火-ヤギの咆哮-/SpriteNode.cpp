@@ -15,6 +15,7 @@ Sprite::Sprite()
 	, m_rot(0.0f), m_rotOffcetX(0.0f), m_rotOffcetY(0.0f)
 	, m_pTexBuf(NULL)
 	, m_divType(TEX_DIVTYPE_NONE)
+	, m_useTextRenderer(true)
 	, m_pTextRdr(NULL)
 	, m_textColor(BLACK)
 	, m_posType(DRAWPOS_RELATIVE)
@@ -92,7 +93,6 @@ void Sprite::SetTextureMode(const char* name)
 {
 	if(m_mode == SPR_TEXT)
 	{
-		SAFE_RELEASE(m_pTextRdr);
 		SimpleHelpers::CharToWChar(m_text, "", MAX_TEXT);
 	}
 
@@ -107,7 +107,6 @@ void Sprite::SetDivTextureMode(const char* name, int xnum, int ynum, int w, int 
 {
 	if(m_mode == SPR_TEXT)
 	{
-		SAFE_RELEASE(m_pTextRdr);
 		SimpleHelpers::CharToWChar(m_text, "", MAX_TEXT);
 	}
 
@@ -148,6 +147,7 @@ void Sprite::SetTextMode(const char* text)
 	}
 
 	m_mode = SPR_TEXT;
+	m_useTextRenderer = true;
 	m_isDraw = true;
 	m_fontName = Properties::GetDefFontName();
 	m_fontSize = Properties::GetDefFontSize();
@@ -155,6 +155,23 @@ void Sprite::SetTextMode(const char* text)
 
 	SetText(text);
 }
+void Sprite::SetTextMode2(const char* text, const char* fontName)
+{
+	if(m_mode == SPR_TEXTURE)
+	{
+		m_pTexBuf = 0;
+	}
+
+	m_mode = SPR_TEXT;
+	m_useTextRenderer = false;
+	m_isDraw = true;
+	m_fontName = fontName;
+	m_fontSize = Properties::GetDefFontSize();
+	m_pTextData = GraphicsManager::GetInst()->GetText(m_fontName);
+
+	SetText(text);
+}
+
 void Sprite::SetText(const char* text)
 {
 	SimpleHelpers::CharToWChar(m_text, text, MAX_TEXT);
@@ -164,9 +181,17 @@ void Sprite::SetFontSize(int size)
 {
 	if(m_mode == SPR_TEXT)
 	{
-		m_fontSize = size;
-		m_pTextRdr = GraphicsManager::GetInst()->GetTextRenderer(m_fontName, m_fontSize);
+		if(m_useTextRenderer)
+		{
+			m_fontSize = size;
+			m_pTextRdr = GraphicsManager::GetInst()->GetTextRenderer(m_fontName, m_fontSize);
+		}
+		else
+		{
+			m_fontSize = size;
+		}
 		UpdateSize();
+
 	}
 }
 void Sprite::SetTextColorF(ColorF color)
@@ -207,11 +232,22 @@ void Sprite::UpdateSize()
 	}
 	else if(m_mode == SPR_TEXT)
 	{
-		Point2DI size = m_pTextRdr->GetDrawSize(m_text);
-		m_width  = size.x;
-		m_height = size.y;
-		m_drawWidth = size.x;
-		m_drawHeight = size.y;
+		if(m_useTextRenderer)
+		{
+			Point2DI size = m_pTextRdr->GetDrawSize(m_text);
+			m_width  = size.x;
+			m_height = size.y;
+			m_drawWidth = size.x;
+			m_drawHeight = size.y;
+		}
+		else
+		{
+			Point2DI size = m_pTextData->GetDrawSize(m_text);
+			m_width  = size.x;
+			m_height = size.y;
+			m_drawWidth = size.x;
+			m_drawHeight = size.y;
+		}
 	}
 }
 Point2DI Sprite::GetOriginTexSize()
@@ -258,9 +294,19 @@ void Sprite::DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float bas
 	}
 	else if(m_mode == SPR_TEXT)
 	{
-		m_pTextRdr->CacheReset();
-		m_pTextRdr->DrawRequest(Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY), m_textColor, m_text);
-		m_pTextRdr->CacheDraw();
+		if(m_useTextRenderer)
+		{
+			m_pTextRdr->CacheReset();
+			m_pTextRdr->DrawRequest(Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY), m_textColor, m_text);
+			m_pTextRdr->CacheDraw();
+		}
+		else
+		{
+			m_pTextData->DrawDirect(
+				Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY),
+				ColorF(1, 1, 1),
+				m_text);
+		}
 	}
 
 }
@@ -327,8 +373,9 @@ void Sprite::RegistLua()
 		.def("SetDrawPosAbsolute", &SetDrawPosAbsolute)
 		.def("SetDrawPosRelative", &SetDrawPosRelative)
 
-		.def("SetTextMode", &SetTextMode)
 		.def("SetText", &SetText)
+		.def("SetTextMode", &SetTextMode)
+		.def("SetTextMode2", &SetTextMode2)
 		.def("SetFontSize", &SetFontSize)
 		.def("SetTextColor1", &SetTextColor1)
 		.def("SetTextColorF", &SetTextColorF)

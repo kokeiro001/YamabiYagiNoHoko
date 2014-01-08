@@ -33,31 +33,36 @@ function OnPower(appli)
 	
 	GS.DrawSys:ClearSprite()
 
+	GS.GrMgr:LoadFont("aoyagi.spb", "aoyagi.sff", "ao")
+
 	-- load textures
-	GS.GrMgr:LoadTexture2("‚â‚¬‚Ì‚Ù‚¤‚±‚¤/‘S‘Ì2.png", "titleBack")
+	GS.GrMgr:LoadTexture2("‘S‘Ì2.png", "titleBack")
 	GS.GrMgr:LoadTexture2("yamabi.png", "yamabi")
 	GS.GrMgr:LoadTexture2("zako.png", "zako")
 	GS.GrMgr:LoadTexture2("seresu.png", "celes")
 	GS.GrMgr:LoadTexture2("Šâ.png", "rock")
 	
-	GS.GrMgr:LoadTexture2("s-stage1.jpg", "stage1back")
-	GS.GrMgr:LoadTexture2("s-stage2.jpg", "stage2back")
-	GS.GrMgr:LoadTexture2("s-stage3.jpg", "stage3back")
+	GS.GrMgr:LoadTexture2("stage1.jpg", "stage1back")
+	GS.GrMgr:LoadTexture2("stage2.jpg", "stage2back")
+	GS.GrMgr:LoadTexture2("stage3.jpg", "stage3back")
 	GS.GrMgr:LoadTexture2("pato.png", "patcar")
 	GS.GrMgr:LoadTexture2("suriken.png", "suriken")
 	
-	GS.GrMgr:LoadTexture2("burst0.png", "burst0")
+	-- particle
+	GS.GrMgr:LoadTexture2("pcl_burst0.png", "burst0")
+	GS.GrMgr:LoadTexture2("pcl_kudake.png", "crash")
+	GS.GrMgr:LoadTexture2("pcl_zan.png", "slash")
+	
 	GS.GrMgr:LoadTexture2("run_marker.png", "runMarker")
-	GS.GrMgr:LoadTexture2("zan.png", "slash")
-	GS.GrMgr:LoadTexture2("kudake.png", "crash")
 	
 	-- demo
-	GS.GrMgr:LoadTexture2("s-demo_Start01.jpg", "stage1demo")
-	GS.GrMgr:LoadTexture2("s-demo_Start02.jpg", "stage2demo")
-	GS.GrMgr:LoadTexture2("stage3demo.png", "stage3demo")
+	GS.GrMgr:LoadTexture2("demo_Start01.jpg", 	"stage1demo")
+	GS.GrMgr:LoadTexture2("demo_stage1end.jpg",	"stage1clear")
+
+	GS.GrMgr:LoadTexture2("demo_Start02.jpg", 	"stage2demo")
+	GS.GrMgr:LoadTexture2("demo_stage2end.jpg",	"stage2clear")
 	
-	GS.GrMgr:LoadTexture2("stage1clear.png", "stage1clear")
-	GS.GrMgr:LoadTexture2("s-demo_stage2end.jpg", "stage2clear")
+	GS.GrMgr:LoadTexture2("stage3demo.png", "stage3demo")
 	GS.GrMgr:LoadTexture2("stage3clear.png", "stage3clear")
 	
 	GS.GrMgr:LoadTexture2("debug_window.png", "debugWindow")
