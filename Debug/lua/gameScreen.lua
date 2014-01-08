@@ -471,6 +471,13 @@ function Stage:StateStartDemo1(rt)
 	self:FinalizeStartDemo()
 end
 
+function Stage:MakeDemoSpr()
+	local spr = Sprite()
+	self:GetSpr():AddChild(spr)
+	table.insert(self.demoSpr, spr)
+	return spr
+end
+
 function Stage:StateStartDemo2(rt)
 	self:InitStartDemoWait()
 	
@@ -489,22 +496,31 @@ function Stage:StateStartDemo2(rt)
 	end
 	
 	-- 一枚絵
-	local topSpr = Sprite()
-	topSpr.z = -100
-	topSpr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
-	self:GetSpr():AddChild(topSpr)
-	self:GetSpr():SortZ()
-	table.insert(self.demoSpr , topSpr)
+	local zoomSpr = self:MakeDemoSpr()
+	zoomSpr:SetTextureMode("stage2startzoom")
+	zoomSpr.z = -1000
 	
+	local topSpr = self:MakeDemoSpr()
+	topSpr:SetTextureMode(STAGE_START_DEMO_NAMES[self.stageNum])
+	topSpr.z = -100
+	
+	self:GetSpr():SortZ()
+	
+	-- フェードイン
 	self:Wait(STARTDEMO_FADEIN_FRAME)
-	self:Wait(120)
+	
+	self:Wait(90)
 
 	self:BeginMsg(30)
 	self:MsgWait("奥さん「もしもし？ポリスの方ザマス？")
 	self:Wait(30)
 	self:MsgWait("うちのトモちゃんがドブネズミに狙われているので")
 	self:MsgWait("何とかしてほしいザマス。」")
-	self:Wait(120)
+	self:Wait(90)
+	
+	-- zoom フェードアウト
+	self:FadeSprWait(zoomSpr, 60, 1, 0)
+	self:Wait(60)
 	
 	self:ClearMsg()
 	self:MsgWait("セレスっち「ぬまぁ！！私のヤマビちゃんを")

@@ -71,6 +71,7 @@ function OnPower(appli)
 	
 	GS.GrMgr:LoadTexture2("demo_stage1start.jpg", 	"stage1start")
 	GS.GrMgr:LoadTexture2("demo_stage2start.jpg", 	"stage2start")
+	GS.GrMgr:LoadTexture2("demo_stage2startzoom.png", 	"stage2startzoom")
 	GS.GrMgr:LoadTexture2("demo_stage3start.jpg", 	"stage3start")
 	GS.GrMgr:LoadTexture2("demo_stage3clear.jpg", 	"stage3clear")
 	
