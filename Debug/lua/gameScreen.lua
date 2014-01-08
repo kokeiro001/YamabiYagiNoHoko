@@ -137,11 +137,6 @@ local GET_ITEM_WAIT_FRAME = 10
 
 -- haiku
 local SHOW_HAIKU_FRAME = 120
-local HAIKU_TEXT = {	-- 半角スペースで区切ってね
-	{"イナカの道は 走るだけでも キモチイイ", "テキがいる キビシイバトルに なりそうだ", "かかってくるなら ヨウシャしない インガオホー"},
-	{"ニンジャめし 買うの忘れてた", "ナンデ？パトカーナンデ？", "ゼッタイに あきらめはしない 待ってろトモミ"},
-	{"どなたかな 気持ち悪くなった 帰ろう", "長く 苦しい 戦いだった", "セレスっち まずは名前を なんとかすべし"}
-}
 
 
 
@@ -856,8 +851,8 @@ end
 function Stage:ShowHaiku()
 	local haiku = Haiku()
 	haiku:Begin(self.stageNum, self.score)
-	haiku.x = 140
-	haiku.y = 120
+	local size = GS.GrMgr:GetTextureSize("haikuBack")
+	haiku:SetPos(GetProperty("WindowWidth") / 2, GetProperty("WindowHeight") / 2)
 	haiku:ApplyPosToSpr()
 	self:AddChild(haiku)
 	table.insert(self.demoAct, haiku)
@@ -2137,12 +2132,22 @@ end
 
 function Haiku:Begin(stageNum, score)
 	Actor.Begin(self)
+	self:CreateSpr()
 	
-	local rank = 3
-	local text = HAIKU_TEXT[stageNum][rank]
-	local tmp = {}
-	text = string.gsub(text, " ", "\n")
-	self:SetText(text)
+	local backSpr = Sprite()
+	backSpr:SetTextureMode("haikuBack")
+	backSpr:SetCenter(backSpr.width  / 2, backSpr.height / 2)
+	self:GetSpr():AddChild(backSpr)
+	
+	local rank = 2	-- 0 - 2
+	local spr = Sprite()
+	spr:SetDivTextureMode("haiku", 5, 2, 72, 203)
+	spr.divTexIdx = (stageNum - 1) * 3 + rank
+	spr:SetCenter(spr.width / 2, spr.height / 2)
+	spr:SetPos(0, 10)
+	self:GetSpr():AddChild(spr)
+	
+	self:GetSpr():SortZ()
 end
 
 function Haiku:StateStart(rt)

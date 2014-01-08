@@ -10,7 +10,7 @@ GS = {
 	NextScreen = nil,
 	
 	IsDebug = true,
-	IsPlayBgm = true
+	IsPlayBgm = false
 }
 
 Color = {
@@ -56,6 +56,9 @@ function OnPower(appli)
 	GS.GrMgr:LoadTexture2("run_marker.png", "runMarker")
 	
 	-- demo
+	GS.GrMgr:LoadTexture2("ハイク.png", 					"haiku")
+	GS.GrMgr:LoadTexture2("ハイクハイケイ.png", 	"haikuBack")
+	
 	GS.GrMgr:LoadTexture2("demo_Start01.jpg", 	"stage1demo")
 	GS.GrMgr:LoadTexture2("demo_stage1end.jpg",	"stage1clear")
 
@@ -102,25 +105,48 @@ end
 function Update()
 	CheckReload()
 	
-	if GS.NextScreen ~= nil then
-		if GS.CurrentScreen ~= nil then
-			GS.Scheduler:DeleteActor(GS.CurrentScreen)
-		end
-		GS.Scheduler:ProcessDeletedActors()
-		GS.SoundMgr:StopBgm()
-		collectgarbage("collect")
+	local loopCnt = CheckSkip()
+	for i=1, loopCnt do
+		if GS.NextScreen ~= nil then
+			if GS.CurrentScreen ~= nil then
+				GS.Scheduler:DeleteActor(GS.CurrentScreen)
+			end
+			GS.Scheduler:ProcessDeletedActors()
+			GS.SoundMgr:StopBgm()
+			collectgarbage("collect")
 
-		GS.CurrentScreen = GS.NextScreen
-		GS.CurrentScreen:Begin()
-		GS.CurrentScreen:AddSprToDrawSystem()
-		GS.Scheduler:SortActor()
-		GS.NextScreen = nil
-	end
+			GS.CurrentScreen = GS.NextScreen
+			GS.CurrentScreen:Begin()
+			GS.CurrentScreen:AddSprToDrawSystem()
+			GS.Scheduler:SortActor()
+			GS.NextScreen = nil
+		end
 	
-	GS.Scheduler:Schedule()
+		GS.Scheduler:Schedule()
+	end
 end
 
 
 function ChangeScreen(screen)
 	GS.NextScreen = screen
 end
+
+function CheckSkip()
+	if GS.InputMgr:IsKeyHold(KeyCode.KEY_Q) then
+		return 2
+	end
+	if GS.InputMgr:IsKeyHold(KeyCode.KEY_W) then
+		return 3
+	end
+	if GS.InputMgr:IsKeyHold(KeyCode.KEY_E) then
+		return 4
+	end
+	if GS.InputMgr:IsKeyHold(KeyCode.KEY_R) then
+		return 5
+	end
+	return 1
+end
+
+
+
+
