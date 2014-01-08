@@ -107,7 +107,10 @@ public:
 	
 	float const GetAlpha() { return m_alpha; }
 	void				SetAlpha(float alpha);
-	
+
+	ColorF const	GetColor();
+	void					SetColor(ColorF color);
+
 	float const GetWidth() { return m_width; }
 	void				SetWidth(float width) { m_width = width; }
 

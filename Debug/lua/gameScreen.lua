@@ -264,7 +264,21 @@ function GameScreen:BeginFadeOut(cnt)
 	end)
 end
 
+function GameScreen:BeginWhiteOut(cnt)
+	self.fadeAct.enable = true
 
+	self.fadeAct:ChangeFunc(function(rt)
+		rt:GetSpr():Show()
+		rt:GetSpr().col = Color.White
+		for i=0, cnt do
+			rt:GetSpr().alpha = (i/cnt)
+			rt:Wait()
+		end
+		rt:GetSpr().alpha = 1
+		rt.enable = false
+		rt:Wait()
+	end)
+end
 
 
 
@@ -777,9 +791,19 @@ function Stage:StateShownResult3(rt)
 	self.game:BeginFadeIn(20)
 	rt:Wait(120)
 	
+ 	self:BeginMsg(30)
+	self:MsgWait("トモミ姫「まあ！来てくれたのですか！トモミ、感激ぃ！")
+	self:MsgWait("さあ、いきましょう。私たちの未来へ！！」")
+	self:Wait(120)
+	self:CloseMsg(30)
+	
 	-- フェードアウト
-	self.game:BeginFadeOut(CLEARDEMO_FADEOUT_FRAME)
-	rt:Wait(CLEARDEMO_FADEOUT_FRAME)
+	self.game:BeginWhiteOut(CLEARDEMO_FADEOUT_FRAME * 2)
+	rt:Wait(CLEARDEMO_FADEOUT_FRAME * 2)
+
+	rt:Wait(90)
+	GS.SoundMgr:PlaySe("yagi01")
+	rt:Wait(120)
 
 	-- 終了
 	self:FinalizeClearDemo()
@@ -1499,8 +1523,14 @@ function EnemyManager:StateEnding(rt)
 		
 		self:AddTextEnemy("企画　スーパーウルトラサンボマンボマーシャルアーツ", LINE_MIDDLE)
 		rt:Wait(300)
-
+		
+		if GetGame().mode == "yagi" then
+			rt:Wait(30)
+			self:AddTextEnemy("ヤギ　カロ", LINE_TOP)
+			rt:Wait(120)
+		end
 		self:AddTextEnemy("さんきゅーふぉーぷれいんぐ！", LINE_MIDDLE)
+
 		rt:Wait(240)
 		
 		GetStage():ChangeRoutine("StateEnding2")
@@ -2343,7 +2373,7 @@ function Haiku:Begin(stageNum, score)
 	self.rankSpr:SetCenter(250, 250)
 	self.rankSpr:SetPos(-200, 50)
 	self:GetSpr():AddChild(self.rankSpr)
-	self.rankSpr.divTexIdx = rank
+	self.rankSpr.divTexIdx = 2 - rank
 	
 	self.textSpr = Sprite()
 	self.textSpr:SetDivTextureMode("haiku", 5, 2, 72, 203)

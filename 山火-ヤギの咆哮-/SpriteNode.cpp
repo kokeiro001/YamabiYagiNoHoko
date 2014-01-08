@@ -89,6 +89,34 @@ void Sprite::SetAlpha(float alpha)
 	}
 }
 
+ColorF const Sprite::GetColor()
+{
+	switch(m_mode)
+	{
+	case SPR_TEXTURE:
+		return m_textureColor;
+	case SPR_TEXT:
+		return m_textColor;
+	default:
+		throw "oh";
+	}
+}
+void	Sprite::SetColor(ColorF color)
+{
+	switch(m_mode)
+	{
+	case SPR_TEXTURE:
+		m_textureColor = color;
+		break;
+	case SPR_TEXT:
+		m_textColor = color;
+		break;
+	default:
+		throw "oh";
+	}
+}
+
+
 void Sprite::SetTextureMode(const char* name)
 {
 	if(m_mode == SPR_TEXT)
@@ -408,6 +436,7 @@ void Sprite::RegistLua()
 
 		.property("name", &GetName, &SetName)
 		.property("alpha", &GetAlpha, &SetAlpha)
+		.property("col", &GetColor, &SetColor)
 		.property("x", &GetX, &SetX)
 		.property("y", &GetY, &SetY)
 		.property("z", &GetZ, &SetZ)
