@@ -26,12 +26,12 @@ local SCORE_X = 500
 local SCORE_Y = 5
 
 local POINT_PERFECT_BOUNUS = 5000
-local POINT_ZAKO 				= 100
-local POINT_CELES 			= 300
-local POINT_ROCK 				= 50
-local POINT_USE_CHARGE2	= 200
+local POINT_ZAKO 					= 100
+local POINT_CELES 				= 300
+local POINT_ROCK 					= 50
+local POINT_USE_CHARGE2		= 200
 local POINT_PLAYER_ROCK_HIT	= -50
-local POINT_ITEM 				= 1000
+local POINT_ITEM 					= 500
 
 local FLOAT_POINT_Y_ZAKO		= 0
 local FLOAT_POINT_Y_CELES		= 0
@@ -455,14 +455,14 @@ function Stage:StateStartDemo1(rt)
 	self:MsgWait("山火、彼はニホンイチうつくしく　つよいニンジャである。")
 	self:Wait(60)
 	self:MsgWait("そんな彼の今回のニンムは・・・・・・")
-	self:Wait(120)
+	self:Wait(240)
 	self:ClearMsg()
 	
 	self:SetMsgSize(40)
 	self:SetMsgWait(15)
 	self:MsgWait("秋田ユリホン城の")
 	self:MsgWait("トモミ姫とカケオチ")
-	rt:Wait(120)
+	rt:Wait(240)
 	self:CloseMsg(30)
 	
 	local height = 10
@@ -527,19 +527,22 @@ function Stage:StateStartDemo2(rt)
 
 	self:BeginMsg(30)
 	self:MsgWait("奥さん「もしもし？ポリスの方ザマス？")
-	self:Wait(30)
+	self:Wait(60)
 	self:MsgWait("うちのトモちゃんがドブネズミに狙われているので")
-	self:MsgWait("何とかしてほしいザマス。」")
-	self:Wait(90)
+	self:MsgWait("何とかしてほしいザマス」")
+	self:Wait(240)
+	self:CloseMsg(30)
 	
 	-- zoom フェードアウト
 	self:FadeSprWait(zoomSpr, 60, 1, 0)
 	self:Wait(60)
 	
-	self:ClearMsg()
+	self:Wait(30)
+	self:BeginMsg(30)
+	self:Wait(60)
 	self:MsgWait("セレスっち「ぬまぁ！！私のヤマビちゃんを")
 	self:MsgWait("トモミなんかに取られてなるもんですか！！」")
-	self:Wait(120)
+	self:Wait(240)
 	
 	-- フェードアウト
 	self.game:BeginFadeOut(20)
@@ -606,8 +609,8 @@ function Stage:StateStartDemo3(rt)
 	
 	self:BeginMsg(30)
 	self:MsgWait("セレスっち「ぜったい！ぜぇーったい！")
-	self:MsgWait("ヤマビちゃんは私のものなんだからぁーーーん！！")
-	self:Wait(120)
+	self:MsgWait("ヤマビちゃんは私のものなんだからぁーーーん！！」")
+	self:Wait(240)
 	self:CloseMsg(30)
 	
 	-- 暗転
@@ -792,9 +795,16 @@ function Stage:StateShownResult3(rt)
 	rt:Wait(120)
 	
  	self:BeginMsg(30)
-	self:MsgWait("トモミ姫「まあ！来てくれたのですか！トモミ、感激ぃ！")
-	self:MsgWait("さあ、いきましょう。私たちの未来へ！！」")
-	self:Wait(120)
+	self:MsgWait("トモミ姫「まあ！来てくれたのですか！トモミ、感激ぃ！」")
+	self:Wait(240)
+
+	self:ClearMsg()
+	self:Wait(30)
+	
+	self:SetMsgSize(40)
+	self:SetMsgWait(15)
+	self:MsgWait("さあ、いきましょう。私たちの未来へ！！")
+	self:Wait(240)
 	self:CloseMsg(30)
 	
 	-- フェードアウト
@@ -2863,7 +2873,7 @@ function MessageManager:SetWait(wait)
 end
 
 function MessageManager:StateFadeIn(rt)
-	local lastAlpha = 0.9
+	local lastAlpha = 0.6
 	local spr = self.backSpr
 	for i=1, self.fadeCnt do
 		spr.alpha = lastAlpha * (i / self.fadeCnt)
@@ -2904,9 +2914,10 @@ end
 
 function MessageManager:StateClose(rt)
 	local span = self.fadeCnt
-	for i=1, span do
-		self.backSpr.alpha 					= 1 - (i / span)
-		self.msgAct:GetSpr().alpha	= 1 - (i / span)
+	local tmp = self.backSpr.alpha
+	for i=span, 1, -1 do
+		self.backSpr.alpha 					= tmp * (i / span)
+		self.msgAct:GetSpr().alpha	= (i / span)
 		rt:Wait()
 	end
 	self:Exit()
