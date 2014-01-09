@@ -891,15 +891,43 @@ function Stage:StateEnding(rt)
 	while true do
 		rt:Wait()
 	end
-	
 end
+
 function Stage:StateEnding2(rt)
+	local sortAct = self:MakeDemoActor()
+	sortAct:Begin()
+	sortAct:ChangeFunc(function(hoge)
+		while true do
+			self:GetSpr():SortZ()
+			hoge:Wait()
+		end
+	end)
+
 	-- fade out
-	local span = 60
-	self.game:BeginFadeOut(span)
-	rt:Wait(span)
+	local span = 120
+
+	local topSpr = self:MakeDemoSpr()
+	topSpr:SetTextureMode("whitePix")
+	topSpr.z = - 10000
+	topSpr.drawWidth  = GetProperty("WindowWidth")
+	topSpr.drawHeight = GetProperty("WindowHeight")
+	self:FadeSprWait(topSpr, span, 0, 1)
 	
+	rt:Wait(30)
+	
+	local endSpr = self:MakeDemoSpr()
+	endSpr:SetTextMode2("äÆ", "aoyagi")
+	endSpr:SetCenter(endSpr.width / 2, endSpr.height / 2)
+	endSpr:SetPos(GetProperty("WindowWidth") / 2, GetProperty("WindowHeight") / 2, - 1000000)
+	self:GetSpr():SortZ()
+	
+	span = 60
+	self:FadeSprWait(endSpr, span, 0, 1)
+	rt:Wait(120)
+	
+	self:FadeSprWait(endSpr, span, 1, 0)
 	rt:Wait(60)
+	
 	
 	GS.Param.IsCleared = true
 	ChangeScreen(TitleScreen())
@@ -2641,7 +2669,7 @@ function StageResult:Begin()
 	self.hantAct:Begin()
 	self.hantAct:SetText(string.format("åÇîjêî %10d", hantCnt))
 	self.hantAct:Hide()
-	self.hantAct:SetPos(0, 40)
+	self.hantAct:SetPos(0, 60)
 	self.hantAct:ApplyPosToSpr()
 	self:AddChild(self.hantAct)
 	
@@ -2649,7 +2677,7 @@ function StageResult:Begin()
 	self.crashAct:Begin()
 	self.crashAct:SetText(string.format("è’ìÀêî %10d", self.idCnt[HANT_ID.CLASH_ROCK] or 0))
 	self.crashAct:Hide()
-	self.crashAct:SetPos(0, 80)
+	self.crashAct:SetPos(0, 90)
 	self.crashAct:ApplyPosToSpr()
 	self:AddChild(self.crashAct)
 
