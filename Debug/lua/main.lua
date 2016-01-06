@@ -10,7 +10,7 @@ GS = {
 	NextScreen = nil,
 	
 	IsDebug = true,
-	IsPlayBgm = false,
+	IsPlayBgm = true,
 	Param = {
 		IsCleared = true
 	},

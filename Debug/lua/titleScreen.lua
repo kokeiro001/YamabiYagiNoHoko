@@ -39,9 +39,8 @@ function TitleScreen:Begin()
 	self.menu:GetSpr().name = "menu"
 	self.menu:GetSpr():Show()
 	self:AddChild(self.menu)
-	self.menu:SetPos(0, 260)
 	
-	self.menu:AddMenuItem("任務開始", function()
+	self.menu:AddMenuItem("ゲーム開始", function()
 		self:ChangeRoutine("StateToGame")
 	end)
 	
@@ -61,6 +60,8 @@ function TitleScreen:Begin()
 	
 	if GS.Param.IsCleared then
 		self.menu:SetPos(0, 240)
+	else
+		self.menu:SetPos(0, 260)
 	end
 	self.menu:ApplyPosToSpr()
 	
