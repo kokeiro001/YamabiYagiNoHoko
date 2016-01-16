@@ -1,5 +1,6 @@
 #pragma once
 
+/// ゲームのプロパティ
 class Properties
 {
 	static std::string m_windowTitle;

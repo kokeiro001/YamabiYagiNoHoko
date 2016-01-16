@@ -1,5 +1,7 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdlib.h>
 
 #include <iostream>
@@ -17,10 +19,6 @@
 #include <boost\foreach.hpp>
 #include <boost\shared_ptr.hpp>
 #include <boost\enable_shared_from_this.hpp>
-
-#include "atlbase.h"
-#include "atlstr.h"
-#include "comutil.h"
 
 
 using namespace Selene;
@@ -43,7 +41,8 @@ enum eDirection
 	DOWN = 3
 };
 
-
+// メモリリークを検出するためのマクロ
+// https://msdn.microsoft.com/ja-jp/library/x98tx3cf(v=vs.100).aspxhttps://msdn.microsoft.com/ja-jp/library/x98tx3cf(v=vs.100).aspx
 #ifdef _DEBUG
    #ifndef DBG_NEW
       #define DBG_NEW new ( _NORMAL_BLOCK , __FILE__ , __LINE__ )

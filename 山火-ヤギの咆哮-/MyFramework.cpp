@@ -22,23 +22,27 @@ bool MyFramework::OnPowerInit()
 {
 	setlocale(LC_CTYPE, "JPN");
 
+  // TODO ビルド時にDLLを出力ディレクトリにコピーする？
 #if defined(SLN_DEBUG)
 	if ( !InitializeEngine( L"Selene.Debug.dll" ) )
 #else
 	if ( !InitializeEngine( L"Selene.dll" ) )
 #endif
 	{
+    // TODO エラーメッセージを表示する
 		return false;
 	}
 
-	// init lua
+	// Luaの仮想マシンを初期化する
 	if(!LuaHelper::GetInst()->Initialize()) return false;
 
+  // ウィンドウの情報を設定する
+  // TODO 外部ファイルに定義する？Luaのproperties.luaに書き込みたい
 	Properties::SetWindowTitle("山火-ヤギの咆哮-");
 	Properties::SetScreenWidth(640);
 	Properties::SetScreenHeight(360);
 
-
+  // SeleneのCoreを作成する。コイツを使ってゲームを動かす。
 	m_pCore = CreateCore();
 
 	// Window生成
@@ -48,12 +52,16 @@ bool MyFramework::OnPowerInit()
 													  Point2DI(Properties::GetScreenWidth(), Properties::GetScreenHeight()), 
 													  true, true ) ) return false;
 
+  // 画像関連の初期化
 	if ( !m_pCore->CreateGraphicsManager() ) return false;
 
+  // キーボード・マウス関連の初期化
 	if ( !m_pCore->CreateInputManager() ) return false;
 
+  // 音声関連の初期化
 	if ( !m_pCore->CreateSoundManager() ) return false;
 
+  // その他ファイル関連の初期化
 	if ( !m_pCore->CreateFileManager() ) return false;
 	const wchar_t* pFilePathList[] = {
 		L"data",
@@ -61,7 +69,7 @@ bool MyFramework::OnPowerInit()
 	};
 	m_pCore->GetFileManager()->UpdateRootPath( pFilePathList );
 
-	// load properties
+	// Luaで使用するプロパティを仮想マシンに読み込む
 	while(!(LuaHelper::GetInst()->DoFile("lua/properties.lua")))
 	{
 		std::string err = LuaHelper::GetInst()->GetErr();
@@ -120,25 +128,28 @@ bool MyFramework::OnPowerInit()
 	Properties::SetDefFontSize(GetLuaPropertyInt("DefFontSize"));
 	Properties::SetDefFontName(GetLuaPropertyString("DefFontName"));
 
+  // Luaスクリプトを全て読み込む。初回読み込み扱い。not reload mode
 	if(!ReloadLuaScripts("load")) return false;
 
-	Sprite::RegistLua();
+	
+  Sprite::RegistLua();
 
-
+  // 各種マネージャーの初期化
 	GraphicsManager::GetInst()->OnPowerInit(m_pCore->GetGraphicsManager());
 	InputManager::GetInst()->OnPowerInit(m_pCore->GetInputManager());
 	SoundManager::GetInst()->OnPowerInit(m_pCore->GetSoundManager());
 
 	DrawSystem::GetInst()->OnPowerInit();
 
-	// 
-	if(!LuaOnPower()) return false;
+	// Luaの仮想マシン上でLuaの初期化を行う
+  if(!LuaOnPower()) return false;
 
 	return true;
 }
 
 bool MyFramework::ReloadLuaScripts(std::string type)
 {
+  // リロードに成功する、リロードを取り消すまで無限にリロードを行う
 	while(true)
 	{
 		if( LuaHelper::GetInst()->ReloadLuaFiles(this, type) ) break;
@@ -150,17 +161,17 @@ bool MyFramework::ReloadLuaScripts(std::string type)
 
 void MyFramework::Exit(int code)
 {
+  // TODO exit codeを有効な値にする。今はダミーとして登録。
 	m_isExiting = true;
 }
 
 bool MyFramework::LuaOnPower()
 {
-	while(true)
+  // 初期化に成功する、アプリを終了するまで無限にリロードを行う
+	while(!m_isExiting)
 	{
 		try
 		{
-			if(m_isExiting) return false;
-
 			bool res = luabind::call_function<bool>(LuaHelper::GetInst()->GetLua(), "OnPower", this);
 			if(res) break;
 		}
@@ -186,6 +197,7 @@ int MyFramework::GetLuaPropertyInt(std::string name)
 
 void MyFramework::Run()
 {
+  // 初期化を行う
 	if(!OnPowerInit())
 	{
 		SAFE_RELEASE( m_pCore );
@@ -193,8 +205,10 @@ void MyFramework::Run()
 		return;
 	}
 
+  // メインループを開始する
 	DoMainLoop();
 
+  // リソースの履きを行う
 	DrawSystem::GetInst()->Dispose();
 	GraphicsManager::GetInst()->Dispose();
 	SoundManager::GetInst()->Dispose();
@@ -205,39 +219,45 @@ void MyFramework::Run()
 
 void MyFramework::DoMainLoop()
 {
-	while ( !m_isExiting 
-					&& m_pCore->DoEvent( Properties::GetFPS() )
-					&& !InputManager::GetInst()->IsKeyPush(Engine::Input::KEY_ESCAPE)
-					)
+	while ( !m_isExiting && 
+          m_pCore->DoEvent( Properties::GetFPS() ) &&
+          !InputManager::GetInst()->IsKeyPush(Engine::Input::KEY_ESCAPE)
+			  )
 	{
-		//m_pCore->GetGraphicsManager()->Clear( true, false, ColorF(0.50f,0.55f,0.50f) );
+    // 画面をクリアする
 		m_pCore->GetGraphicsManager()->Clear( true, false, ColorF(1.0f,1.0f,1.0f) );
 		
+    // ユーザーの入力情報、サウンドの情報を更新する
 		InputManager::GetInst()->Update();
 		SoundManager::GetInst()->Update();
 
-		m_pCore->FrameBegin();
+		m_pCore->FrameBegin();  // フレーム処理開始！
 
-		bool updateFaild = false;
+		bool updateSuccess = false;
 
 		try
 		{
+      // LuaスクリプトのUpdate関数を呼び出す
 			luabind::call_function<void>(LuaHelper::GetInst()->GetLua(), "Update");
+      updateSuccess = true;
 		}
 		catch(luabind::error e)
 		{
-			updateFaild = true;
+      // Update関数の実行に失敗した場合、エラーダイアログを表示したあと、全てのスクリプトをリロードする
 			LuaHelper::GetInst()->ShowErrorReloadDialog(this, e);
 			while(!m_isExiting && !ReloadLuaScripts("all")) ;
 			while(!m_isExiting && !LuaOnPower());
 		}
 
-		if(!updateFaild)
+    // Update関数の呼び出しに成功した場合、描画を行う。失敗した場合、描画をスキップする
+		if(updateSuccess)
 		{
 			DrawSystem::GetInst()->Draw();
 		}
 
-		m_pCore->FrameEnd();
+		m_pCore->FrameEnd();  // フレーム処理ここまで！
+
+    // 描画情報を通知し、実際にウィンドウに反映する
 		m_pCore->GetGraphicsManager()->Present();
 	}
 }

@@ -3,6 +3,7 @@
 typedef Graphics::Resource::ITexture Texture;
 typedef Graphics::Resource::Text::ITextData TextData;
 
+/// 画像の読み込み、破棄をコントロールする。インスタンスは一つのみ持つ。
 class GraphicsManager
 {
 
@@ -25,34 +26,58 @@ class GraphicsManager
 
 	void CreateSimpleTextures();
 
-
 public:
-	bool OnPowerInit(Graphics::IManager* mgr);
-	void Dispose();
-	static GraphicsManager* GetInst()
+  
+  /// インスタンスを取得する
+  static GraphicsManager* GetInst()
 	{
 		static GraphicsManager inst;
 		return &inst;
 	}
 
-	/// 上書き有りのロード
+  /// ゲーム起動時の初期化を行う
+	bool OnPowerInit(Graphics::IManager* mgr);
+
+  /// 読み込んだリソースを破棄する
+  void Dispose();
+
+	/// 画像を読み込む(上書き有り)
+  /// @param path 読み込む画像のファイルパス
+  /// @param name 読み込んだ画像を使用する際のエイリアス
 	void LoadTexture(const std::string path, const std::string name);
-	/// 上書き無しのロード
-	void LoadTexture2(const std::string path, const std::string name);
 
-	void LoadFont(const std::string fileName, const std::string fontName, const std::string registName);
+	/// 画像を読み込む(上書き無し)
+  /// @param path 読み込む画像のファイルパス
+  /// @param name 読み込んだ画像を使用する際のエイリアス
+  void LoadTexture2(const std::string path, const std::string name);
 
+	/// フォントを読み込む
+  /// @param path 読み込むフォントデータのファイルパス
+  /// @param fontName 読み込んだフォントの名前
+  /// @param registerName 読み込んだフォントを使用する際のエイリアス
+	void LoadFont(const std::string path, const std::string fontName, const std::string registName);
 
+  /// 指定した名前の画像を取得する
 	Texture* GetTexture(const std::string name);
-	Point2DI GetTextureSize(const std::string name);
-	Graphics::Simple::ITextRenderer* GetTextRenderer(std::string font, int size);
-	TextData* GetText(std::string font);
 
+  /// 指定した名前の画像の大きさを取得する
+	Point2DI GetTextureSize(const std::string name);
+
+  /// フォント、文字サイズを指定してテキストレンダラーを取得する
+	Graphics::Simple::ITextRenderer* GetTextRenderer(std::string font, int size);
+
+  /// テキスト描画用データを取得する
+	TextData* GetTextData(std::string font);
+
+  /// 指定した名前の画像を破棄する
 	void RemoveTexture(const std::string name);
+
+  /// 読み込んだ画像を全て破棄する
 	void ClearTexture();
 
 	Graphics::IManager* GetSeleneGrMgr() { return m_pManager; }
 	Graphics::Simple::ISpriteRenderer* GetSprite() { return m_pSprite; };
 
+	/// Luaで使用する機能を登録する
 	static void RegistLua();
 };

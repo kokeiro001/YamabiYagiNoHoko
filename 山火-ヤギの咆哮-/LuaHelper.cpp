@@ -23,16 +23,25 @@ int LuaHelper::ErrorCallback()
 
 	std::string err = lua_tostring(m_pLua, -1);
 	msg << "ERROR: " << err << "\n\nBacktrace:" << std::endl;
+
+  // スタックトレースを取得する
 	for (int stack_depth = 1; lua_getstack(m_pLua, stack_depth, &d); ++stack_depth)
 	{
+    // 取得できた情報を積んでいく
+
 		lua_getinfo(m_pLua, "Sln", &d);
 		msg << "#" << stack_depth << " ";
+
+    // エラー名
 		if (d.name) msg << "<" << d.namewhat << "> \"" << d.name << "\"";
 		else msg << "--";
 		msg << " (called";
 
+    // 行番号
 		if (d.currentline > 0) msg << " at line " << d.currentline;
 		msg << " in ";
+
+    // 関数名
 		if (d.linedefined > 0) msg << "function block between line " << d.linedefined << ".." << d.lastlinedefined << " of ";
 		msg << d.short_src << ")" << std::endl;
 	}
@@ -41,6 +50,7 @@ int LuaHelper::ErrorCallback()
 	lua_pop(m_pLua, 1);
 	lua_pushstring(m_pLua, msg.str().c_str());
 
+  // エラーメッセージとして追加する
 	AddErr(msg.str().c_str());
 
 	return 1;
@@ -50,11 +60,17 @@ bool LuaHelper::Initialize()
 {
 	ClearErr();
 
+  // Luaの仮想マシンを起動する
 	m_pLua = lua_open();
+
+  // Luaの標準ライブラリを読み込む
 	luaL_openlibs(m_pLua);
 
+  // デバッグ機能をスタックに積む
 	int top = lua_gettop(m_pLua);
 	lua_getglobal(m_pLua, "debug");
+
+  // 
 	if(!lua_isnil(m_pLua, -1))
 	{
 		lua_getfield(m_pLua, -1, "traceback");
@@ -149,6 +165,7 @@ int LuaHelper::LuaPrintToDebugWindows(lua_State *L)
 
 void LuaHelper::AnalyzeError(int resCall, const std::string location)
 {
+  // エラーコードを文字列に変換する
 	const char* reason = "";
 	switch(resCall)
 	{
@@ -159,9 +176,10 @@ void LuaHelper::AnalyzeError(int resCall, const std::string location)
 	default: break;
 	}
 
+  // TODO エラーを起こしてみる。未テスト
 	const char* message = lua_tostring(m_pLua, -1);
 	char errMes[1000];
-	sprintf_s(errMes, "%s : %s", location.c_str(), message);
+	sprintf_s(errMes, "reason=%s\n%s : %s", reason, location.c_str(), message);
 	SetErr(location, errMes);
 }
 
@@ -173,7 +191,6 @@ void LuaHelper::ClearErr()
 void LuaHelper::AddErr(const std::string message)
 {
 	strcat(m_err, message.c_str());
-	//sprintf_s(m_err, "%s\n%s", m_err, message);
 }
 
 void LuaHelper::SetErr(const std::string message)
@@ -188,12 +205,15 @@ void LuaHelper::SetErr(const std::string location, const std::string message)
 
 bool LuaHelper::DoFile(const std::string path)
 {
+  // スタックトレースを見るための関数を仕込む
 	int top = lua_gettop(m_pLua);
 	lua_pushcfunction(m_pLua, m_pGetStackTraceFunc);
 
+  // Luaスクリプトを読み込む
 	int resLoad = luaL_loadfile(m_pLua, path.c_str());
 	if(resLoad != 0)
 	{
+    // 開けなかったヨ
 		char location[300] = "";
 		sprintf_s(location, "loading file<%s>", path.c_str());
 		AnalyzeError(resLoad, location);
@@ -201,6 +221,7 @@ bool LuaHelper::DoFile(const std::string path)
 		return false;
 	}
 
+  // 実行結果を取得する
 	int resCall = lua_pcall(m_pLua, 0, 0, top + 1);
 
 	// エラー処理
@@ -213,6 +234,7 @@ bool LuaHelper::DoFile(const std::string path)
 		return false;
 	}
 
+  // スタックをファイル実行前の状態に戻す
 	lua_settop(m_pLua, top);
 	return true;
 }

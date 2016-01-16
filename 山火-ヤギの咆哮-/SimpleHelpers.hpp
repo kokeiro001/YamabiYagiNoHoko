@@ -1,21 +1,26 @@
 #pragma once
+
+/// ×X‚Æ‚µ‚½ƒwƒ‹ƒp[ŒQ
 class SimpleHelpers
 {
+  SimpleHelpers(void) {}
+  ~SimpleHelpers(void) {}
 public:
-	SimpleHelpers(void);
-	~SimpleHelpers(void);
 
+  /// std::string¨wchar_t*
 	static void StrToWChar(wchar_t* dest, std::string src)
 	{
 		mbstowcs(dest, src.c_str(), 128);
 	}
 
+  /// char*¨wchar_t
 	static void CharToWChar(wchar_t* dest, const char* src, int size)
 	{
 		mbstowcs(dest, src, size);
 	}
 
-	static void WcharToStr(std::string* dest, const const wchar_t* src)
+  /// wchar_t¨std::string
+	static void WcharToStr(std::string* dest, const wchar_t* src)
 	{
 		char nstring[128];
 		wcstombs(nstring, src, 128);

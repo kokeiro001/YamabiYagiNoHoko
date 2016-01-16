@@ -1,19 +1,23 @@
 #pragma once
 
 // Zがでかいほど奥に
+
+/// スプライトの描画座標を示す
 enum DrawPosType
 {
-	DRAWPOS_ABSOLUTE,
-	DRAWPOS_RELATIVE,
+	DRAWPOS_ABSOLUTE, ///< ウィンドウからの絶対座標
+	DRAWPOS_RELATIVE, ///< 親スプライトからの相対座標
 };
 
+/// テクスチャの内部分割手法を示す
 enum TextureDivType
 {
-	TEX_DIVTYPE_NONE,
-	TEX_DIVTYPE_SIMPLE,
-	TEX_DIVTYPE_USER,
+	TEX_DIVTYPE_NONE, ///< 分割しない
+	TEX_DIVTYPE_SIMPLE, ///< 等分割する
+	TEX_DIVTYPE_USER, ///< ユーザーが指定した矩形群で分割する
 };
 
+/// スプライト機能を提供する
 class Sprite
 	: public boost::enable_shared_from_this<Sprite>
 {
@@ -22,10 +26,11 @@ protected:
 
 	typedef std::list<boost::shared_ptr<Sprite>>::iterator Itr;
 
+  /// 表示モードを示す
 	enum Mode{
-		SPR_NONE,
-		SPR_TEXTURE,
-		SPR_TEXT,
+		SPR_NONE,     /// 非表示
+		SPR_TEXTURE,  /// テクスチャ描画
+		SPR_TEXT,     /// テキスト描画
 	};
 
 	Mode m_mode;
@@ -34,25 +39,26 @@ protected:
 
 	std::string m_name;
 
+	float m_alpha;
+
+  // position
 	float m_x;
 	float m_y;
 	float m_z;
-	float m_alpha;
 
+  // size
 	float m_width;
 	float m_height;
 	float m_drawWidth;
 	float m_drawHeight;
 
+  // draw params
 	float m_centerX;
 	float m_centerY;
 	float m_rot;
 	float m_rotOffcetX;
 	float m_rotOffcetY;
 
-	Engine::Graphics::Resource::ITexture* m_pTexBuf;
-	ColorF m_textureColor;
-	TextureDivType m_divType;
 	// simple div
 	int m_divDrawTexIdx;
 	int m_divX, m_divY;
@@ -61,6 +67,11 @@ protected:
 	// user div
 	int m_srcX, m_srcY;
 	int m_srcW, m_srcH;
+
+  // texture params
+	Engine::Graphics::Resource::ITexture* m_pTexBuf;
+	ColorF m_textureColor;
+	TextureDivType m_divType;
 
 	// text data
 	bool m_useTextRenderer;
@@ -74,8 +85,11 @@ protected:
 	boost::weak_ptr<Sprite> m_pParent;
 	std::list<boost::shared_ptr<Sprite>> m_children;
 
+  /// 設定されたテクスチャ情報を用いて、自身が保持する大きさの情報を更新する。
 	void UpdateSize();
+
 public:
+
 	Sprite();
 	virtual ~Sprite();
 
@@ -149,52 +163,83 @@ public:
 	int const GetDivDrawTexIdx() { return m_divDrawTexIdx; }
 	void			SetDivDrawTexIdx(int idx) { m_divDrawTexIdx = idx; }
 
-	bool IsDraw() const { return m_isDraw; }
-	void Show() { m_isDraw = true; }
-	void Hide() { m_isDraw = false; }
+	bool IsDraw() const { return m_isDraw; }  ///< 表示・非表示の状態を取得する
+	void Show() { m_isDraw = true; }  ///< 描画する状態にする
+	void Hide() { m_isDraw = false; } ///< 描画しない状態にする
 
+  /// ウィンドウからの絶対座標で描画する状態にする
 	void SetDrawPosAbsolute() { m_posType = DRAWPOS_ABSOLUTE; }
-	void SetDrawPosRelative() { m_posType = DRAWPOS_RELATIVE; }
 
+  /// 親スプライトからの相対座標で描画する状態にする
+  void SetDrawPosRelative() { m_posType = DRAWPOS_RELATIVE; }
+
+  /// 指定したエイリアスのテクスチャを用いて、描画モードをテクスチャに設定する
 	void SetTextureMode(const char* name);
+
+  /// 等分割したテクスチャを描画するモードの切替える
+  /// @param name テクスチャのエイリアス
+  /// @param xnum X方向の分割数
+  /// @param ynum Y方向の分割数
+  /// @param width 分割後のテクスチャの幅(除算による誤差の影響を抑えるために必要)
+  /// @param height 分割後のテクスチャの高さ(除算による誤差の影響を抑えるために必要)
 	void SetDivTextureMode(const char* name, int xnum, int ynum, int width, int height);
+
+  /// テクスチャを描画する際、描画に使用する範囲を指定する
 	void SetTextureSrc(int x, int y, int w, int h);
-	void SetTextureColorF(ColorF color);
+
+  void SetTextureColorF(ColorF color);  ///< テクスチャの描画色を設定する
 	
+
+  /// テキスト描画モードにする
 	void SetTextMode(const char* text);
-	void SetTextMode2(const char* text, const char* font);
+
+  /// フォントを指定してテキスト描画モードにする
+  void SetTextMode2(const char* text, const char* font);
+
+  /// 描画するテキストを設定する
 	void SetText(const char* text);
-	std::string GetText();
-	void SetTextColorF(ColorF color);
-	void SetTextColor1(float r, float g, float b);
-	void SetTextColor255(int r, int g, int b);
-	void SetFontSize(int size);
+
+  /// テキストを取得する
+  std::string GetText();
+	void SetTextColorF(ColorF color);               ///< テキストの描画色を設定する
+	void SetTextColor1(float r, float g, float b);  ///< テキストの描画色を設定する(0.0-1.0)
+	void SetTextColor255(int r, int g, int b);      ///< テキストの描画色を設定する(0-255)
+	void SetFontSize(int size);                     ///< テキスト描画のフォントサイズを設定する
 
 
-	void AddChild(boost::shared_ptr<Sprite> chr);
-	void RemoveChild(boost::shared_ptr<Sprite> chr);
-	void ClearChild();
-	void SetParent(boost::shared_ptr<Sprite> parent) { m_pParent = parent; }
-	void RemoveFromParent();
-	void RemoveFromParentForce();
-	int GetChildCnt() { return m_children.size(); }
-	boost::shared_ptr<Sprite> GetChild(int idx);
+	void AddChild(boost::shared_ptr<Sprite> chr);   ///< 子スプライトを追加する
+	void RemoveChild(boost::shared_ptr<Sprite> chr);///< 子スプライトを削除する
+	void ClearChild();                              ///< 子スプライトを全て削除する
 
+	void SetParent(boost::shared_ptr<Sprite> parent) { m_pParent = parent; }  ///< 親スプライトを設定する
+	void RemoveFromParent();      ///< 親スプライトから自身を切り離す
+	void RemoveFromParentForce(); ///< 親スプライトから自身を強制的に切り離す(基本的に呼び出さないこと)
+	int GetChildCnt() { return m_children.size(); } ///< 子スプライトの数を取得する
+	boost::shared_ptr<Sprite> GetChild(int idx);    ///< 子スプライトを取得する
+
+  /// 自身を描画する
 	void DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY);
+
+  /// 子スプライトを含めて描画する
 	void Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY, int level);
+
+  /// 子スプライトをZ座標でソートする(Z座標が小さいほど手前に描画される)
 	void SortZ();
 
-	RectI GetBounds() { return RectI(m_x, m_y, m_width, m_height); }
+  /// 描画領域の大きさを取得する
+	RectI GetBounds() { return RectI((int)m_x, (int)m_y, (int)m_width, (int)m_height); }
 
+	/// Luaで使用する機能を登録する
 	static void RegistLua();
 };
 
 
-
+/// 描画システムを提供する
 class DrawSystem
 {
 	boost::shared_ptr<Sprite> m_baseSprite;
 	std::vector<boost::shared_ptr<Sprite>> m_sprites;
+
 public:
 	bool OnPowerInit();
 	static DrawSystem* GetInst()

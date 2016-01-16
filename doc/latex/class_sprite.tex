@@ -1,0 +1,418 @@
+\hypertarget{class_sprite}{}\section{Sprite Class Reference}
+\label{class_sprite}\index{Sprite@{Sprite}}
+
+
+スプライト機能を提供する  
+
+
+
+
+{\ttfamily \#include $<$Sprite\+Node.\+hpp$>$}
+
+Inheritance diagram for Sprite\+:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{class_sprite}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+boost\+::shared\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ {\bfseries Get\+Ptr} ()\hypertarget{class_sprite_af2665e7f459c2df1b74e69daaf44c19a}{}\label{class_sprite_af2665e7f459c2df1b74e69daaf44c19a}
+
+\item 
+void {\bfseries Set\+Pos} (float x, float y)\hypertarget{class_sprite_afea5e8f8f745b1db09b86f45943283af}{}\label{class_sprite_afea5e8f8f745b1db09b86f45943283af}
+
+\item 
+void {\bfseries Set\+Pos} (float x, float y, float z)\hypertarget{class_sprite_a31d06db54797d787445bee85b71f5dcd}{}\label{class_sprite_a31d06db54797d787445bee85b71f5dcd}
+
+\item 
+std\+::string const {\bfseries Get\+Name} ()\hypertarget{class_sprite_aa590f40b37b1a933aa373d907f5c8ae5}{}\label{class_sprite_aa590f40b37b1a933aa373d907f5c8ae5}
+
+\item 
+void {\bfseries Set\+Name} (std\+::string name)\hypertarget{class_sprite_a03e3fa1da28c44d7731cf09bba12fa08}{}\label{class_sprite_a03e3fa1da28c44d7731cf09bba12fa08}
+
+\item 
+float const {\bfseries GetX} ()\hypertarget{class_sprite_ad878be7d0af1494307f89cc8b4d06dbf}{}\label{class_sprite_ad878be7d0af1494307f89cc8b4d06dbf}
+
+\item 
+void {\bfseries SetX} (float x)\hypertarget{class_sprite_a87a083a64e6684aa8c5fe9965f3093af}{}\label{class_sprite_a87a083a64e6684aa8c5fe9965f3093af}
+
+\item 
+float const {\bfseries GetY} ()\hypertarget{class_sprite_ab639bc265bb54792c4bbf64dca743139}{}\label{class_sprite_ab639bc265bb54792c4bbf64dca743139}
+
+\item 
+void {\bfseries SetY} (float y)\hypertarget{class_sprite_ab5d4b3fd91f5c6d5bed02bf5eaf386ab}{}\label{class_sprite_ab5d4b3fd91f5c6d5bed02bf5eaf386ab}
+
+\item 
+float const {\bfseries GetZ} ()\hypertarget{class_sprite_a2aeadc82324dd417bd34e0e915dafecb}{}\label{class_sprite_a2aeadc82324dd417bd34e0e915dafecb}
+
+\item 
+void {\bfseries SetZ} (float z)\hypertarget{class_sprite_a567604b2b89b44baa6f01bb84da96768}{}\label{class_sprite_a567604b2b89b44baa6f01bb84da96768}
+
+\item 
+float const {\bfseries Get\+Alpha} ()\hypertarget{class_sprite_abfa0b7e0e9481a6692f9923db2aa91f0}{}\label{class_sprite_abfa0b7e0e9481a6692f9923db2aa91f0}
+
+\item 
+void {\bfseries Set\+Alpha} (float alpha)\hypertarget{class_sprite_a9c313cc32eac1f56890fc4fd8786e13a}{}\label{class_sprite_a9c313cc32eac1f56890fc4fd8786e13a}
+
+\item 
+ColorF const {\bfseries Get\+Color} ()\hypertarget{class_sprite_a018bea36d97ae24020766bd4e6bc7916}{}\label{class_sprite_a018bea36d97ae24020766bd4e6bc7916}
+
+\item 
+void {\bfseries Set\+Color} (ColorF color)\hypertarget{class_sprite_a840d056169580917d428cab4fe16b57e}{}\label{class_sprite_a840d056169580917d428cab4fe16b57e}
+
+\item 
+float const {\bfseries Get\+Width} ()\hypertarget{class_sprite_ac48454d9f731d63bbb587a9b755de579}{}\label{class_sprite_ac48454d9f731d63bbb587a9b755de579}
+
+\item 
+void {\bfseries Set\+Width} (float width)\hypertarget{class_sprite_afb09c8cac9d843a2fc55aaad1df77b25}{}\label{class_sprite_afb09c8cac9d843a2fc55aaad1df77b25}
+
+\item 
+float const {\bfseries Get\+Height} ()\hypertarget{class_sprite_a52d8add95194880591d25993028d37f7}{}\label{class_sprite_a52d8add95194880591d25993028d37f7}
+
+\item 
+void {\bfseries Set\+Height} (float height)\hypertarget{class_sprite_a82d4aa5c5b44955daf604d4668b94882}{}\label{class_sprite_a82d4aa5c5b44955daf604d4668b94882}
+
+\item 
+Point2\+DI {\bfseries Get\+Origin\+Tex\+Size} ()\hypertarget{class_sprite_ab5e6db0adf89e3cf653f3f82d86c1246}{}\label{class_sprite_ab5e6db0adf89e3cf653f3f82d86c1246}
+
+\item 
+float const {\bfseries Get\+Draw\+Width} ()\hypertarget{class_sprite_afa906d1a181384865893c2b0449c8317}{}\label{class_sprite_afa906d1a181384865893c2b0449c8317}
+
+\item 
+void {\bfseries Set\+Draw\+Width} (float width)\hypertarget{class_sprite_abe5a865940faefa441c5a75c221c9298}{}\label{class_sprite_abe5a865940faefa441c5a75c221c9298}
+
+\item 
+float const {\bfseries Get\+Draw\+Height} ()\hypertarget{class_sprite_aa715da119494b5adb1b2d45349f43b0e}{}\label{class_sprite_aa715da119494b5adb1b2d45349f43b0e}
+
+\item 
+void {\bfseries Set\+Draw\+Height} (float height)\hypertarget{class_sprite_ae7962b547e176617f7fd2c9e7e425426}{}\label{class_sprite_ae7962b547e176617f7fd2c9e7e425426}
+
+\item 
+void {\bfseries Set\+Center} (float x, float y)\hypertarget{class_sprite_a7ac80cebb5d5f28ab2368dab973c1024}{}\label{class_sprite_a7ac80cebb5d5f28ab2368dab973c1024}
+
+\item 
+float const {\bfseries Get\+CenterX} ()\hypertarget{class_sprite_af706187c7fafdce2735eda41704dd313}{}\label{class_sprite_af706187c7fafdce2735eda41704dd313}
+
+\item 
+void {\bfseries Set\+CenterX} (float x)\hypertarget{class_sprite_a77d64ed38fcfe7be5133cd4718ad555a}{}\label{class_sprite_a77d64ed38fcfe7be5133cd4718ad555a}
+
+\item 
+float const {\bfseries Get\+CenterY} ()\hypertarget{class_sprite_a02209dd06e503979d253f40adf64e0d3}{}\label{class_sprite_a02209dd06e503979d253f40adf64e0d3}
+
+\item 
+void {\bfseries Set\+CenterY} (float y)\hypertarget{class_sprite_afafaa5878dfa4cf152fed8ae250ed3a1}{}\label{class_sprite_afafaa5878dfa4cf152fed8ae250ed3a1}
+
+\item 
+float const {\bfseries Get\+Rot} ()\hypertarget{class_sprite_a2396892e7d1e6f23aa0cd4e2f8c98a1e}{}\label{class_sprite_a2396892e7d1e6f23aa0cd4e2f8c98a1e}
+
+\item 
+void {\bfseries Set\+Rot} (float rot)\hypertarget{class_sprite_a6ba917cb5b9ee64513b442ffca992c45}{}\label{class_sprite_a6ba917cb5b9ee64513b442ffca992c45}
+
+\item 
+float const {\bfseries Get\+Rot\+OffcetX} ()\hypertarget{class_sprite_ae8334552f5e09e1e753d7b7a85dab305}{}\label{class_sprite_ae8334552f5e09e1e753d7b7a85dab305}
+
+\item 
+void {\bfseries Set\+Rot\+OffcetX} (float x)\hypertarget{class_sprite_a132e465221d9172fe96407c4ae00d3e3}{}\label{class_sprite_a132e465221d9172fe96407c4ae00d3e3}
+
+\item 
+float const {\bfseries Get\+Rot\+OffcetY} ()\hypertarget{class_sprite_a2e2406168106be0c582264f51616cb03}{}\label{class_sprite_a2e2406168106be0c582264f51616cb03}
+
+\item 
+void {\bfseries Set\+Rot\+OffcetY} (float y)\hypertarget{class_sprite_a0b8dd8b526142d02f5a49067d3b4c5cf}{}\label{class_sprite_a0b8dd8b526142d02f5a49067d3b4c5cf}
+
+\item 
+int const {\bfseries Get\+Div\+Draw\+Tex\+Idx} ()\hypertarget{class_sprite_a05987625c32ec55e2cc980d467396115}{}\label{class_sprite_a05987625c32ec55e2cc980d467396115}
+
+\item 
+void {\bfseries Set\+Div\+Draw\+Tex\+Idx} (int idx)\hypertarget{class_sprite_a7921c100391fa7461eedde66287006b5}{}\label{class_sprite_a7921c100391fa7461eedde66287006b5}
+
+\item 
+bool \hyperlink{class_sprite_a190e9dc44c2d90ad8f5697995d5be120}{Is\+Draw} () const \hypertarget{class_sprite_a190e9dc44c2d90ad8f5697995d5be120}{}\label{class_sprite_a190e9dc44c2d90ad8f5697995d5be120}
+
+\begin{DoxyCompactList}\small\item\em 表示・非表示の状態を取得する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a5b1ddf57e50d7ff6628686c6b5d86efe}{Show} ()\hypertarget{class_sprite_a5b1ddf57e50d7ff6628686c6b5d86efe}{}\label{class_sprite_a5b1ddf57e50d7ff6628686c6b5d86efe}
+
+\begin{DoxyCompactList}\small\item\em 描画する状態にする \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a0daa142d5c6a7bd99680ab623ad0d61b}{Hide} ()\hypertarget{class_sprite_a0daa142d5c6a7bd99680ab623ad0d61b}{}\label{class_sprite_a0daa142d5c6a7bd99680ab623ad0d61b}
+
+\begin{DoxyCompactList}\small\item\em 描画しない状態にする \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a0ae1cdfd5e34c1f61ebfe9fd39b0fc72}{Set\+Draw\+Pos\+Absolute} ()\hypertarget{class_sprite_a0ae1cdfd5e34c1f61ebfe9fd39b0fc72}{}\label{class_sprite_a0ae1cdfd5e34c1f61ebfe9fd39b0fc72}
+
+\begin{DoxyCompactList}\small\item\em ウィンドウからの絶対座標で描画する状態にする \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_aec55bcf3fcbe90a59e08c0adf3a7dd62}{Set\+Draw\+Pos\+Relative} ()\hypertarget{class_sprite_aec55bcf3fcbe90a59e08c0adf3a7dd62}{}\label{class_sprite_aec55bcf3fcbe90a59e08c0adf3a7dd62}
+
+\begin{DoxyCompactList}\small\item\em 親スプライトからの相対座標で描画する状態にする \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a6dcfbb2e57eba1548dc5c244b993fe8a}{Set\+Texture\+Mode} (const char $\ast$name)\hypertarget{class_sprite_a6dcfbb2e57eba1548dc5c244b993fe8a}{}\label{class_sprite_a6dcfbb2e57eba1548dc5c244b993fe8a}
+
+\begin{DoxyCompactList}\small\item\em 指定したエイリアスのテクスチャを用いて、描画モードをテクスチャに設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a32c37cab456e545730d64c5b87757039}{Set\+Div\+Texture\+Mode} (const char $\ast$name, int xnum, int ynum, int width, int height)
+\item 
+void \hyperlink{class_sprite_a6a61fed0b01e45a727c79e2847b987c0}{Set\+Texture\+Src} (int x, int y, int w, int h)\hypertarget{class_sprite_a6a61fed0b01e45a727c79e2847b987c0}{}\label{class_sprite_a6a61fed0b01e45a727c79e2847b987c0}
+
+\begin{DoxyCompactList}\small\item\em テクスチャを描画する際、描画に使用する範囲を指定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_aa379c17355f7e4c2db4f4b83b12dadf7}{Set\+Texture\+ColorF} (ColorF color)\hypertarget{class_sprite_aa379c17355f7e4c2db4f4b83b12dadf7}{}\label{class_sprite_aa379c17355f7e4c2db4f4b83b12dadf7}
+
+\begin{DoxyCompactList}\small\item\em テクスチャの描画色を設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_ac21f74c27e5470ab2bd54fdfe4de0e3a}{Set\+Text\+Mode} (const char $\ast$text)\hypertarget{class_sprite_ac21f74c27e5470ab2bd54fdfe4de0e3a}{}\label{class_sprite_ac21f74c27e5470ab2bd54fdfe4de0e3a}
+
+\begin{DoxyCompactList}\small\item\em テキスト描画モードにする \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a8e3565ccc4488800e51b32cdd11a2420}{Set\+Text\+Mode2} (const char $\ast$text, const char $\ast$font)\hypertarget{class_sprite_a8e3565ccc4488800e51b32cdd11a2420}{}\label{class_sprite_a8e3565ccc4488800e51b32cdd11a2420}
+
+\begin{DoxyCompactList}\small\item\em フォントを指定してテキスト描画モードにする \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a99210c1ece23e87b442d88beabab511d}{Set\+Text} (const char $\ast$text)\hypertarget{class_sprite_a99210c1ece23e87b442d88beabab511d}{}\label{class_sprite_a99210c1ece23e87b442d88beabab511d}
+
+\begin{DoxyCompactList}\small\item\em 描画するテキストを設定する \end{DoxyCompactList}\item 
+std\+::string \hyperlink{class_sprite_ada760c966df1e9bf4ae99258ce9d415f}{Get\+Text} ()\hypertarget{class_sprite_ada760c966df1e9bf4ae99258ce9d415f}{}\label{class_sprite_ada760c966df1e9bf4ae99258ce9d415f}
+
+\begin{DoxyCompactList}\small\item\em テキストを取得する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_aee4258d6eeeff4d498e8b9c2f10be7e2}{Set\+Text\+ColorF} (ColorF color)\hypertarget{class_sprite_aee4258d6eeeff4d498e8b9c2f10be7e2}{}\label{class_sprite_aee4258d6eeeff4d498e8b9c2f10be7e2}
+
+\begin{DoxyCompactList}\small\item\em テキストの描画色を設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_aa888b89fabd743e903efa2402d002f46}{Set\+Text\+Color1} (float r, float g, float b)\hypertarget{class_sprite_aa888b89fabd743e903efa2402d002f46}{}\label{class_sprite_aa888b89fabd743e903efa2402d002f46}
+
+\begin{DoxyCompactList}\small\item\em テキストの描画色を設定する(0.\+0-\/1.\+0) \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a32887a481da8a5e23e072b3747a8f798}{Set\+Text\+Color255} (int r, int g, int b)\hypertarget{class_sprite_a32887a481da8a5e23e072b3747a8f798}{}\label{class_sprite_a32887a481da8a5e23e072b3747a8f798}
+
+\begin{DoxyCompactList}\small\item\em テキストの描画色を設定する(0-\/255) \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a13145ca2b7ad2f0881f2a06b31fa2937}{Set\+Font\+Size} (int size)\hypertarget{class_sprite_a13145ca2b7ad2f0881f2a06b31fa2937}{}\label{class_sprite_a13145ca2b7ad2f0881f2a06b31fa2937}
+
+\begin{DoxyCompactList}\small\item\em テキスト描画のフォントサイズを設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_ad90bd4a0eda1d12d37c4e740ce4c69d5}{Add\+Child} (boost\+::shared\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ chr)\hypertarget{class_sprite_ad90bd4a0eda1d12d37c4e740ce4c69d5}{}\label{class_sprite_ad90bd4a0eda1d12d37c4e740ce4c69d5}
+
+\begin{DoxyCompactList}\small\item\em 子スプライトを追加する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a25d21de7dc41150e49d10374c6fe227b}{Remove\+Child} (boost\+::shared\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ chr)\hypertarget{class_sprite_a25d21de7dc41150e49d10374c6fe227b}{}\label{class_sprite_a25d21de7dc41150e49d10374c6fe227b}
+
+\begin{DoxyCompactList}\small\item\em 子スプライトを削除する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a063c4d0a341d1ea48e17f3baa4f420a0}{Clear\+Child} ()\hypertarget{class_sprite_a063c4d0a341d1ea48e17f3baa4f420a0}{}\label{class_sprite_a063c4d0a341d1ea48e17f3baa4f420a0}
+
+\begin{DoxyCompactList}\small\item\em 子スプライトを全て削除する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a35deac40351bf9902cf89985ace6cdce}{Set\+Parent} (boost\+::shared\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ parent)\hypertarget{class_sprite_a35deac40351bf9902cf89985ace6cdce}{}\label{class_sprite_a35deac40351bf9902cf89985ace6cdce}
+
+\begin{DoxyCompactList}\small\item\em 親スプライトを設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a5cff0acb60cc920ba029370cf51189d6}{Remove\+From\+Parent} ()\hypertarget{class_sprite_a5cff0acb60cc920ba029370cf51189d6}{}\label{class_sprite_a5cff0acb60cc920ba029370cf51189d6}
+
+\begin{DoxyCompactList}\small\item\em 親スプライトから自身を切り離す \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a4ac35f129e53066caed4095346436988}{Remove\+From\+Parent\+Force} ()\hypertarget{class_sprite_a4ac35f129e53066caed4095346436988}{}\label{class_sprite_a4ac35f129e53066caed4095346436988}
+
+\begin{DoxyCompactList}\small\item\em 親スプライトから自身を強制的に切り離す(基本的に呼び出さないこと) \end{DoxyCompactList}\item 
+int \hyperlink{class_sprite_ab3c4588051c85b918427f2fc7418bc02}{Get\+Child\+Cnt} ()\hypertarget{class_sprite_ab3c4588051c85b918427f2fc7418bc02}{}\label{class_sprite_ab3c4588051c85b918427f2fc7418bc02}
+
+\begin{DoxyCompactList}\small\item\em 子スプライトの数を取得する \end{DoxyCompactList}\item 
+boost\+::shared\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ \hyperlink{class_sprite_a6a749d3a10f96778d41c215fbc44febc}{Get\+Child} (int idx)\hypertarget{class_sprite_a6a749d3a10f96778d41c215fbc44febc}{}\label{class_sprite_a6a749d3a10f96778d41c215fbc44febc}
+
+\begin{DoxyCompactList}\small\item\em 子スプライトを取得する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a876a63cc6e81caf295fbeb45563b2de6}{Draw\+This} (Engine\+::\+Graphics\+::\+Simple\+::\+I\+Sprite\+Renderer $\ast$p\+Spr, float baseX, float baseY)\hypertarget{class_sprite_a876a63cc6e81caf295fbeb45563b2de6}{}\label{class_sprite_a876a63cc6e81caf295fbeb45563b2de6}
+
+\begin{DoxyCompactList}\small\item\em 自身を描画する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_ad397965cd4e7cfc0c1fc9fead78c757d}{Draw} (Engine\+::\+Graphics\+::\+Simple\+::\+I\+Sprite\+Renderer $\ast$p\+Spr, float baseX, float baseY, int level)\hypertarget{class_sprite_ad397965cd4e7cfc0c1fc9fead78c757d}{}\label{class_sprite_ad397965cd4e7cfc0c1fc9fead78c757d}
+
+\begin{DoxyCompactList}\small\item\em 子スプライトを含めて描画する \end{DoxyCompactList}\item 
+void \hyperlink{class_sprite_a24a595468adde636a8b820874e20e1ca}{SortZ} ()\hypertarget{class_sprite_a24a595468adde636a8b820874e20e1ca}{}\label{class_sprite_a24a595468adde636a8b820874e20e1ca}
+
+\begin{DoxyCompactList}\small\item\em 子スプライトを\+Z座標でソートする(Z座標が小さいほど手前に描画される) \end{DoxyCompactList}\item 
+RectI \hyperlink{class_sprite_a5c2932082f60140474753006a3897287}{Get\+Bounds} ()\hypertarget{class_sprite_a5c2932082f60140474753006a3897287}{}\label{class_sprite_a5c2932082f60140474753006a3897287}
+
+\begin{DoxyCompactList}\small\item\em 描画領域の大きさを取得する \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static void \hyperlink{class_sprite_a15b80053ef337d4f35eed273302773ff}{Regist\+Lua} ()\hypertarget{class_sprite_a15b80053ef337d4f35eed273302773ff}{}\label{class_sprite_a15b80053ef337d4f35eed273302773ff}
+
+\begin{DoxyCompactList}\small\item\em Luaで使用する機能を登録する \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Types}
+\begin{DoxyCompactItemize}
+\item 
+enum \hyperlink{class_sprite_a7e6c7652514341b0ccd721166a1d00d1}{Mode} \{ {\bfseries S\+P\+R\+\_\+\+N\+O\+NE}, 
+\hyperlink{class_sprite_a7e6c7652514341b0ccd721166a1d00d1a8396f95eb7d47c37ce60278c02644cb3}{S\+P\+R\+\_\+\+T\+E\+X\+T\+U\+RE}, 
+\hyperlink{class_sprite_a7e6c7652514341b0ccd721166a1d00d1ab595e70dfd597d3d95865920928895cb}{S\+P\+R\+\_\+\+T\+E\+XT}
+ \}\begin{DoxyCompactList}\small\item\em 表示モードを示す \end{DoxyCompactList}
+\item 
+typedef std\+::list$<$ boost\+::shared\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ $>$\+::iterator {\bfseries Itr}\hypertarget{class_sprite_ac12e68e5dd906ef304b5e4997400371d}{}\label{class_sprite_ac12e68e5dd906ef304b5e4997400371d}
+
+\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{class_sprite_a8b785863b8ac6c285512a0c842d0fdbb}{Update\+Size} ()\hypertarget{class_sprite_a8b785863b8ac6c285512a0c842d0fdbb}{}\label{class_sprite_a8b785863b8ac6c285512a0c842d0fdbb}
+
+\begin{DoxyCompactList}\small\item\em 設定されたテクスチャ情報を用いて、自身が保持する大きさの情報を更新する。 \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+\hyperlink{class_sprite_a7e6c7652514341b0ccd721166a1d00d1}{Mode} {\bfseries m\+\_\+mode}\hypertarget{class_sprite_ada9da6a8ed8b81539e86b8ab0dde9d69}{}\label{class_sprite_ada9da6a8ed8b81539e86b8ab0dde9d69}
+
+\item 
+bool {\bfseries m\+\_\+is\+Draw}\hypertarget{class_sprite_ac9390a7e9c4605d29d888dcad59af234}{}\label{class_sprite_ac9390a7e9c4605d29d888dcad59af234}
+
+\item 
+Draw\+Pos\+Type {\bfseries m\+\_\+pos\+Type}\hypertarget{class_sprite_a23c37ce224637ae1f3fa146925618fc3}{}\label{class_sprite_a23c37ce224637ae1f3fa146925618fc3}
+
+\item 
+std\+::string {\bfseries m\+\_\+name}\hypertarget{class_sprite_aa62f8c64b12839b25ac67e2afbf2f040}{}\label{class_sprite_aa62f8c64b12839b25ac67e2afbf2f040}
+
+\item 
+float {\bfseries m\+\_\+alpha}\hypertarget{class_sprite_af13153e7ee278203552cf477cabda410}{}\label{class_sprite_af13153e7ee278203552cf477cabda410}
+
+\item 
+float {\bfseries m\+\_\+x}\hypertarget{class_sprite_a41e98ab9be3404db1fc7037bee042ab1}{}\label{class_sprite_a41e98ab9be3404db1fc7037bee042ab1}
+
+\item 
+float {\bfseries m\+\_\+y}\hypertarget{class_sprite_a62184d5c7605e5bd49b284c6249cb965}{}\label{class_sprite_a62184d5c7605e5bd49b284c6249cb965}
+
+\item 
+float {\bfseries m\+\_\+z}\hypertarget{class_sprite_a9cca3a51a0392d947676cc3c9858c778}{}\label{class_sprite_a9cca3a51a0392d947676cc3c9858c778}
+
+\item 
+float {\bfseries m\+\_\+width}\hypertarget{class_sprite_aff10eb00cfd126b2433c72148d71c8d0}{}\label{class_sprite_aff10eb00cfd126b2433c72148d71c8d0}
+
+\item 
+float {\bfseries m\+\_\+height}\hypertarget{class_sprite_a43feb4c9a3898a47c9a739b5912ddad7}{}\label{class_sprite_a43feb4c9a3898a47c9a739b5912ddad7}
+
+\item 
+float {\bfseries m\+\_\+draw\+Width}\hypertarget{class_sprite_add09b3c31ba419b81d8ae0acdfee33c9}{}\label{class_sprite_add09b3c31ba419b81d8ae0acdfee33c9}
+
+\item 
+float {\bfseries m\+\_\+draw\+Height}\hypertarget{class_sprite_a0b4b47e53f0b5bfeb5d6260298b36dea}{}\label{class_sprite_a0b4b47e53f0b5bfeb5d6260298b36dea}
+
+\item 
+float {\bfseries m\+\_\+centerX}\hypertarget{class_sprite_a7747583d8bcdb8ee521e7866049218e1}{}\label{class_sprite_a7747583d8bcdb8ee521e7866049218e1}
+
+\item 
+float {\bfseries m\+\_\+centerY}\hypertarget{class_sprite_abf5bc5a5f4ed5086da3508cef8ee9602}{}\label{class_sprite_abf5bc5a5f4ed5086da3508cef8ee9602}
+
+\item 
+float {\bfseries m\+\_\+rot}\hypertarget{class_sprite_a068051f63c91c7c497865b37812565e1}{}\label{class_sprite_a068051f63c91c7c497865b37812565e1}
+
+\item 
+float {\bfseries m\+\_\+rot\+OffcetX}\hypertarget{class_sprite_ad11d48338e82f142bceaaa36f45c5669}{}\label{class_sprite_ad11d48338e82f142bceaaa36f45c5669}
+
+\item 
+float {\bfseries m\+\_\+rot\+OffcetY}\hypertarget{class_sprite_aee6c233e07c4c154868bb75db0903db7}{}\label{class_sprite_aee6c233e07c4c154868bb75db0903db7}
+
+\item 
+int {\bfseries m\+\_\+div\+Draw\+Tex\+Idx}\hypertarget{class_sprite_a890a208987d08676ca568b3d9e832059}{}\label{class_sprite_a890a208987d08676ca568b3d9e832059}
+
+\item 
+int {\bfseries m\+\_\+divX}\hypertarget{class_sprite_a5835815afe183734d4b2895509c7717f}{}\label{class_sprite_a5835815afe183734d4b2895509c7717f}
+
+\item 
+int {\bfseries m\+\_\+divY}\hypertarget{class_sprite_ae1ced55597bd91f128bd6dc92162430a}{}\label{class_sprite_ae1ced55597bd91f128bd6dc92162430a}
+
+\item 
+int {\bfseries m\+\_\+divW}\hypertarget{class_sprite_ae56e8dfc134772a5208c1ed43c1e7a59}{}\label{class_sprite_ae56e8dfc134772a5208c1ed43c1e7a59}
+
+\item 
+int {\bfseries m\+\_\+divH}\hypertarget{class_sprite_a32a9fe14ba4a968560c8bf16a514c632}{}\label{class_sprite_a32a9fe14ba4a968560c8bf16a514c632}
+
+\item 
+int {\bfseries m\+\_\+srcX}\hypertarget{class_sprite_a6d9092d0007588dff19470a7f550a37e}{}\label{class_sprite_a6d9092d0007588dff19470a7f550a37e}
+
+\item 
+int {\bfseries m\+\_\+srcY}\hypertarget{class_sprite_a716aa1d64bf6ac00379f081259fde67b}{}\label{class_sprite_a716aa1d64bf6ac00379f081259fde67b}
+
+\item 
+int {\bfseries m\+\_\+srcW}\hypertarget{class_sprite_a97bafb109664b59eb7ca390c5cead173}{}\label{class_sprite_a97bafb109664b59eb7ca390c5cead173}
+
+\item 
+int {\bfseries m\+\_\+srcH}\hypertarget{class_sprite_a9ac3b201e89ec36289e07d1c2fd5eb2e}{}\label{class_sprite_a9ac3b201e89ec36289e07d1c2fd5eb2e}
+
+\item 
+Engine\+::\+Graphics\+::\+Resource\+::\+I\+Texture $\ast$ {\bfseries m\+\_\+p\+Tex\+Buf}\hypertarget{class_sprite_a6dcba95237c988ed4d993a8ff4ca658f}{}\label{class_sprite_a6dcba95237c988ed4d993a8ff4ca658f}
+
+\item 
+ColorF {\bfseries m\+\_\+texture\+Color}\hypertarget{class_sprite_aea3e77cd97e5cc826a07475ac06f3f7c}{}\label{class_sprite_aea3e77cd97e5cc826a07475ac06f3f7c}
+
+\item 
+Texture\+Div\+Type {\bfseries m\+\_\+div\+Type}\hypertarget{class_sprite_a9fd5ed190dec101502564732eaba8427}{}\label{class_sprite_a9fd5ed190dec101502564732eaba8427}
+
+\item 
+bool {\bfseries m\+\_\+use\+Text\+Renderer}\hypertarget{class_sprite_afc5e6315b779d8550fd081079984b209}{}\label{class_sprite_afc5e6315b779d8550fd081079984b209}
+
+\item 
+Engine\+::\+Graphics\+::\+Simple\+::\+I\+Text\+Renderer $\ast$ {\bfseries m\+\_\+p\+Text\+Rdr}\hypertarget{class_sprite_a4d3975b753781c3eb457539bea6c80fe}{}\label{class_sprite_a4d3975b753781c3eb457539bea6c80fe}
+
+\item 
+Graphics\+::\+Resource\+::\+Text\+::\+I\+Text\+Data $\ast$ {\bfseries m\+\_\+p\+Text\+Data}\hypertarget{class_sprite_aba79582eaee4411ad7971f706a259f70}{}\label{class_sprite_aba79582eaee4411ad7971f706a259f70}
+
+\item 
+wchar\+\_\+t {\bfseries m\+\_\+text} \mbox{[}M\+A\+X\+\_\+\+T\+E\+XT\mbox{]}\hypertarget{class_sprite_a7e22779568fcb5455c0c95b72e055b27}{}\label{class_sprite_a7e22779568fcb5455c0c95b72e055b27}
+
+\item 
+ColorF {\bfseries m\+\_\+text\+Color}\hypertarget{class_sprite_a5715eb71948a9edbd58d0e4bb6f55f3e}{}\label{class_sprite_a5715eb71948a9edbd58d0e4bb6f55f3e}
+
+\item 
+std\+::string {\bfseries m\+\_\+font\+Name}\hypertarget{class_sprite_a332be0e92f2fe2dbb72d1590a42af9eb}{}\label{class_sprite_a332be0e92f2fe2dbb72d1590a42af9eb}
+
+\item 
+int {\bfseries m\+\_\+font\+Size}\hypertarget{class_sprite_abe9f44c7754c66469f3bd55e626beaa5}{}\label{class_sprite_abe9f44c7754c66469f3bd55e626beaa5}
+
+\item 
+boost\+::weak\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ {\bfseries m\+\_\+p\+Parent}\hypertarget{class_sprite_a8f9fc0b824deb7d61fbbdbf8efc471a5}{}\label{class_sprite_a8f9fc0b824deb7d61fbbdbf8efc471a5}
+
+\item 
+std\+::list$<$ boost\+::shared\+\_\+ptr$<$ \hyperlink{class_sprite}{Sprite} $>$ $>$ {\bfseries m\+\_\+children}\hypertarget{class_sprite_a3d1fc94c57d9516cdef1a16f73c87e70}{}\label{class_sprite_a3d1fc94c57d9516cdef1a16f73c87e70}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Protected Attributes}
+\begin{DoxyCompactItemize}
+\item 
+static const int {\bfseries M\+A\+X\+\_\+\+T\+E\+XT} = 256\hypertarget{class_sprite_afc635126006821982a8dfece2b8acafc}{}\label{class_sprite_afc635126006821982a8dfece2b8acafc}
+
+\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+スプライト機能を提供する 
+
+\subsection{Member Enumeration Documentation}
+\index{Sprite@{Sprite}!Mode@{Mode}}
+\index{Mode@{Mode}!Sprite@{Sprite}}
+\subsubsection[{\texorpdfstring{Mode}{Mode}}]{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Sprite\+::\+Mode}\hspace{0.3cm}{\ttfamily [protected]}}\hypertarget{class_sprite_a7e6c7652514341b0ccd721166a1d00d1}{}\label{class_sprite_a7e6c7652514341b0ccd721166a1d00d1}
+
+
+表示モードを示す 
+
+\begin{Desc}
+\item[Enumerator]\par
+\begin{description}
+\index{S\+P\+R\+\_\+\+T\+E\+X\+T\+U\+RE@{S\+P\+R\+\_\+\+T\+E\+X\+T\+U\+RE}!Sprite@{Sprite}}\index{Sprite@{Sprite}!S\+P\+R\+\_\+\+T\+E\+X\+T\+U\+RE@{S\+P\+R\+\_\+\+T\+E\+X\+T\+U\+RE}}\item[{\em 
+S\+P\+R\+\_\+\+T\+E\+X\+T\+U\+RE\hypertarget{class_sprite_a7e6c7652514341b0ccd721166a1d00d1a8396f95eb7d47c37ce60278c02644cb3}{}\label{class_sprite_a7e6c7652514341b0ccd721166a1d00d1a8396f95eb7d47c37ce60278c02644cb3}
+}]非表示 \index{S\+P\+R\+\_\+\+T\+E\+XT@{S\+P\+R\+\_\+\+T\+E\+XT}!Sprite@{Sprite}}\index{Sprite@{Sprite}!S\+P\+R\+\_\+\+T\+E\+XT@{S\+P\+R\+\_\+\+T\+E\+XT}}\item[{\em 
+S\+P\+R\+\_\+\+T\+E\+XT\hypertarget{class_sprite_a7e6c7652514341b0ccd721166a1d00d1ab595e70dfd597d3d95865920928895cb}{}\label{class_sprite_a7e6c7652514341b0ccd721166a1d00d1ab595e70dfd597d3d95865920928895cb}
+}]テクスチャ描画 \end{description}
+\end{Desc}
+
+
+\subsection{Member Function Documentation}
+\index{Sprite@{Sprite}!Set\+Div\+Texture\+Mode@{Set\+Div\+Texture\+Mode}}
+\index{Set\+Div\+Texture\+Mode@{Set\+Div\+Texture\+Mode}!Sprite@{Sprite}}
+\subsubsection[{\texorpdfstring{Set\+Div\+Texture\+Mode(const char $\ast$name, int xnum, int ynum, int width, int height)}{SetDivTextureMode(const char *name, int xnum, int ynum, int width, int height)}}]{\setlength{\rightskip}{0pt plus 5cm}void Sprite\+::\+Set\+Div\+Texture\+Mode (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{name, }
+\item[{int}]{xnum, }
+\item[{int}]{ynum, }
+\item[{int}]{width, }
+\item[{int}]{height}
+\end{DoxyParamCaption}
+)}\hypertarget{class_sprite_a32c37cab456e545730d64c5b87757039}{}\label{class_sprite_a32c37cab456e545730d64c5b87757039}
+等分割したテクスチャを描画するモードの切替える 
+\begin{DoxyParams}{Parameters}
+{\em name} & テクスチャのエイリアス \\
+\hline
+{\em xnum} & X方向の分割数 \\
+\hline
+{\em ynum} & Y方向の分割数 \\
+\hline
+{\em width} & 分割後のテクスチャの幅(除算による誤差の影響を抑えるために必要) \\
+\hline
+{\em height} & 分割後のテクスチャの高さ(除算による誤差の影響を抑えるために必要) \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+山火-\/ヤギの咆哮-\//Sprite\+Node.\+hpp\item 
+山火-\/ヤギの咆哮-\//Sprite\+Node.\+cpp\end{DoxyCompactItemize}

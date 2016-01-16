@@ -25,21 +25,28 @@ void InputManager::Update()
 	Engine::Input::eKeyCode  keyCode;
 	KeyCntData value;
 	Engine::Input::IKeyboard* pKeyboard =	m_pIManager->GetKeyboard();
+
+  // 登録されたキーの押下状況を取得し、状態を更新する
 	foreach(boost::tie(keyCode, value), m_keyCounts)
 	{
 		if(pKeyboard->GetKeyData(keyCode))
 		{
+      // 押下されてる
 			m_keyCounts[keyCode].holdCnt++;
 			m_keyCounts[keyCode].freeCnt = 0;
 		}
 		else
 		{
+      // 押下されてない
 			m_keyCounts[keyCode].holdCnt = 0;
 			m_keyCounts[keyCode].freeCnt++;
 		}
 	}
 
+  // マウスの状態を更新する
 	Engine::Input::IMouse* pMouse =	m_pIManager->GetMouse();
+
+  // 左ボタン
 	if(pMouse->GetClickL())
 	{
 		m_mouseCounts[MOUSE_LEFT].holdCnt++;
@@ -50,7 +57,9 @@ void InputManager::Update()
 		m_mouseCounts[MOUSE_LEFT].holdCnt = 0;
 		m_mouseCounts[MOUSE_LEFT].freeCnt++;
 	}
-	if(pMouse->GetClickR())
+
+  // 右ボタン
+  if(pMouse->GetClickR())
 	{
 		m_mouseCounts[MOUSE_RIGHT].holdCnt++;
 		m_mouseCounts[MOUSE_RIGHT].freeCnt = 0;
@@ -60,6 +69,8 @@ void InputManager::Update()
 		m_mouseCounts[MOUSE_RIGHT].holdCnt = 0;
 		m_mouseCounts[MOUSE_RIGHT].freeCnt++;
 	}
+
+  // マウスの座標
 	m_mousePos.x = pMouse->GetPositionX();
 	m_mousePos.y = pMouse->GetPositionY();
 }
@@ -129,6 +140,7 @@ void InputManager::InitOnPower()
 {
 	AddAllKeys();
 
+  // マウスの入力状況を追加する。空の情報。
 	MouseCntData data = MouseCntData();
 	data.freeCnt = 0;
 	data.holdCnt = 0;
@@ -138,6 +150,7 @@ void InputManager::InitOnPower()
 
 void InputManager::AddUseKeyCode(Selene::Engine::Input::eKeyCode key)
 {
+  // 空のキー入力情報を追加する
 	KeyCntData data = KeyCntData();
 	data.freeCnt = 0;
 	data.holdCnt = 0;
@@ -146,6 +159,7 @@ void InputManager::AddUseKeyCode(Selene::Engine::Input::eKeyCode key)
 
 void InputManager::AddAllKeys()
 {
+  // 入力を監視するキーを登録する
 	AddUseKeyCode(Engine::Input::KEY_ESCAPE);
 	AddUseKeyCode(Engine::Input::KEY_RETURN);
 	AddUseKeyCode(Engine::Input::KEY_LCONTROL);

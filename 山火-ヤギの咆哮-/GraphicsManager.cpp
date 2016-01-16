@@ -6,6 +6,7 @@ typedef Graphics::Resource::Text::ITextData TextData;
 
 using namespace Selene::Engine::Graphics::Simple;
 
+// フォントを読み込む
 class FontSpriteTextureLoader
 	: public Engine::Graphics::Resource::IFileLoadListener
 {
@@ -52,10 +53,11 @@ void GraphicsManager::Dispose()
 
 void GraphicsManager::LoadTexture(const std::string path, const std::string name)
 {
+  // Luaから読み込んだ文字列を、Seleneで扱えるように変換する
 	wchar_t wpath[ 256 ];
 	SimpleHelpers::StrToWChar(wpath, path);
 
-
+  // 既にテクスチャを読み込んでいた場合、削除してから読み込む(実質上書き読み込みをする)
 	TextureMapItr itr = m_textures.find(name);
 	if(itr != m_textures.end())
 	{
@@ -68,12 +70,14 @@ void GraphicsManager::LoadTexture(const std::string path, const std::string name
 	Engine::File::IFile* pFile = GetCore()->GetFileManager()->OpenSyncFile( wpath );
 	if(!pFile)
 	{
+    // ファイルが見つからない！
 		std::stringstream msg;
 		msg << "FileNotFound.." << path << "\0" <<std::endl;
 		char err[128];
 		strcpy(err, msg.str().c_str());
 		throw err;
 	}
+
 	// テクスチャ作成で利用するパラメーター
 	Engine::Graphics::STextureLoadParameter Parameter = {
 		false,							// ファイルからそのまま読み込むかどうか（trueなら他のフラグを全部無視）
@@ -98,18 +102,16 @@ void GraphicsManager::LoadTexture(const std::string path, const std::string name
 void GraphicsManager::LoadTexture2(const std::string path, const std::string name)
 {
 	// 上書きなしのロード
-	if(m_textures.find(path) != m_textures.end()) return;
+
+  // 既に登録されている場合、スキップする
+	if(m_textures.find(name) != m_textures.end()) return;
 
 	LoadTexture(path, name);
-
-	//wchar_t wpath[ 256 ];
-	//SimpleHelpers::CharToWChar(wpath, path, 256);
-	//Texture* pTex = SeleneHelper::LoadTexture(wpath);
-	//m_textures.insert(Pair(name, pTex));
 }
 
 Texture* GraphicsManager::GetTexture(const std::string name)
 {
+  // 登録されてなかったら落とす
 	assert(m_textures.find(name) != m_textures.end());
 	return m_textures[name];
 }
@@ -119,7 +121,7 @@ Point2DI GraphicsManager::GetTextureSize(const std::string name)
 	return GetTexture(name)->GetTextureSize();
 }
 
-TextData* GraphicsManager::GetText(std::string font)
+TextData* GraphicsManager::GetTextData(std::string font)
 {
 	assert(m_texts.find(font) != m_texts.end());
 	return m_texts[font]; 
@@ -132,9 +134,11 @@ void GraphicsManager::LoadFont(const std::string fileName, const std::string fon
 	SimpleHelpers::StrToWChar(wFileName, fileName);
 	FontSpriteTextureLoader Loader;
 
+  // ファイルを開く
 	File::IFile* pFile = GetCore()->GetFileManager()->OpenSyncFile( wFileName );
 	File::IPackFile* pFontPack = GetCore()->GetFileManager()->CreatePackFile( pFile );
 
+  // ファイルを読み込む際のパラメータを設定する
 	Engine::Graphics::STextureLoadParameter Param;
 	Param.IsFromFile				= true;
 	Param.IsCompressFormat	= false;
@@ -142,12 +146,15 @@ void GraphicsManager::LoadFont(const std::string fileName, const std::string fon
 	Param.SizeDivide				= 1;
 	Param.ColorKey					= 0x00000000;
 
+  // Seleneで扱える文字形式に変換する
 	wchar_t wFontName[128];
 	SimpleHelpers::StrToWChar(wFontName, fontName);
 	if(!pFontPack->Seek( wFontName ))
 	{
-		MessageBox(NULL, "aaa", "bbb", 0);
+		MessageBox(NULL, "error", "file open error", 0);
 	}
+
+  // テキストデータを読み込む
 	Graphics::Resource::Text::ITextData*	pText = 
 			GetCore()->GetGraphicsManager()->CreateText(
 											pFontPack->GetData(),		// ファイルデータ
@@ -157,6 +164,7 @@ void GraphicsManager::LoadFont(const std::string fileName, const std::string fon
 											&Loader,					// リソース読み込み用リスナー
 											pFontPack );				// ユーザーデータ（Resource::IFileLoadListenerのpUserSetData引数）
 
+  // リソースを破棄する
 	SAFE_RELEASE( pFontPack );
 	SAFE_RELEASE( pFile );
 	m_texts.insert(TextMapPair(registName, pText));
@@ -198,11 +206,12 @@ void GraphicsManager::CreateSimpleTextures()
 {
 	namespace rc = Engine::Graphics::Resource;
 
-	// 真っ白にする
+  // 1x1のテクスチャを作成する
 	rc::ITexture*			pTexture = m_pManager->CreateCpuAccessTexture( Point2DI(1, 1), false, true );
 	rc::STextureLockInfo	stInfo;
-	if ( pTexture->Lock( stInfo ) == true )
+	if ( pTexture->Lock( stInfo ) )
 	{
+  	// 真っ白にする
 		memset( stInfo.pPixels, 0xFF, stInfo.Pitch * stInfo.Size.y );
 		pTexture->Unlock();
 		m_textures.insert(TextureMapPair("whitePix", pTexture));

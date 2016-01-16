@@ -1,0 +1,90 @@
+\hypertarget{class_lua_helper}{}\section{Lua\+Helper Class Reference}
+\label{class_lua_helper}\index{Lua\+Helper@{Lua\+Helper}}
+
+
+Luaを便利に利用するための機能を提供する  
+
+
+
+
+{\ttfamily \#include $<$Lua\+Helper.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+lua\+\_\+\+State $\ast$ {\bfseries Get\+Lua} ()\hypertarget{class_lua_helper_a3738931605b20ba3a93884f29f7dbb04}{}\label{class_lua_helper_a3738931605b20ba3a93884f29f7dbb04}
+
+\item 
+bool \hyperlink{class_lua_helper_aca3c0411f11bec8d43ffade1837ba7aa}{Initialize} ()\hypertarget{class_lua_helper_aca3c0411f11bec8d43ffade1837ba7aa}{}\label{class_lua_helper_aca3c0411f11bec8d43ffade1837ba7aa}
+
+\begin{DoxyCompactList}\small\item\em Luaを使用するための初期化を行う \end{DoxyCompactList}\item 
+void \hyperlink{class_lua_helper_ad4d67528e295aff02653287258f2f1c3}{Close} ()\hypertarget{class_lua_helper_ad4d67528e295aff02653287258f2f1c3}{}\label{class_lua_helper_ad4d67528e295aff02653287258f2f1c3}
+
+\begin{DoxyCompactList}\small\item\em 指定した\+Luaスクリプトを実行する \end{DoxyCompactList}\item 
+bool \hyperlink{class_lua_helper_a153924ff92fba4630eeae6f75d197c9d}{Reload\+Lua\+Files} (\hyperlink{class_my_framework}{My\+Framework} $\ast$appli, const std\+::string reload\+Type)\hypertarget{class_lua_helper_a153924ff92fba4630eeae6f75d197c9d}{}\label{class_lua_helper_a153924ff92fba4630eeae6f75d197c9d}
+
+\begin{DoxyCompactList}\small\item\em Luaスクリプトを読み込み直す \end{DoxyCompactList}\item 
+bool \hyperlink{class_lua_helper_ab9bb186436aa630ccb055bce2ca85878}{Do\+File} (const std\+::string path)\hypertarget{class_lua_helper_ab9bb186436aa630ccb055bce2ca85878}{}\label{class_lua_helper_ab9bb186436aa630ccb055bce2ca85878}
+
+\begin{DoxyCompactList}\small\item\em 指定した\+Luaスクリプトを実行する \end{DoxyCompactList}\item 
+int \hyperlink{class_lua_helper_adfce384395bce376e1ebb57a849ced5e}{Error\+Callback} ()\hypertarget{class_lua_helper_adfce384395bce376e1ebb57a849ced5e}{}\label{class_lua_helper_adfce384395bce376e1ebb57a849ced5e}
+
+\begin{DoxyCompactList}\small\item\em Luaスクリプトの実行中にエラーが発生した場合に呼び出される \end{DoxyCompactList}\item 
+std\+::string \hyperlink{class_lua_helper_a78f86c10afc8de57ba10317599b1a4a6}{Get\+Err} ()\hypertarget{class_lua_helper_a78f86c10afc8de57ba10317599b1a4a6}{}\label{class_lua_helper_a78f86c10afc8de57ba10317599b1a4a6}
+
+\begin{DoxyCompactList}\small\item\em 内部で保持しているエラーメッセージを取得する \end{DoxyCompactList}\item 
+bool \hyperlink{class_lua_helper_a18972f326b9a1306513a58fad8dc9384}{Show\+Error\+Reload\+Dialog} (\hyperlink{class_my_framework}{My\+Framework} $\ast$appli, luabind\+::error e)
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_lua_helper}{Lua\+Helper} $\ast$ \hyperlink{class_lua_helper_add03b0c9e9c0f79d00c77fe4b2893fe8}{Get\+Inst} ()\hypertarget{class_lua_helper_add03b0c9e9c0f79d00c77fe4b2893fe8}{}\label{class_lua_helper_add03b0c9e9c0f79d00c77fe4b2893fe8}
+
+\begin{DoxyCompactList}\small\item\em インスタンスを取得する \end{DoxyCompactList}\item 
+static int \hyperlink{class_lua_helper_ae251bbc22b4733af2aa5fc28734d51f8}{Lua\+Print\+To\+Debug\+Windows} (lua\+\_\+\+State $\ast$L)\hypertarget{class_lua_helper_ae251bbc22b4733af2aa5fc28734d51f8}{}\label{class_lua_helper_ae251bbc22b4733af2aa5fc28734d51f8}
+
+\begin{DoxyCompactList}\small\item\em Luaスクリプトから、\+Visual\+Studioのデバッグウィンドウに文字列を出力する \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Protected Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \hyperlink{class_lua_helper_af3908bd771ef0033a6b707fe6564179f}{Clear\+Err} ()\hypertarget{class_lua_helper_af3908bd771ef0033a6b707fe6564179f}{}\label{class_lua_helper_af3908bd771ef0033a6b707fe6564179f}
+
+\begin{DoxyCompactList}\small\item\em 内部で保持しているエラーメッセージを削除する \end{DoxyCompactList}\item 
+void \hyperlink{class_lua_helper_ac3eada7c179dea900429d765241753b6}{Add\+Err} (const std\+::string message)\hypertarget{class_lua_helper_ac3eada7c179dea900429d765241753b6}{}\label{class_lua_helper_ac3eada7c179dea900429d765241753b6}
+
+\begin{DoxyCompactList}\small\item\em エラーメッセージを追加する \end{DoxyCompactList}\item 
+void \hyperlink{class_lua_helper_a72d95ea138152397585d19ee6fd71e5c}{Set\+Err} (const std\+::string message)\hypertarget{class_lua_helper_a72d95ea138152397585d19ee6fd71e5c}{}\label{class_lua_helper_a72d95ea138152397585d19ee6fd71e5c}
+
+\begin{DoxyCompactList}\small\item\em エラーメッセージを設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_lua_helper_af92c7905c59ecd5d69e72b005241e51e}{Set\+Err} (const std\+::string location, const std\+::string message)\hypertarget{class_lua_helper_af92c7905c59ecd5d69e72b005241e51e}{}\label{class_lua_helper_af92c7905c59ecd5d69e72b005241e51e}
+
+\begin{DoxyCompactList}\small\item\em エラーが発生した箇所付きで、エラーメッセージを設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_lua_helper_ab40ba968a7d43f3eb87960ced519c6ba}{Analyze\+Error} (int res\+Call, const std\+::string location)\hypertarget{class_lua_helper_ab40ba968a7d43f3eb87960ced519c6ba}{}\label{class_lua_helper_ab40ba968a7d43f3eb87960ced519c6ba}
+
+\begin{DoxyCompactList}\small\item\em 整数値のエラーコードを適当なエラーメッセージに変換する \end{DoxyCompactList}\item 
+void \hyperlink{class_lua_helper_a45e61c6c772b84660ad8470ac0dde8a6}{Regist\+Lua} ()\hypertarget{class_lua_helper_a45e61c6c772b84660ad8470ac0dde8a6}{}\label{class_lua_helper_a45e61c6c772b84660ad8470ac0dde8a6}
+
+\begin{DoxyCompactList}\small\item\em Luaで使用する機能を登録する \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Luaを便利に利用するための機能を提供する 
+
+\subsection{Member Function Documentation}
+\index{Lua\+Helper@{Lua\+Helper}!Show\+Error\+Reload\+Dialog@{Show\+Error\+Reload\+Dialog}}
+\index{Show\+Error\+Reload\+Dialog@{Show\+Error\+Reload\+Dialog}!Lua\+Helper@{Lua\+Helper}}
+\subsubsection[{\texorpdfstring{Show\+Error\+Reload\+Dialog(\+My\+Framework $\ast$appli, luabind\+::error e)}{ShowErrorReloadDialog(MyFramework *appli, luabind::error e)}}]{\setlength{\rightskip}{0pt plus 5cm}bool Lua\+Helper\+::\+Show\+Error\+Reload\+Dialog (
+\begin{DoxyParamCaption}
+\item[{{\bf My\+Framework} $\ast$}]{appli, }
+\item[{luabind\+::error}]{e}
+\end{DoxyParamCaption}
+)}\hypertarget{class_lua_helper_a18972f326b9a1306513a58fad8dc9384}{}\label{class_lua_helper_a18972f326b9a1306513a58fad8dc9384}
+エラーが発生した祭、スクリプトを再読込するかどうかのダイアログを表示する \begin{DoxyReturn}{Returns}
+trueなら\+Luaスクリプトを再読込する 
+\end{DoxyReturn}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+山火-\/ヤギの咆哮-\//Lua\+Helper.\+hpp\item 
+山火-\/ヤギの咆哮-\//Lua\+Helper.\+cpp\end{DoxyCompactItemize}

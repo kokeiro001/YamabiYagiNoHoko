@@ -1,0 +1,76 @@
+\hypertarget{class_sound_manager}{}\section{Sound\+Manager Class Reference}
+\label{class_sound_manager}\index{Sound\+Manager@{Sound\+Manager}}
+
+
+B\+G\+M・効果音の読み込み、破棄をコントロールする。インスタンスは一つのみ持つ。  
+
+
+
+
+{\ttfamily \#include $<$Sound\+Manager.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{class_sound_manager_a826a69f197688c29747db3e3e6fccfd6}{On\+Power\+Init} (Engine\+::\+Sound\+::\+I\+Manager $\ast$mgr)\hypertarget{class_sound_manager_a826a69f197688c29747db3e3e6fccfd6}{}\label{class_sound_manager_a826a69f197688c29747db3e3e6fccfd6}
+
+\begin{DoxyCompactList}\small\item\em ゲーム起動時の初期化を行う \end{DoxyCompactList}\item 
+void \hyperlink{class_sound_manager_a5d6503973dd6c21ddc9cc28c5639a90c}{Dispose} ()\hypertarget{class_sound_manager_a5d6503973dd6c21ddc9cc28c5639a90c}{}\label{class_sound_manager_a5d6503973dd6c21ddc9cc28c5639a90c}
+
+\begin{DoxyCompactList}\small\item\em 読み込んだリソースを破棄する \end{DoxyCompactList}\item 
+void \hyperlink{class_sound_manager_a407accad9f868b7a46a48e45934cea5a}{Load\+Se} (const char $\ast$path, const char $\ast$name)
+\item 
+void \hyperlink{class_sound_manager_af768e0d4b39d800873424520129677af}{Play\+Se} (const char $\ast$name)\hypertarget{class_sound_manager_af768e0d4b39d800873424520129677af}{}\label{class_sound_manager_af768e0d4b39d800873424520129677af}
+
+\begin{DoxyCompactList}\small\item\em 効果音を再生する \end{DoxyCompactList}\item 
+void \hyperlink{class_sound_manager_a17ee381e92bfccb11a9d1a3e6196cf9c}{Set\+Se\+Vol} (const char $\ast$name, float vol)\hypertarget{class_sound_manager_a17ee381e92bfccb11a9d1a3e6196cf9c}{}\label{class_sound_manager_a17ee381e92bfccb11a9d1a3e6196cf9c}
+
+\begin{DoxyCompactList}\small\item\em 効果音の再生音量を設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sound_manager_afde94e06c3dfae20a1a5fdac588a39b8}{Play\+Bgm} (const char $\ast$path)\hypertarget{class_sound_manager_afde94e06c3dfae20a1a5fdac588a39b8}{}\label{class_sound_manager_afde94e06c3dfae20a1a5fdac588a39b8}
+
+\begin{DoxyCompactList}\small\item\em 指定したパスの音声ファイルを\+B\+G\+Mとして再生する \end{DoxyCompactList}\item 
+void \hyperlink{class_sound_manager_a8bbe5cc935eaeaeedd025c51f1b929a5}{Set\+Bgm\+Vol} (float vol)\hypertarget{class_sound_manager_a8bbe5cc935eaeaeedd025c51f1b929a5}{}\label{class_sound_manager_a8bbe5cc935eaeaeedd025c51f1b929a5}
+
+\begin{DoxyCompactList}\small\item\em B\+G\+Mの再生音量を設定する \end{DoxyCompactList}\item 
+void \hyperlink{class_sound_manager_aeb83bb96c5942eebe4c5e7fe4c782e88}{Stop\+Bgm} ()\hypertarget{class_sound_manager_aeb83bb96c5942eebe4c5e7fe4c782e88}{}\label{class_sound_manager_aeb83bb96c5942eebe4c5e7fe4c782e88}
+
+\begin{DoxyCompactList}\small\item\em 再生中の\+B\+G\+Mを停止する \end{DoxyCompactList}\item 
+void \hyperlink{class_sound_manager_aaf241621221cdbefeba78e8b6bc29240}{Update} ()\hypertarget{class_sound_manager_aaf241621221cdbefeba78e8b6bc29240}{}\label{class_sound_manager_aaf241621221cdbefeba78e8b6bc29240}
+
+\begin{DoxyCompactList}\small\item\em 内部処理の更新を行う。１フレームごとに呼び出してください。 \end{DoxyCompactList}\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_sound_manager}{Sound\+Manager} $\ast$ \hyperlink{class_sound_manager_ae70149d98807f4e24fe741270ca779c7}{Get\+Inst} ()\hypertarget{class_sound_manager_ae70149d98807f4e24fe741270ca779c7}{}\label{class_sound_manager_ae70149d98807f4e24fe741270ca779c7}
+
+\begin{DoxyCompactList}\small\item\em インスタンスを取得する \end{DoxyCompactList}\item 
+static void \hyperlink{class_sound_manager_a83ae53a10bd2c87604f3d68a922ea74f}{Regist\+Lua} ()\hypertarget{class_sound_manager_a83ae53a10bd2c87604f3d68a922ea74f}{}\label{class_sound_manager_a83ae53a10bd2c87604f3d68a922ea74f}
+
+\begin{DoxyCompactList}\small\item\em Luaで使用する機能を登録する \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+B\+G\+M・効果音の読み込み、破棄をコントロールする。インスタンスは一つのみ持つ。 
+
+\subsection{Member Function Documentation}
+\index{Sound\+Manager@{Sound\+Manager}!Load\+Se@{Load\+Se}}
+\index{Load\+Se@{Load\+Se}!Sound\+Manager@{Sound\+Manager}}
+\subsubsection[{\texorpdfstring{Load\+Se(const char $\ast$path, const char $\ast$name)}{LoadSe(const char *path, const char *name)}}]{\setlength{\rightskip}{0pt plus 5cm}void Sound\+Manager\+::\+Load\+Se (
+\begin{DoxyParamCaption}
+\item[{const char $\ast$}]{path, }
+\item[{const char $\ast$}]{name}
+\end{DoxyParamCaption}
+)}\hypertarget{class_sound_manager_a407accad9f868b7a46a48e45934cea5a}{}\label{class_sound_manager_a407accad9f868b7a46a48e45934cea5a}
+効果音を読み込む(上書き有り) 
+\begin{DoxyParams}{Parameters}
+{\em path} & 読み込む効果音ファイルのパス \\
+\hline
+{\em name} & 読み込んだ効果音を使用する際のエイリアス \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+山火-\/ヤギの咆哮-\//Sound\+Manager.\+hpp\item 
+山火-\/ヤギの咆哮-\//Sound\+Manager.\+cpp\end{DoxyCompactItemize}

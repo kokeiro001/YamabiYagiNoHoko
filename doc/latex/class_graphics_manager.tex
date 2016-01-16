@@ -1,0 +1,119 @@
+\hypertarget{class_graphics_manager}{}\section{Graphics\+Manager Class Reference}
+\label{class_graphics_manager}\index{Graphics\+Manager@{Graphics\+Manager}}
+
+
+画像の読み込み、破棄をコントロールする。インスタンスは一つのみ持つ。  
+
+
+
+
+{\ttfamily \#include $<$Graphics\+Manager.\+hpp$>$}
+
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \hyperlink{class_graphics_manager_a3855839d0ac22373eb85a821f88d7f77}{On\+Power\+Init} (Graphics\+::\+I\+Manager $\ast$mgr)\hypertarget{class_graphics_manager_a3855839d0ac22373eb85a821f88d7f77}{}\label{class_graphics_manager_a3855839d0ac22373eb85a821f88d7f77}
+
+\begin{DoxyCompactList}\small\item\em ゲーム起動時の初期化を行う \end{DoxyCompactList}\item 
+void \hyperlink{class_graphics_manager_aaffde352f9d9edcb7bc00c756b5ff7ec}{Dispose} ()\hypertarget{class_graphics_manager_aaffde352f9d9edcb7bc00c756b5ff7ec}{}\label{class_graphics_manager_aaffde352f9d9edcb7bc00c756b5ff7ec}
+
+\begin{DoxyCompactList}\small\item\em 読み込んだリソースを破棄する \end{DoxyCompactList}\item 
+void \hyperlink{class_graphics_manager_a5aaa3946913d78085220f1c112da82ca}{Load\+Texture} (const std\+::string path, const std\+::string name)
+\item 
+void \hyperlink{class_graphics_manager_a6d53401e0d3ef8f187ee7db70270056d}{Load\+Texture2} (const std\+::string path, const std\+::string name)
+\item 
+void \hyperlink{class_graphics_manager_a0dff6d46fc42021eba1d81d72c6946ed}{Load\+Font} (const std\+::string path, const std\+::string font\+Name, const std\+::string regist\+Name)
+\item 
+Texture $\ast$ \hyperlink{class_graphics_manager_a5fe2ed3a63f3cb65031b3d37c4dd3f0a}{Get\+Texture} (const std\+::string name)\hypertarget{class_graphics_manager_a5fe2ed3a63f3cb65031b3d37c4dd3f0a}{}\label{class_graphics_manager_a5fe2ed3a63f3cb65031b3d37c4dd3f0a}
+
+\begin{DoxyCompactList}\small\item\em 指定した名前の画像を取得する \end{DoxyCompactList}\item 
+Point2\+DI \hyperlink{class_graphics_manager_a42562ffd6abcab5004c37c7f0618d423}{Get\+Texture\+Size} (const std\+::string name)\hypertarget{class_graphics_manager_a42562ffd6abcab5004c37c7f0618d423}{}\label{class_graphics_manager_a42562ffd6abcab5004c37c7f0618d423}
+
+\begin{DoxyCompactList}\small\item\em 指定した名前の画像の大きさを取得する \end{DoxyCompactList}\item 
+Graphics\+::\+Simple\+::\+I\+Text\+Renderer $\ast$ \hyperlink{class_graphics_manager_a065f94529b70f799553df3072ceac127}{Get\+Text\+Renderer} (std\+::string font, int size)\hypertarget{class_graphics_manager_a065f94529b70f799553df3072ceac127}{}\label{class_graphics_manager_a065f94529b70f799553df3072ceac127}
+
+\begin{DoxyCompactList}\small\item\em フォント、文字サイズを指定してテキストレンダラーを取得する \end{DoxyCompactList}\item 
+Text\+Data $\ast$ \hyperlink{class_graphics_manager_a68d7a473286bc1fa1241c3218e8d34ba}{Get\+Text\+Data} (std\+::string font)\hypertarget{class_graphics_manager_a68d7a473286bc1fa1241c3218e8d34ba}{}\label{class_graphics_manager_a68d7a473286bc1fa1241c3218e8d34ba}
+
+\begin{DoxyCompactList}\small\item\em テキスト描画用データを取得する \end{DoxyCompactList}\item 
+void \hyperlink{class_graphics_manager_a819093e6f8ee7413de0ef25be2877f60}{Remove\+Texture} (const std\+::string name)\hypertarget{class_graphics_manager_a819093e6f8ee7413de0ef25be2877f60}{}\label{class_graphics_manager_a819093e6f8ee7413de0ef25be2877f60}
+
+\begin{DoxyCompactList}\small\item\em 指定した名前の画像を破棄する \end{DoxyCompactList}\item 
+void \hyperlink{class_graphics_manager_a0bbe7909f7987bb838adbc8c034ca175}{Clear\+Texture} ()\hypertarget{class_graphics_manager_a0bbe7909f7987bb838adbc8c034ca175}{}\label{class_graphics_manager_a0bbe7909f7987bb838adbc8c034ca175}
+
+\begin{DoxyCompactList}\small\item\em 読み込んだ画像を全て破棄する \end{DoxyCompactList}\item 
+Graphics\+::\+I\+Manager $\ast$ {\bfseries Get\+Selene\+Gr\+Mgr} ()\hypertarget{class_graphics_manager_a2b025fce8ae30d8348ee5808b003c059}{}\label{class_graphics_manager_a2b025fce8ae30d8348ee5808b003c059}
+
+\item 
+Graphics\+::\+Simple\+::\+I\+Sprite\+Renderer $\ast$ {\bfseries Get\+Sprite} ()\hypertarget{class_graphics_manager_a72ab812dcc17d07a03a094e943ae3d2a}{}\label{class_graphics_manager_a72ab812dcc17d07a03a094e943ae3d2a}
+
+\end{DoxyCompactItemize}
+\subsection*{Static Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+static \hyperlink{class_graphics_manager}{Graphics\+Manager} $\ast$ \hyperlink{class_graphics_manager_a09b2f99634be4c527cd1f0071e9760df}{Get\+Inst} ()\hypertarget{class_graphics_manager_a09b2f99634be4c527cd1f0071e9760df}{}\label{class_graphics_manager_a09b2f99634be4c527cd1f0071e9760df}
+
+\begin{DoxyCompactList}\small\item\em インスタンスを取得する \end{DoxyCompactList}\item 
+static void \hyperlink{class_graphics_manager_ac4260b1d9469a88564ad948cdaca9d21}{Regist\+Lua} ()\hypertarget{class_graphics_manager_ac4260b1d9469a88564ad948cdaca9d21}{}\label{class_graphics_manager_ac4260b1d9469a88564ad948cdaca9d21}
+
+\begin{DoxyCompactList}\small\item\em Luaで使用する機能を登録する \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+画像の読み込み、破棄をコントロールする。インスタンスは一つのみ持つ。 
+
+\subsection{Member Function Documentation}
+\index{Graphics\+Manager@{Graphics\+Manager}!Load\+Font@{Load\+Font}}
+\index{Load\+Font@{Load\+Font}!Graphics\+Manager@{Graphics\+Manager}}
+\subsubsection[{\texorpdfstring{Load\+Font(const std\+::string path, const std\+::string font\+Name, const std\+::string regist\+Name)}{LoadFont(const std::string path, const std::string fontName, const std::string registName)}}]{\setlength{\rightskip}{0pt plus 5cm}void Graphics\+Manager\+::\+Load\+Font (
+\begin{DoxyParamCaption}
+\item[{const std\+::string}]{path, }
+\item[{const std\+::string}]{font\+Name, }
+\item[{const std\+::string}]{regist\+Name}
+\end{DoxyParamCaption}
+)}\hypertarget{class_graphics_manager_a0dff6d46fc42021eba1d81d72c6946ed}{}\label{class_graphics_manager_a0dff6d46fc42021eba1d81d72c6946ed}
+フォントを読み込む 
+\begin{DoxyParams}{Parameters}
+{\em path} & 読み込むフォントデータのファイルパス \\
+\hline
+{\em font\+Name} & 読み込んだフォントの名前 \\
+\hline
+{\em register\+Name} & 読み込んだフォントを使用する際のエイリアス \\
+\hline
+\end{DoxyParams}
+\index{Graphics\+Manager@{Graphics\+Manager}!Load\+Texture@{Load\+Texture}}
+\index{Load\+Texture@{Load\+Texture}!Graphics\+Manager@{Graphics\+Manager}}
+\subsubsection[{\texorpdfstring{Load\+Texture(const std\+::string path, const std\+::string name)}{LoadTexture(const std::string path, const std::string name)}}]{\setlength{\rightskip}{0pt plus 5cm}void Graphics\+Manager\+::\+Load\+Texture (
+\begin{DoxyParamCaption}
+\item[{const std\+::string}]{path, }
+\item[{const std\+::string}]{name}
+\end{DoxyParamCaption}
+)}\hypertarget{class_graphics_manager_a5aaa3946913d78085220f1c112da82ca}{}\label{class_graphics_manager_a5aaa3946913d78085220f1c112da82ca}
+画像を読み込む(上書き有り) 
+\begin{DoxyParams}{Parameters}
+{\em path} & 読み込む画像のファイルパス \\
+\hline
+{\em name} & 読み込んだ画像を使用する際のエイリアス \\
+\hline
+\end{DoxyParams}
+\index{Graphics\+Manager@{Graphics\+Manager}!Load\+Texture2@{Load\+Texture2}}
+\index{Load\+Texture2@{Load\+Texture2}!Graphics\+Manager@{Graphics\+Manager}}
+\subsubsection[{\texorpdfstring{Load\+Texture2(const std\+::string path, const std\+::string name)}{LoadTexture2(const std::string path, const std::string name)}}]{\setlength{\rightskip}{0pt plus 5cm}void Graphics\+Manager\+::\+Load\+Texture2 (
+\begin{DoxyParamCaption}
+\item[{const std\+::string}]{path, }
+\item[{const std\+::string}]{name}
+\end{DoxyParamCaption}
+)}\hypertarget{class_graphics_manager_a6d53401e0d3ef8f187ee7db70270056d}{}\label{class_graphics_manager_a6d53401e0d3ef8f187ee7db70270056d}
+画像を読み込む(上書き無し) 
+\begin{DoxyParams}{Parameters}
+{\em path} & 読み込む画像のファイルパス \\
+\hline
+{\em name} & 読み込んだ画像を使用する際のエイリアス \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files\+:\begin{DoxyCompactItemize}
+\item 
+山火-\/ヤギの咆哮-\//Graphics\+Manager.\+hpp\item 
+山火-\/ヤギの咆哮-\//Graphics\+Manager.\+cpp\end{DoxyCompactItemize}

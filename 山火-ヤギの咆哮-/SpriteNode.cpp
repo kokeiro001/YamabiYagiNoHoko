@@ -119,6 +119,7 @@ void	Sprite::SetColor(ColorF color)
 
 void Sprite::SetTextureMode(const char* name)
 {
+  // 直前がテキスト描画モードだった場合、表示テキストを空にしておく
 	if(m_mode == SPR_TEXT)
 	{
 		SimpleHelpers::CharToWChar(m_text, "", MAX_TEXT);
@@ -131,8 +132,10 @@ void Sprite::SetTextureMode(const char* name)
 
 	UpdateSize();
 }
+
 void Sprite::SetDivTextureMode(const char* name, int xnum, int ynum, int w, int h)
 {
+  // 直前がテキスト描画モードだった場合、表示テキストを空にしておく
 	if(m_mode == SPR_TEXT)
 	{
 		SimpleHelpers::CharToWChar(m_text, "", MAX_TEXT);
@@ -149,10 +152,11 @@ void Sprite::SetDivTextureMode(const char* name, int xnum, int ynum, int w, int 
 	m_divW = w;
 	m_divH = h;
 
-	m_width		= w;
-	m_height	= h;
+	m_width		= (float)w;
+	m_height	= (float)h;
 	UpdateSize();
 }
+
 void Sprite::SetTextureSrc(int x, int y, int w, int h)
 {
 	m_divType = TEX_DIVTYPE_USER;
@@ -185,6 +189,7 @@ void Sprite::SetTextMode(const char* text)
 }
 void Sprite::SetTextMode2(const char* text, const char* fontName)
 {
+  // 直前がテクスチャ描画モードだった場合、リンクを切る
 	if(m_mode == SPR_TEXTURE)
 	{
 		m_pTexBuf = 0;
@@ -195,7 +200,7 @@ void Sprite::SetTextMode2(const char* text, const char* fontName)
 	m_isDraw = true;
 	m_fontName = fontName;
 	m_fontSize = Properties::GetDefFontSize();
-	m_pTextData = GraphicsManager::GetInst()->GetText(m_fontName);
+	m_pTextData = GraphicsManager::GetInst()->GetTextData(m_fontName);
 
 	SetText(text);
 }
@@ -205,6 +210,7 @@ void Sprite::SetText(const char* text)
 	SimpleHelpers::CharToWChar(m_text, text, MAX_TEXT);
 	UpdateSize();
 }
+
 std::string Sprite::GetText()
 {
 	std::string str;
@@ -226,7 +232,6 @@ void Sprite::SetFontSize(int size)
 			m_fontSize = size;
 		}
 		UpdateSize();
-
 	}
 }
 void Sprite::SetTextColorF(ColorF color)
@@ -244,25 +249,27 @@ void Sprite::SetTextColor255(int r, int g, int b)
 
 void Sprite::UpdateSize()
 {
+  // 描画時のサイズを更新する。描画モードに応じて計算方法が異なる
+
 	if(m_mode == SPR_TEXTURE)
 	{
 		if(m_divType == TEX_DIVTYPE_SIMPLE)
 		{
-			m_drawWidth = m_divW;
-			m_drawHeight = m_divH;
+			m_drawWidth = (float)m_divW;
+			m_drawHeight = (float)m_divH;
 		}
 		else if(m_divType == TEX_DIVTYPE_USER)
 		{
-			m_drawWidth = m_srcW;
-			m_drawHeight = m_srcH;
+			m_drawWidth = (float)m_srcW;
+			m_drawHeight = (float)m_srcH;
 		}
 		else
 		{
 			Point2DI texSize = m_pTexBuf->GetTextureSize();
-			m_width = texSize.x;
-			m_height = texSize.y;
-			m_drawWidth = texSize.x;
-			m_drawHeight = texSize.y;
+			m_width = (float)texSize.x;
+			m_height = (float)texSize.y;
+			m_drawWidth = (float)texSize.x;
+			m_drawHeight = (float)texSize.y;
 		}
 	}
 	else if(m_mode == SPR_TEXT)
@@ -270,18 +277,18 @@ void Sprite::UpdateSize()
 		if(m_useTextRenderer)
 		{
 			Point2DI size = m_pTextRdr->GetDrawSize(m_text);
-			m_width  = size.x;
-			m_height = size.y;
-			m_drawWidth = size.x;
-			m_drawHeight = size.y;
+			m_width  = (float)size.x;
+			m_height = (float)size.y;
+			m_drawWidth = (float)size.x;
+			m_drawHeight = (float)size.y;
 		}
 		else
 		{
 			Point2DI size = m_pTextData->GetDrawSize(m_text);
-			m_width  = size.x;
-			m_height = size.y;
-			m_drawWidth = size.x;
-			m_drawHeight = size.y;
+			m_width  = (float)size.x;
+			m_height = (float)size.y;
+			m_drawWidth = (float)size.x;
+			m_drawHeight = (float)size.y;
 		}
 	}
 }
@@ -292,20 +299,22 @@ Point2DI Sprite::GetOriginTexSize()
 
 void Sprite::DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, float baseY)
 {
+  // 補正後の基準となる座標
 	float revX = m_posType == DRAWPOS_ABSOLUTE ? 0 : baseX;
 	float revY = m_posType == DRAWPOS_ABSOLUTE ? 0 : baseY;
 	if(m_mode == SPR_TEXTURE)
 	{
+    // 描画で使用するテクスチャの範囲を求める
 		RectF src;
 		if(m_divType == TEX_DIVTYPE_SIMPLE)
 		{
 			int xidx = m_divDrawTexIdx % m_divX;
 			int yidx = m_divDrawTexIdx / m_divX;
-			src = RectF(xidx * m_divW, yidx * m_divH, m_divW, m_divH);
+			src = RectF((float)xidx * (float)m_divW, (float)yidx * (float)m_divH, (float)m_divW, (float)m_divH);
 		}
 		else if(m_divType == TEX_DIVTYPE_USER)
 		{
-			src = RectF(m_srcX, m_srcY, m_srcW, m_srcH);
+			src = RectF((float)m_srcX, (float)m_srcY, (float)m_srcW, (float)m_srcH);
 		}
 		else
 		{
@@ -333,7 +342,7 @@ void Sprite::DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float bas
 		{
 			m_pTextRdr->CacheReset();
 			m_pTextRdr->DrawRequest(
-				Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY), 
+				Point2DI((int)(m_x  - m_centerX + revX),(int)( m_y  - m_centerY + revY)), 
 				m_textColor, 
 				m_text);
 			m_pTextRdr->CacheDraw();
@@ -342,7 +351,7 @@ void Sprite::DrawThis(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float bas
 		{
 			m_pTextData->SetDrawFontSize(m_fontSize);
 			m_pTextData->DrawDirect(
-				Point2DI(m_x  - m_centerX + revX, m_y  - m_centerY + revY),
+				Point2DI((int)(m_x  - m_centerX + revX), (int)(m_y  - m_centerY + revY)),
 				m_textColor, 
 				m_text);
 		}
@@ -354,11 +363,12 @@ void Sprite::Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, 
 {
 	if(!m_isDraw) return;
 
+  // 補正後の基準となる座標
 	float revX = m_posType == DRAWPOS_ABSOLUTE ? 0 : baseX;
 	float revY = m_posType == DRAWPOS_ABSOLUTE ? 0 : baseY;
 
 
-	static boost::shared_ptr<Sprite> damy(new Sprite());
+	static boost::shared_ptr<Sprite> dummy(new Sprite());
 
 	if(m_children.empty())
 	{
@@ -366,12 +376,12 @@ void Sprite::Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, 
 	}
 	else
 	{
-		m_children.push_back(damy);
+		m_children.push_back(dummy);
 		//TODO:sort
 		//SortZ();
 		foreach(boost::shared_ptr<Sprite> chr, m_children)
 		{
-			if(chr == damy)
+			if(chr == dummy)
 			{
 				DrawThis(pSpr, baseX, baseY);
 			}
@@ -380,7 +390,7 @@ void Sprite::Draw(Engine::Graphics::Simple::ISpriteRenderer* pSpr, float baseX, 
 				chr->Draw(pSpr, m_x + revX, m_y + revY, level + 1);
 			}
 		}
-		m_children.remove(damy);
+		m_children.remove(dummy);
 	}
 }
 

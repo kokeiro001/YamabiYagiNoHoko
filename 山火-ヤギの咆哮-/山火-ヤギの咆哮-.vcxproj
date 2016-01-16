@@ -39,9 +39,11 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)_Out\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
+    <OutDir>$(SolutionDir)$(Configuration)_Out\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -49,15 +51,29 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\Lib\SeleneSDK-01.24l\Release\Engine\Include;D:\Lib\boost_1_45_0;$(ProjectDir)\lib;$(ProjectDir)\lib\lua\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\lib\SeleneSDK-01.24l\Include;$(ProjectDir)\lib\boost_1_45_0;$(ProjectDir)\lib;$(ProjectDir)\lib\lua\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\Lib\SeleneSDK-01.24l\Release\Engine\Library\x86;$(ProjectDir)\lib\luabind\lib;$(ProjectDir)\lib\lua\lua;D:\Lib\Lua\5.1\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SeleneSDK-01.24l\Library\x86;$(ProjectDir)\lib\luabind\lib;$(ProjectDir)\lib\lua\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>Selene.Debug.2010.lib;lua5.1.lib;libluabind_s_mtd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>robocopy /MIR $(ProjectDir)lua $(OutDir)lua
+robocopy /MIR $(ProjectDir)data $(OutDir)data
+robocopy /MIR $(ProjectDir)Plugin $(OutDir)Plugin
+copy $(ProjectDir)lib\lua\lib\lua5.1.dll $(OutDir)
+copy $(ProjectDir)lib\SeleneSDK-01.24l\DLL\x86\Selene.dll $(OutDir)
+</Command>
+      <Message>Luaのスクリプトファイルを出力ディレクトリにコピーする</Message>
+    </PreBuildEvent>
+    <Xdcmake>
+      <OutputFile>
+      </OutputFile>
+    </Xdcmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -67,17 +83,33 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>D:\Lib\SeleneSDK-01.24l\Release\Engine\Include;D:\Lib\boost_1_45_0;$(ProjectDir)\lib;$(ProjectDir)\lib\lua\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\lib\SeleneSDK-01.24l\Include;$(ProjectDir)\lib\boost_1_45_0;$(ProjectDir)\lib;$(ProjectDir)\lib\lua\include</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <GenerateXMLDocumentationFiles>true</GenerateXMLDocumentationFiles>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>D:\Lib\SeleneSDK-01.24l\Release\Engine\Library\x86;$(ProjectDir)\lib\luabind\lib;$(ProjectDir)\lib\lua\lua;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>Selene.2010.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)\lib\SeleneSDK-01.24l\Library\x86;$(ProjectDir)\lib\luabind\lib;$(ProjectDir)\lib\lua\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Selene.2010.lib;lua5.1.lib;libluabind_s_mt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>robocopy /MIR $(ProjectDir)lua $(OutDir)lua
+robocopy /MIR $(ProjectDir)data $(OutDir)data
+robocopy /MIR $(ProjectDir)Plugin $(OutDir)Plugin
+copy $(ProjectDir)lib\lua\lib\lua5.1.dll $(OutDir)
+copy $(ProjectDir)lib\SeleneSDK-01.24l\DLL\x86\Selene.dll $(OutDir)
+</Command>
+    </PreBuildEvent>
+    <PreBuildEvent>
+      <Message>Luaのスクリプトファイルを出力ディレクトリにコピーする</Message>
+    </PreBuildEvent>
+    <Xdcmake>
+      <OutputFile>
+      </OutputFile>
+    </Xdcmake>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="SpriteNode.cpp" />
@@ -105,6 +137,23 @@
     <ClInclude Include="SimpleHelpers.hpp" />
     <ClInclude Include="SoundManager.hpp" />
     <ClInclude Include="StdAfx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lua\actor.lua">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
+    <None Include="lua\animations.lua" />
+    <None Include="lua\common.lua" />
+    <None Include="lua\coroutine.lua" />
+    <None Include="lua\debug.lua" />
+    <None Include="lua\gameObjects.lua" />
+    <None Include="lua\gameScreen.lua" />
+    <None Include="lua\gameUis.lua" />
+    <None Include="lua\main.lua" />
+    <None Include="lua\particle.lua" />
+    <None Include="lua\properties.lua" />
+    <None Include="lua\reload.lua" />
+    <None Include="lua\titleScreen.lua" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

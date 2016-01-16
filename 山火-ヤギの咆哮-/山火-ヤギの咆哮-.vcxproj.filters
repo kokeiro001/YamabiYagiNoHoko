@@ -19,6 +19,12 @@
     <Filter Include="ヘッダー ファイル\Managers">
       <UniqueIdentifier>{3dcae956-42e3-4d00-ace7-d408002638d6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="リソース ファイル\lua">
+      <UniqueIdentifier>{d72b8859-e03b-4f5c-9124-59d0c4ce8c15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="リソース ファイル\dll">
+      <UniqueIdentifier>{754b08af-cec9-4dfa-b08b-80fa7c962be3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -83,5 +89,46 @@
     <ClInclude Include="SoundManager.hpp">
       <Filter>ヘッダー ファイル\Managers</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lua\actor.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\titleScreen.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\animations.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\common.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\coroutine.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\debug.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\gameObjects.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\gameScreen.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\gameUis.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\main.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\particle.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\properties.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
+    <None Include="lua\reload.lua">
+      <Filter>リソース ファイル\lua</Filter>
+    </None>
   </ItemGroup>
 </Project>
