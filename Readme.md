@@ -20,6 +20,8 @@ Debug_Outに含まれている実行ファイルを起動することで遊ぶ�
 
 * [DirectX エンドユーザーランタイム](https://www.microsoft.com/ja-jp/download/details.aspx?id=35&)
 
+ビルドする場合、VisualStudio2010が必要です。
+
 
 ## 使い方
 
